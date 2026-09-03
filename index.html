@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DroneWatch</title>
+  <style>
+    :root {
+      --bg: #09152b;
+      --panel: rgba(12, 26, 48, 0.92);
+      --line: rgba(255, 255, 255, 0.13);
+      --text: #e7efff;
+      --muted: #9ab0d3;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --accent: #5ec8ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Gill Sans", "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, #17345c 0%, transparent 30%),
+        radial-gradient(circle at 90% 0%, #1f2956 0%, transparent 35%),
+        linear-gradient(160deg, #081225, #081935 45%, #04111f);
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      margin-right: 8px;
+      border: 1px solid transparent;
+    }
+
+    .pill.safe { background: rgba(34,197,94,0.2); color: #7df8a8; border-color: rgba(34,197,94,0.5); }
+    .pill.warning { background: rgba(245,158,11,0.2); color: #ffd27a; border-color: rgba(245,158,11,0.5); }
+    .pill.critical { background: rgba(239,68,68,0.2); color: #ff9393; border-color: rgba(239,68,68,0.5); }
+
+    .events {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .event {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(7, 17, 35, 0.95);
+    }
+
+    .event summary {
+      cursor: pointer;
+      color: var(--accent);
+      margin-top: 8px;
+    }
+
+    .event pre {
+      background: #0a1326;
+      border-radius: 8px;
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+      max-height: 240px;
+    }
+
+    .timeline {
+      max-height: 420px;
+      overflow: auto;
+    }
+
+    .button-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button {
+      border: 0;
+      color: #050d18;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: linear-gradient(120deg, #4cd3ff, #7b8cff);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(1.05); }
+
+    .muted { color: var(--muted); font-size: 0.92rem; }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 8px 4px;
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      .page { gap: 12px; }
+      .card { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>DroneWatch</h1>
+      <div class="subtitle">Visual intelligence for restricted-airspace awareness</div>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <h3>Current status</h3>
+        <p>
+          <span class="pill" id="status-pill">--</span>
+          <span id="status-text" class="muted">Waiting for events...</span>
+        </p>
+        <p class="muted">Last update: <span id="status-updated">--</span></p>
+      </article>
+
+      <article class="card">
+        <h3>Latest detection</h3>
+        <div id="latest-box" class="muted">No detections yet.</div>
+      </article>
+
+      <article class="card">
+        <h3>Open incidents</h3>
+        <div id="open-box" class="muted">0</div>
+      </article>
+    </section>
+
+    <section class="card" id="simulation-controls">
+      <h3>Simulation controls (development)</h3>
+      <p class="muted">Generate test detections to validate the dashboard flow before Viso is wired.</p>
+      <div class="button-row">
+        <button type="button" data-scenario="detected">Simulate drone detected</button>
+        <button type="button" data-scenario="restricted">Simulate restricted-zone approach</button>
+        <button type="button" data-scenario="left">Simulate leaving restricted zone</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Event timeline</h3>
+      <div id="timeline" class="timeline events"></div>
+    </section>
+  </main>
+
+  <script>
+    const statusPill = document.getElementById("status-pill");
+    const statusText = document.getElementById("status-text");
+    const statusUpdated = document.getElementById("status-updated");
+    const latestBox = document.getElementById("latest-box");
+    const openBox = document.getElementById("open-box");
+      const timelineEl = document.getElementById("timeline");
+      const buttons = document.querySelectorAll("[data-scenario]");
+
+    function severityClass(status) {
+      if (status === "SAFE") return "safe";
+      if (status === "WARNING") return "warning";
+      return "critical";
+    }
+
+    function formatTime(value) {
+      try {
+        return new Date(value).toLocaleString();
+      } catch (_) {
+        return value || "--";
+      }
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch('/api/events?limit=30');
+        if (!response.ok) {
+          return;
+        }
+        const payload = await response.json();
+
+        statusPill.textContent = payload.status;
+        statusPill.className = `pill ${severityClass(payload.status).toLowerCase()}`;
+        statusText.textContent = `Open incidents: ${payload.open_count}`;
+        statusUpdated.textContent = formatTime(payload.received_at);
+
+        openBox.textContent = payload.open_count;
+        const latest = payload.latest;
+        if (latest) {
+          const confidence = latest.confidence == null ? "N/A" : `${Math.round(latest.confidence * 100)}%`;
+          const simulated = latest.is_simulated ? "SIMULATED" : "LIVE";
+          const details = [
+            `<strong>${latest.detection_type || "unknown"}</strong>`,
+            `state: ${latest.state}`,
+            `source: ${latest.source}`,
+            `confidence: ${confidence}`,
+            `drone_detected: ${latest.drone_detected}`,
+            `severity: ${latest.severity}`,
+            `received_at: ${formatTime(latest.received_at)}`,
+            `kind: ${simulated}`,
+          ];
+          latestBox.innerHTML = `<p>${details.join(" • ")}</p>`;
+        } else {
+          latestBox.innerHTML = `<p class="muted">No detections yet.</p>`;
+        }
+
+        if (!payload.events.length) {
+          timelineEl.innerHTML = '<div class="empty">No events yet.</div>';
+          return;
+        }
+
+        timelineEl.innerHTML = payload.events
+          .map(evt => {
+            const conf = evt.confidence == null ? "N/A" : `${(evt.confidence * 100).toFixed(1)}%`;
+            const raw = JSON.stringify(evt.raw_payload || {}, null, 2);
+            const sim = evt.is_simulated ? ' <span class="muted">(SIMULATED)</span>' : '';
+            return `
+              <div class="event">
+                <div class="row">
+                  <span><strong>${evt.state}</strong> · ${evt.detection_type || 'unknown'}${sim}</span>
+                  <span class="muted">${formatTime(evt.received_at)}</span>
+                </div>
+                <div class="muted">source: ${evt.source || 'unknown'} · confidence: ${conf} · severity: ${evt.severity}</div>
+                <details>
+                  <summary>raw viso event</summary>
+                  <pre>${raw}</pre>
+                </details>
+              </div>
+            `;
+          })
+          .join("");
+      } catch (err) {
+        statusText.textContent = "Error loading data";
+      }
+    }
+
+    async function applySimulationVisibility() {
+      try {
+        const configResponse = await fetch('/api/config');
+        if (!configResponse.ok) return;
+        const cfg = await configResponse.json();
+        if (!cfg.simulation_enabled) {
+          document.getElementById('simulation-controls').style.display = 'none';
+        }
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const scenario = btn.getAttribute('data-scenario');
+        await fetch('/dev/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario })
+        });
+        await refresh();
+      });
+    });
+
+    applySimulationVisibility();
+    refresh();
+    setInterval(refresh, 2500);
+  </script>
+</body>
+</html>
