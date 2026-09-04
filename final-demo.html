@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101619">
+  <meta name="description" content="DroneWatch — an offline, synthetic visual airspace-awareness demonstration.">
+  <title>DroneWatch | Visual Airspace Awareness</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23101619'/%3E%3Ccircle cx='20' cy='20' r='13' stroke='%2397c8bd' fill='none'/%3E%3Cpath d='M20 7v26M7 20h26' stroke='%2397c8bd'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/final-demo.css?v=2">
+  <script src="/static/stage-core.js?v=1" defer></script>
+  <script src="/static/final-demo.js?v=2" defer></script>
+</head>
+<body data-severity="NORMAL">
+<div class="console">
+  <header class="masthead">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="10"/><path d="M24 1v12m0 22v12M1 24h12m22 0h12M24 24l13-13"/><circle cx="24" cy="24" r="2"/></svg>
+      <div><h1>DRONEWATCH</h1><p>VISUAL AIRSPACE AWARENESS</p></div>
+    </div>
+    <div class="environment">DEMO <span>—</span> SYNTHETIC SENSOR ENVIRONMENT</div>
+    <div class="system"><span id="connection">CONNECTING</span><span>LOCAL SYSTEM <i class="dot"></i></span></div>
+  </header>
+
+  <section class="control-bar" aria-label="Demo controls">
+    <div class="pipeline" aria-label="Detection to alert pipeline">
+      <span id="step-sensor"><i>01</i> SENSOR</span><b>›</b><span id="step-class"><i>02</i> CLASSIFY</span><b>›</b><span id="step-track"><i>03</i> TRACK</span><b>›</b><span id="step-radar"><i>04</i> RADAR</span><b>›</b><span id="step-alert"><i>05</i> STATUS</span>
+    </div>
+    <div class="controls">
+      <button id="run" class="primary" data-scenario="drone"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5 11 6 3 10.5Z"/></svg>RUN DRONE DEMO</button>
+      <button data-scenario="aircraft" id="aircraft">AIRCRAFT</button>
+      <button data-scenario="bird" id="bird">BIRD</button>
+      <span class="control-divider"></span>
+      <button id="reset">RESET</button>
+      <button id="fullscreen" aria-label="Toggle fullscreen"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4"/></svg><span>FULLSCREEN</span></button>
+    </div>
+  </section>
+
+  <main class="workspace">
+    <section class="panel sensor-panel" aria-labelledby="sensor-title">
+      <div class="panel-heading"><h2 id="sensor-title"><span class="section-number">01 /</span> SIMULATED EO SENSOR</h2><span class="feed-source"><i class="dot"></i> EO-01</span></div>
+      <div class="sensor-view" id="sensor-view">
+        <div class="sensor-top"><span>SIMULATED EO SENSOR</span><time id="sensor-time">00:00:00 UTC</time></div>
+        <svg id="eo" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Procedural synthetic visual sensor, no live camera">
+          <defs>
+            <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#465861"/><stop offset=".6" stop-color="#819297"/><stop offset="1" stop-color="#acb7b5"/></linearGradient>
+            <linearGradient id="mist" x2="0" y2="1"><stop stop-color="#b8c1bc" stop-opacity="0"/><stop offset="1" stop-color="#b8c1bc" stop-opacity=".6"/></linearGradient>
+            <pattern id="scanlines" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0H4" stroke="#12232a" stroke-opacity=".085"/></pattern>
+            <radialGradient id="vignette"><stop offset=".35" stop-color="#13232a" stop-opacity="0"/><stop offset="1" stop-color="#13232a" stop-opacity=".3"/></radialGradient>
+          </defs>
+          <path fill="url(#sky)" d="M0 0h800v420H0Z"/>
+          <g fill="none" stroke="#c9d3d0" stroke-opacity=".07" stroke-width="16"><path d="M-20 125Q180 90 360 123T850 97"/><path d="M80 170Q300 152 700 171"/></g>
+          <path d="M0 352 73 343 128 349 206 330 291 339 375 318 452 331 532 309 622 329 714 318 800 329V420H0Z" fill="#697b7b" opacity=".5"/>
+          <path d="M0 379 73 365 148 371 220 351 281 364 360 344 433 365 513 350 574 363 643 352 704 371 800 354V420H0Z" fill="#3e5356" opacity=".65"/>
+          <path fill="url(#mist)" d="M0 260h800v160H0Z"/>
+          <path fill="url(#scanlines)" d="M0 0h800v420H0Z"/>
+          <path fill="url(#vignette)" d="M0 0h800v420H0Z"/>
+          <g class="crosshair"><path d="M366 210h23m22 0h23M400 176v23m0 22v23M23 68V53h25m704 0h25v15M23 350v15h25m704 0h25v-15"/><circle cx="400" cy="210" r="3"/><path opacity=".4" d="M350 393h100m-100-4v8m25-6v4m25-6v8m25-6v4m25-6v8"/></g>
+          <g id="eo-target" hidden>
+            <g id="shape-drone" class="target-shape"><path d="M-30-10 30 10M-30 10 30-10" stroke-width="5"/><ellipse cx="-31" cy="-12" rx="16" ry="3"/><ellipse cx="31" cy="12" rx="16" ry="3"/><ellipse cx="-31" cy="12" rx="16" ry="3"/><ellipse cx="31" cy="-12" rx="16" ry="3"/><path d="M-11-7h22l3 14h-28Z"/><path d="M-8 6v12m16-12v12" stroke-width="2.5"/><circle cx="0" cy="11" r="3"/></g>
+            <g id="shape-aircraft" class="target-shape" hidden><path d="M-57 4-9-8 5-21 12-22 10-7 53-1 61 4 9 6-10 18-23 18-12 5-55 10Z"/><path d="M-18 2 30 2" stroke="#b9c4c4" stroke-width="1"/></g>
+            <g id="shape-bird" class="target-shape" hidden><path id="bird-wings" d="M-40-13Q-17-10 0 5Q17-10 40-13Q21 3 5 10L0 17-5 10Q-21 3-40-13Z"/><path d="M-2 7 0-3 3 7Z"/></g>
+            <g class="target-label"><rect x="-74" y="-70" width="148" height="26" rx="2"/><text id="eo-label" x="-64" y="-52">UAS 96%</text></g>
+            <path class="bounding-box" d="M-74-26v-15h20m108 0h20v15M-74 26v15h20m108 0h20V26"/>
+            <text class="eo-track-label" id="eo-track-id" x="-74" y="63">CLASSIFYING</text>
+          </g>
+        </svg>
+        <div class="sensor-empty" id="sensor-empty"><div class="monitor-icon"></div><strong>MONITORING</strong><span>AWAITING VISUAL CONTACT</span></div>
+        <div class="sensor-bottom"><span><i class="dot"></i> <span id="sensor-status">MONITORING</span></span><span>OPTICAL / SYNTHETIC</span></div>
+      </div>
+      <div class="detection-strip">
+        <div class="classification"><span class="eyebrow">CURRENT DETECTION</span><strong id="detection-class">AIRSPACE CLEAR</strong><span id="detection-note">Monitoring the synthetic sensor environment</span></div>
+        <div class="confidence" id="confidence-wrap" hidden><span class="eyebrow">CONFIDENCE</span><strong id="confidence">96<small>%</small></strong><div class="confidence-line"><i id="confidence-fill"></i></div></div>
+        <div class="sensor-identity"><span class="eyebrow">SOURCE</span><strong>EO-01</strong><span>SIMULATED SENSOR</span></div>
+      </div>
+    </section>
+
+    <section class="panel radar-panel" aria-labelledby="radar-title">
+      <div class="panel-heading"><h2 id="radar-title"><span class="section-number">02 /</span> 360° RADAR</h2><span class="panel-meta">RANGE 2,500 m</span></div>
+      <div class="radar-view">
+        <svg id="radar" viewBox="0 0 1000 1000" role="img" aria-label="360 degree synthetic radar: north up, east right, protected site at centre">
+          <defs><radialGradient id="radar-fill"><stop stop-color="#21312f"/><stop offset="1" stop-color="#141e22"/></radialGradient><linearGradient id="sweep-fill"><stop stop-color="#9cc9bd" stop-opacity="0"/><stop offset="1" stop-color="#9cc9bd" stop-opacity=".08"/></linearGradient><clipPath id="radar-clip"><circle cx="500" cy="500" r="415"/></clipPath></defs>
+          <circle cx="500" cy="500" r="415" fill="url(#radar-fill)"/>
+          <g class="radar-grid"><circle cx="500" cy="500" r="83"/><circle cx="500" cy="500" r="166"/><circle cx="500" cy="500" r="249"/><circle cx="500" cy="500" r="332"/><circle cx="500" cy="500" r="415"/><path d="M85 500h830M500 85v830M206.55 206.55l586.9 586.9m0-586.9L206.55 793.45"/></g>
+          <circle id="warning-zone" cx="500" cy="500" r="166"/><circle id="restricted-zone" cx="500" cy="500" r="83"/>
+          <g class="radar-sweep" clip-path="url(#radar-clip)"><path d="M500 500 293 140.6A415 415 0 0 1 500 85Z" fill="url(#sweep-fill)"/><path d="M500 500V85" stroke="#9cc9bd" stroke-opacity=".16"/></g>
+          <g class="ring-labels"><text x="488" y="413">500</text><text x="488" y="330">1000</text><text x="488" y="247">1500</text><text x="488" y="164">2000</text><text x="488" y="79">2500</text></g>
+          <g class="cardinals"><text x="500" y="37">N</text><text x="959" y="510">E</text><text x="500" y="975">S</text><text x="41" y="510">W</text></g>
+          <g class="site"><path d="M488 488h24v24h-24Z"/><path d="M480 500h8m24 0h8m-20-20v8m0 24v8"/><text x="500" y="551">PROTECTED SITE</text></g>
+          <polyline id="trail" clip-path="url(#radar-clip)"/>
+          <g id="contact" hidden><circle class="acquisition-pulse" r="17"/><g id="contact-heading"><path class="contact-shape" d="M0-15 11 12 0 6-11 12Z"/></g><circle id="contact-held" class="contact-shape" r="9" hidden/><text id="radar-track-id" x="25" y="-12">DW-001</text></g>
+        </svg>
+        <div class="radar-contact-count"><span class="eyebrow">CONTACTS</span><strong id="contact-count">00</strong></div>
+        <div class="radar-scale"><span><i class="zone-key warning"></i> WARNING 1,000 m</span><span><i class="zone-key restricted"></i> RESTRICTED 500 m</span></div>
+        <div class="radar-source">SYNTHETIC POSITIONS · NORTH UP</div>
+      </div>
+
+    </section>
+  </main>
+
+  <section class="status-banner" id="status-banner" aria-live="polite" aria-atomic="true">
+    <div class="status-main"><span class="status-symbol" id="status-symbol">✓</span><div><span class="eyebrow" id="banner-label">AIRSPACE STATUS</span><h2 id="banner">AIRSPACE CLEAR</h2></div></div>
+    <div class="status-meta"><strong id="severity">MONITORING</strong><span id="sequence">READY TO RUN</span></div>
+    <div class="sequence-progress"><i id="progress"></i></div>
+  </section>
+
+  <div class="bottom-strip">
+      <section class="panel track-strip" aria-label="Selected track">
+        <div class="track-heading"><div><span class="eyebrow">SELECTED TRACK</span><strong id="track-id">NO CONTACT</strong></div><div class="track-identity" id="track-identity" hidden><span>CLASS <b id="track-class">UAS</b></span><span>CONFIDENCE <b id="track-confidence">96%</b></span><span>SOURCE <b>EO-01</b></span></div><span id="track-state" class="track-state">STANDBY</span></div>
+        <div id="telemetry" class="telemetry" hidden><div><span>RANGE</span><strong id="range"></strong></div><div><span>BEARING</span><strong id="bearing"></strong></div><div><span>ALTITUDE</span><strong id="altitude"></strong></div><div><span>SPEED</span><strong id="speed"></strong></div></div>
+        <p id="track-empty">A confirmed visual detection becomes an operational track.</p>
+      </section>
+  <section class="operations" aria-labelledby="operations-title"><div class="operations-heading"><h2 id="operations-title">OPERATIONS LOG</h2><span>KEY EVENTS</span></div><ol id="event-log"><li><time>00:00:00</time><span class="category">SYSTEM</span><span>AIRSPACE MONITORING</span></li></ol></section>
+  </div>
+  <footer><p>DroneWatch converts sensor detections into operational airspace tracks. Real EO/IR, radar, RF, acoustic or Remote ID observations can feed the same interface.</p><span>OFFLINE DEMONSTRATION</span></footer>
+  <div id="toast" role="alert" hidden></div>
+</div>
+</body>
+</html>

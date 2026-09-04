@@ -1,0 +1,3 @@
+# Optional only; dataset conversion/validation use Python's standard library.
+# Needed solely for extracting frames from video.
+opencv-python-headless>=4.8,<5

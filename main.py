@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import sqlite3
@@ -18,6 +19,15 @@ DB_PATH = BASE_DIR / os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")
 SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "1") not in {"0", "false", "off", "no"}
 
 app = FastAPI(title="DroneWatch")
+
+if __package__:
+    from .console_runtime import ConsoleRuntime
+    from .realtime import install_console
+else:
+    from console_runtime import ConsoleRuntime
+    from realtime import install_console
+
+console_runtime = ConsoleRuntime(BASE_DIR)
 
 KNOWN_STATES = {"DETECTED", "APPROACHING", "RESTRICTED_ZONE", "EXITED", "UNKNOWN"}
 KNOWN_SEVERITY = {"INFO", "WARNING", "HIGH"}
@@ -289,7 +299,7 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
 
 def _write_incident(incident: Dict[str, Any]) -> None:
     with sqlite3.connect(DB_PATH) as conn:
-        conn.execute(
+        cursor = conn.execute(
             """
             INSERT INTO incidents (
                 event_id,
@@ -320,6 +330,12 @@ def _write_incident(incident: Dict[str, Any]) -> None:
             ),
         )
         conn.commit()
+
+    # Durable ingestion succeeds independently of optional presentation/tracking.
+    try:
+        console_runtime.observe({**incident, "id": cursor.lastrowid})
+    except Exception:
+        logging.exception("Tracking notification failed; the source event is safely stored")
 
 
 def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
@@ -362,14 +378,28 @@ class SimulatePayload(BaseModel):
     scenario: str
 
 
+def _query_events_since(after_id: int, through_id: int):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.execute("SELECT * FROM incidents WHERE id > ? AND id <= ? ORDER BY id", (after_id, through_id))
+        while True:
+            rows = cursor.fetchmany(500)
+            if not rows:
+                break
+            for row in rows:
+                yield _row_to_dict(row)
+
+
 @app.on_event("startup")
 def startup() -> None:
     ensure_db()
+    for event in reversed(_query_events(limit=200)):
+        console_runtime.observe(event, emit=False)
 
 
 @app.get("/")
 def root() -> FileResponse:
-    return FileResponse(BASE_DIR / "index.html")
+    return FileResponse(BASE_DIR / "final-demo.html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/health")
@@ -389,6 +419,8 @@ def config() -> Dict[str, bool]:
 @app.get("/api/events")
 def api_events(limit: int = 20) -> Dict[str, Any]:
     events = _query_events(limit=limit)
+    with sqlite3.connect(DB_PATH) as conn:
+        total_count = conn.execute("SELECT COUNT(*) FROM incidents").fetchone()[0]
     latest = events[0] if events else None
     open_incidents = [evt for evt in events if evt["state"] != "EXITED"]
     status = "SAFE"
@@ -405,6 +437,7 @@ def api_events(limit: int = 20) -> Dict[str, Any]:
         "open_incidents": open_incidents,
         "open_count": len(open_incidents),
         "events": events,
+        "total_count": total_count,
         "received_at": utcnow(),
     }
 
@@ -474,3 +507,35 @@ def simulate_event(payload: SimulatePayload):
     incident = _normalize_incident(template, source_default="SIMULATED", simulated=True)
     _write_incident(incident)
     return incident
+
+
+install_console(app, console_runtime, lambda: api_events(limit=200), _query_events_since, BASE_DIR)
+
+# Synthetic world telemetry is transient; only lifecycle milestones use the
+# existing durable incident writer. The Viso webhook remains unchanged.
+if __package__:
+    from .airspace_api import install_airspace
+else:
+    from airspace_api import install_airspace
+install_airspace(app, _write_incident, lambda: api_events(limit=200), BASE_DIR)
+
+# Preserve the unfinished public-airspace experiment without loading it for the stage demo.
+import os as _integrity_os
+if _integrity_os.environ.get("DRONEWATCH_ENABLE_INTEGRITY_EXPERIMENT") == "1":
+    if __package__:
+        from .integrity_routes import install_integrity
+    else:
+        from integrity_routes import install_integrity
+    install_integrity(app, _write_incident, BASE_DIR)
+
+if __package__:
+    from .stage_demo import install_stage
+else:
+    from stage_demo import install_stage
+install_stage(app)
+
+if __package__:
+    from .final_demo import install_final_demo
+else:
+    from final_demo import install_final_demo
+install_final_demo(app)

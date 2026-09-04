@@ -1,10 +1,5 @@
 # DroneWatch
 
-> Current presentation: **offline synthetic Drone / Aircraft / Bird demo**.
-> Run `./start-demo.sh` and open the printed local URL. See
-> [FINAL_DEMO.md](FINAL_DEMO.md). The previous integration notes below are preserved
-> for reference and are not prerequisites for the presentation.
-
 Visual intelligence for restricted-airspace awareness. An independent monitoring
 prototype, not a safety-certified system or an official parliamentary deployment.
 No affiliation, endorsement, hostile-intent inference, range or altitude claims.
