@@ -1,14 +1,20 @@
-# Continuous demo feed
+# Viso Now file-replay helper
 
-The original ~/Downloads/mq9-reaper.mp4 is read only. The dashboard plays it
-muted on repeat from a separate local server, labelled DEMO SENSOR FEED.
-LIVE PIPELINE reflects genuine Viso events within the last 120 seconds, never
-video playback or simulated events. The FastAPI server and tunnel are unchanged.
+The selected source MP4 is opened read-only. The dashboard can play it muted on
+repeat from a separate local server, labelled DEMO SENSOR FEED. LIVE PIPELINE
+reflects Viso-shaped events within the last 120 seconds, never video playback or
+simulated events. V0 does not authenticate Viso provenance.
+
+Viso Now processes discrete media files rather than a continuous live stream.
+This helper therefore creates a supervised file replay, not a live camera feed.
 
 From the dronewatch directory, start video playback and copying:
 
 ```sh
-python3 demo_feed.py --watch-dir '/absolute/path/to/Google Drive/Viso watched folder' --interval 25
+.venv/bin/python demo_feed.py \
+  --source '/absolute/path/to/demo.mp4' \
+  --watch-dir '/absolute/path/to/Google Drive/Viso watched folder' \
+  --interval 25
 ```
 
 The folder must exist locally, be synced by Google Drive for desktop, and already
@@ -20,21 +26,25 @@ watch the LIVE PIPELINE indicator and real event log for confirmation.
 If the video server is already running, start just the copy loop:
 
 ```sh
-python3 demo_feed.py --copy-only --watch-dir '/absolute/path/to/Google Drive/Viso watched folder' --interval 25
+.venv/bin/python demo_feed.py --copy-only \
+  --source '/absolute/path/to/demo.mp4' \
+  --watch-dir '/absolute/path/to/Google Drive/Viso watched folder' \
+  --interval 25
 ```
 
-Alternatively set DRONEWATCH_DRIVE_FOLDER to the local folder. --source overrides
-the original video path. Ctrl+C stops the helper and removes any unfinished copy;
+Alternatively set `DRONEWATCH_DRIVE_FOLDER` to the local folder. `--source`
+selects the video. Ctrl+C stops the helper and removes any unfinished copy;
 completed files are retained. No deletion or cleanup of existing Drive files is
-performed.
+performed. At the default interval the helper can create 144 copies per hour, so
+run it only for a bounded, supervised demo session.
 
 Without --watch-dir, the helper serves video only and copies nothing:
 
 ```sh
-python3 demo_feed.py
+.venv/bin/python demo_feed.py --source '/absolute/path/to/demo.mp4'
 ```
 
 Open http://localhost:8000 on this computer. The local-only video server listens
 on 127.0.0.1:8001 and supports byte-range requests for smooth looping. Other
 computers opening a public dashboard URL cannot use this computer's loopback
-video feed. The existing public Viso webhook does not change.
+video feed. The Viso webhook path remains independent of this loopback server.

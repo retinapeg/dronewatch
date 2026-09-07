@@ -6,7 +6,7 @@ from urllib.request import Request, urlopen
 
 import pytest
 
-from dronewatch.demo_feed import copy_once, make_handler, parse_args
+from demo_feed import copy_once, make_handler, parse_args
 
 
 def test_copies_are_unique_complete_and_leave_original_unchanged(tmp_path):

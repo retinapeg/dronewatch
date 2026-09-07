@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("DRONEWATCH_DB_PATH", str(tmp_path / "dronewatch_test.db"))
     monkeypatch.setenv("DRONEWATCH_SIMULATION", "1")
-    import dronewatch.main as app_module
+    import main as app_module
     importlib.reload(app_module)
     with TestClient(app_module.app) as client:
         yield client, app_module
@@ -20,6 +20,19 @@ def test_health_endpoint(client):
     response = test_client.get('/health')
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert "database_path" not in response.json()
+
+
+def test_stored_simulation_is_disabled_by_default(tmp_path, monkeypatch):
+    monkeypatch.setenv("DRONEWATCH_DB_PATH", str(tmp_path / "dronewatch_default.db"))
+    monkeypatch.delenv("DRONEWATCH_SIMULATION", raising=False)
+    import main as app_module
+    importlib.reload(app_module)
+
+    with TestClient(app_module.app) as test_client:
+        assert test_client.get('/api/config').json()["simulation_enabled"] is False
+        response = test_client.post('/dev/simulate', json={"scenario": "detected"})
+        assert response.status_code == 404
 
 
 def test_webhook_valid_payload(client):
@@ -54,6 +67,24 @@ def test_webhook_unexpected_json(client):
 
     events = test_client.get('/api/events?limit=5').json()
     assert events["events"][0]["detection_type"] in (None, "", "[1, 2, {'foo': 'bar'}]")
+
+
+def test_webhook_does_not_infer_detection_from_narrative_or_stringify_source(client):
+    test_client, _ = client
+    payload = {
+        "appId": "demo-app",
+        "incidentId": "demo-incident",
+        "summary": "No DRONE_ZONE_INTRUSION event emitted",
+        "source": {"connectionId": None},
+    }
+
+    response = test_client.post('/webhook/viso', json=payload)
+    assert response.status_code == 200
+
+    latest = test_client.get('/api/events?limit=1').json()["latest"]
+    assert latest["drone_detected"] is False
+    assert latest["state"] == "UNKNOWN"
+    assert latest["source"] == "VISO"
 
 
 def test_webhook_empty_json(client):

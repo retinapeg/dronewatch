@@ -47,10 +47,10 @@ URLs are never shown as sensor evidence.
 
 ## Checks
 
-Run existing Python tests from the parent of the dronewatch package:
+Run Python tests from the repository root:
 
 ```sh
-python -m pytest -q dronewatch/tests/test_main.py
+.venv/bin/python -m pytest -q
 ```
 
 Run presentation-data tests from the dronewatch directory:
@@ -59,5 +59,5 @@ Run presentation-data tests from the dronewatch directory:
 node --test tests/dashboard.test.cjs
 ```
 
-Pre-UI checkpoint: b66c6a9. Consistent SQLite backup:
-../work/dronewatch-before-tactical.sqlite3. Runtime data is excluded from Git.
+Pre-UI checkpoint: `b66c6a9`. Runtime data is excluded from Git. The frontend is
+frozen until the source, provenance, timing, and track contracts are stable.

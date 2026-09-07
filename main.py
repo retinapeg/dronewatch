@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 import json
+import logging
 import os
 import re
 import sqlite3
@@ -15,9 +17,17 @@ from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")
-SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "1") not in {"0", "false", "off", "no"}
+SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "0") not in {"0", "false", "off", "no"}
+LOGGER = logging.getLogger("dronewatch")
 
-app = FastAPI(title="DroneWatch")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    ensure_db()
+    yield
+
+
+app = FastAPI(title="DroneWatch", lifespan=lifespan)
 
 KNOWN_STATES = {"DETECTED", "APPROACHING", "RESTRICTED_ZONE", "EXITED", "UNKNOWN"}
 KNOWN_SEVERITY = {"INFO", "WARNING", "HIGH"}
@@ -65,6 +75,7 @@ def find_first(payload: Any, candidate_keys: Iterable[str]) -> Any:
         return re.sub(r"[^a-z0-9]+", "", value.lower())
 
     normalized_candidates = {compact(candidate) for candidate in candidate_keys}
+    lower_candidates = {candidate.lower() for candidate in candidate_keys}
     for node in walk_nodes(payload):
         if not isinstance(node, dict):
             continue
@@ -74,7 +85,7 @@ def find_first(payload: Any, candidate_keys: Iterable[str]) -> Any:
             key_compact = compact(key)
             key_tokens = {part for part in re.split(r"[^a-z0-9]+", key.lower()) if part}
             token_compact = {compact(token) for token in key_tokens}
-            if key_compact in normalized_candidates or key.lower() in {candidate.lower() for candidate in candidate_keys}:
+            if key_compact in normalized_candidates or key.lower() in lower_candidates:
                 if value is None:
                     continue
                 if isinstance(value, str) and value.strip() == "":
@@ -134,6 +145,8 @@ def coerce_str(value: Any) -> Optional[str]:
     if isinstance(value, str):
         text = value.strip()
         return text if text else None
+    if isinstance(value, (bool, dict, list, tuple, set)):
+        return None
     return str(value)
 
 
@@ -179,16 +192,12 @@ def _extract_confidence(payload: Any) -> Optional[float]:
 
 
 def _extract_media_url(payload: Any) -> Optional[str]:
-    return coerce_str(find_first(payload, ["media_url", "mediaurl", "media_url", "snapshot", "image_url", "video_url", "url"]))
+    return coerce_str(find_first(payload, ["media_url", "mediaurl", "snapshot", "image_url", "video_url", "url"]))
 
 
 def _extract_received(payload: Any) -> str:
     candidate = find_first(payload, ["timestamp", "event_time", "eventtime", "received_at", "receivedat", "created_at", "createdat", "time", "ts"])
     return parse_timestamp(candidate)
-
-
-def _extract_source(payload: Any, default: str) -> str:
-    return coerce_str(find_first(payload, ["source", "camera", "camera_name", "device", "origin", "station"])) or default
 
 
 def _normalize_state(raw_state: Optional[str], detection_type: Optional[str], drone_detected: bool) -> str:
@@ -244,8 +253,6 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
 
     if explicit_drone_detected is None:
         if detection_type and "drone" in detection_type.lower():
-            drone_detected = True
-        elif isinstance(raw_payload, dict) and str(raw_payload).lower().find("drone") >= 0:
             drone_detected = True
         else:
             drone_detected = False
@@ -362,11 +369,6 @@ class SimulatePayload(BaseModel):
     scenario: str
 
 
-@app.on_event("startup")
-def startup() -> None:
-    ensure_db()
-
-
 @app.get("/")
 def root() -> FileResponse:
     return FileResponse(BASE_DIR / "index.html")
@@ -377,7 +379,6 @@ def health() -> Dict[str, Any]:
     return {
         "status": "ok",
         "received_at": utcnow(),
-        "database_path": str(DB_PATH),
     }
 
 
@@ -420,11 +421,14 @@ async def viso_webhook(request: Request):
     except json.JSONDecodeError:
         payload = {"raw_body": body_bytes.decode("utf-8", errors="replace"), "_payload_decode_failed": True}
 
-    print("[DroneWatch] webhook payload received:")
-    print(json.dumps(payload, indent=2, ensure_ascii=False))
-
     incident = _normalize_incident(payload if isinstance(payload, dict) else {"value": payload}, "VISO", simulated=False)
     _write_incident(incident)
+    LOGGER.info(
+        "Webhook event stored event_id=%s state=%s simulated=%s",
+        incident["event_id"],
+        incident["state"],
+        incident["is_simulated"],
+    )
     return {"status": "ok"}
 
 
