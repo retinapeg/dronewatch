@@ -9,10 +9,10 @@ const context = vm.createContext({ URL });
 vm.runInContext(`${source}\nglobalThis.helpers = DW;`, context);
 const dw = context.helpers;
 
-test('latest observation follows backend ID 8 instead of preferring genuine Viso event 6', () => {
-  const genuine = { id: 6, source: 'VISO', state: 'DETECTED', raw_payload: { appId: 'app', incidentId: 'incident' } };
+test('latest observation follows backend ID 8 instead of preferring legacy provider-shaped event 6', () => {
+  const providerShaped = { id: 6, source: 'VISO', state: 'DETECTED', raw_payload: { appId: 'app', incidentId: 'incident' } };
   const simulation = { id: 8, source: 'SIMULATED', state: 'DETECTED', is_simulated: true };
-  const payload = { latest: simulation, events: [simulation, genuine] };
+  const payload = { latest: simulation, events: [simulation, providerShaped] };
   assert.equal(dw.latest(payload), simulation);
   assert.equal(dw.kind(dw.latest(payload)), 'SIMULATED');
   assert.equal(dw.latest({ events: payload.events }), simulation);
@@ -30,7 +30,7 @@ test('separate event IDs advance even when both observations classify the same d
   assert.equal(events.length, 2);
 });
 
-test('Viso metadata is distinguished from simulations and generic webhook tests', () => {
+test('legacy Viso-shaped metadata is distinguished from simulations and generic webhook tests', () => {
   const event = { source: "{'connectionId': None}", raw_payload: { appId: 'app', incidentId: 'incident' } };
   assert.equal(dw.kind(event), 'VISO');
   assert.equal(dw.kind({ ...event, is_simulated: true }), 'SIMULATED');

@@ -1,372 +1,365 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import hashlib
 import json
 import logging
+import math
 import os
-import re
+import secrets
 import sqlite3
 import uuid
-from datetime import datetime, timezone
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel, ConfigDict, ValidationError
+from starlette.requests import ClientDisconnect
+
+from contracts import (
+    Classification,
+    DeliveryMode,
+    DetectionResult,
+    InboundObservationV1,
+    LifecycleState,
+    Provenance,
+    build_canonical_observation,
+    rfc3339,
+    utcnow,
+    validate_observation_time,
+)
+from storage import (
+    RetentionPolicy,
+    legacy_count,
+    migrate_database,
+    observation_count,
+    query_events,
+    query_legacy_events,
+    query_open_tracks,
+    store_observation,
+)
+from viso_adapter import VisoAdapterUnavailable, map_viso_delivery
+
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")
-SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "0") not in {"0", "false", "off", "no"}
 LOGGER = logging.getLogger("dronewatch")
+MAX_BODY_CONFIGURATION = 1_048_576
+MAX_JSON_DEPTH = 20
+MAX_JSON_NODES = 2_000
+MAX_JSON_INTEGER_DIGITS = 128
+
+
+def _env_int(name: str, default: int, *, minimum: int, maximum: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError as error:
+        raise RuntimeError(f"{name} must be an integer") from error
+    if not minimum <= parsed <= maximum:
+        raise RuntimeError(f"{name} is outside its supported range")
+    return parsed
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"1", "true", "on", "yes"}:
+        return True
+    if normalized in {"0", "false", "off", "no"}:
+        return False
+    raise RuntimeError(f"{name} must be an explicit boolean value")
+
+
+def _database_path() -> Path:
+    configured = Path(os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")).expanduser()
+    return configured if configured.is_absolute() else BASE_DIR / configured
+
+
+def _configured_token() -> str | None:
+    token = os.getenv("DRONEWATCH_WEBHOOK_TOKEN")
+    if not token:
+        return None
+    if len(token) < 32 or any(not 33 <= ord(character) <= 126 for character in token):
+        raise RuntimeError(
+            "DRONEWATCH_WEBHOOK_TOKEN must contain at least 32 visible ASCII characters"
+        )
+    return token
+
+
+@dataclass(frozen=True)
+class Settings:
+    database_path: Path
+    webhook_token: str | None
+    webhook_max_bytes: int
+    max_future_seconds: int
+    simulation_enabled: bool
+    retention: RetentionPolicy
+
+
+def load_settings() -> Settings:
+    return Settings(
+        database_path=_database_path(),
+        webhook_token=_configured_token(),
+        webhook_max_bytes=_env_int(
+            "DRONEWATCH_WEBHOOK_MAX_BYTES",
+            65_536,
+            minimum=1_024,
+            maximum=MAX_BODY_CONFIGURATION,
+        ),
+        max_future_seconds=_env_int(
+            "DRONEWATCH_MAX_FUTURE_SECONDS",
+            60,
+            minimum=0,
+            maximum=3_600,
+        ),
+        simulation_enabled=_env_bool("DRONEWATCH_SIMULATION"),
+        retention=RetentionPolicy(
+            observation_days=_env_int(
+                "DRONEWATCH_OBSERVATION_RETENTION_DAYS", 30, minimum=1, maximum=3_650
+            ),
+            observation_max_count=_env_int(
+                "DRONEWATCH_OBSERVATION_MAX_COUNT", 10_000, minimum=1, maximum=1_000_000
+            ),
+            conflict_days=_env_int(
+                "DRONEWATCH_CONFLICT_RETENTION_DAYS", 7, minimum=1, maximum=365
+            ),
+            conflict_max_count=_env_int(
+                "DRONEWATCH_CONFLICT_MAX_COUNT", 1_000, minimum=1, maximum=100_000
+            ),
+        ),
+    )
+
+
+SETTINGS = load_settings()
+DB_PATH = SETTINGS.database_path
+SIMULATION_ENABLED = SETTINGS.simulation_enabled
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    ensure_db()
+    migrate_database(SETTINGS.database_path)
     yield
 
 
 app = FastAPI(title="DroneWatch", lifespan=lifespan)
 
-KNOWN_STATES = {"DETECTED", "APPROACHING", "RESTRICTED_ZONE", "EXITED", "UNKNOWN"}
-KNOWN_SEVERITY = {"INFO", "WARNING", "HIGH"}
+
+@dataclass(frozen=True)
+class RequestFailure(Exception):
+    status_code: int
+    code: str
 
 
-def utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat()
+class DuplicateJsonKey(ValueError):
+    pass
 
 
-def ensure_db() -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS incidents (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_id TEXT NOT NULL,
-                received_at TEXT NOT NULL,
-                detection_type TEXT,
-                drone_detected INTEGER NOT NULL DEFAULT 0,
-                confidence REAL,
-                state TEXT NOT NULL DEFAULT 'UNKNOWN',
-                severity TEXT NOT NULL DEFAULT 'INFO',
-                source TEXT,
-                media_url TEXT,
-                raw_payload TEXT NOT NULL,
-                is_simulated INTEGER NOT NULL DEFAULT 0
-            )
-            """
-        )
+class InvalidJsonConstant(ValueError):
+    pass
 
 
-def walk_nodes(value: Any) -> Iterable[Any]:
-    yield value
-    if isinstance(value, dict):
-        for item in value.values():
-            yield from walk_nodes(item)
-    elif isinstance(value, (list, tuple)):
-        for item in value:
-            yield from walk_nodes(item)
+def _failure_response(failure: RequestFailure) -> JSONResponse:
+    headers: dict[str, str] = {}
+    if failure.status_code == 401:
+        headers["WWW-Authenticate"] = "Bearer"
+    if failure.status_code == 413:
+        headers["Connection"] = "close"
+    return JSONResponse(
+        status_code=failure.status_code,
+        content={"status": "error", "code": failure.code},
+        headers=headers,
+    )
 
 
-def find_first(payload: Any, candidate_keys: Iterable[str]) -> Any:
-    def compact(value: str) -> str:
-        return re.sub(r"[^a-z0-9]+", "", value.lower())
-
-    normalized_candidates = {compact(candidate) for candidate in candidate_keys}
-    lower_candidates = {candidate.lower() for candidate in candidate_keys}
-    for node in walk_nodes(payload):
-        if not isinstance(node, dict):
-            continue
-        for key, value in node.items():
-            if not isinstance(key, str):
-                continue
-            key_compact = compact(key)
-            key_tokens = {part for part in re.split(r"[^a-z0-9]+", key.lower()) if part}
-            token_compact = {compact(token) for token in key_tokens}
-            if key_compact in normalized_candidates or key.lower() in lower_candidates:
-                if value is None:
-                    continue
-                if isinstance(value, str) and value.strip() == "":
-                    continue
-                return value
-            if token_compact & normalized_candidates:
-                if value is None:
-                    continue
-                if isinstance(value, str) and value.strip() == "":
-                    continue
-                return value
-    return None
+def _raw_header_values(request: Request, name: str) -> list[str]:
+    target = name.lower().encode("ascii")
+    return [
+        value.decode("latin-1")
+        for key, value in request.scope.get("headers", [])
+        if key.lower() == target
+    ]
 
 
-def coerce_float(value: Any) -> Optional[float]:
-    if value is None:
+def _authenticate(request: Request) -> None:
+    expected = SETTINGS.webhook_token
+    if expected is None:
+        raise RequestFailure(503, "receiver_unavailable")
+    headers = _raw_header_values(request, "authorization")
+    if len(headers) != 1:
+        raise RequestFailure(401, "authentication_failed")
+    parts = headers[0].split(" ")
+    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
+        raise RequestFailure(401, "authentication_failed")
+    supplied_digest = hashlib.sha256(parts[1].encode("utf-8")).digest()
+    expected_digest = hashlib.sha256(expected.encode("utf-8")).digest()
+    if not secrets.compare_digest(supplied_digest, expected_digest):
+        raise RequestFailure(401, "authentication_failed")
+
+
+def _validate_media_headers(request: Request) -> int | None:
+    content_types = _raw_header_values(request, "content-type")
+    if len(content_types) != 1:
+        raise RequestFailure(415, "unsupported_media_type")
+    components = [component.strip().lower() for component in content_types[0].split(";")]
+    if components[0] != "application/json" or len(components) > 2:
+        raise RequestFailure(415, "unsupported_media_type")
+    if len(components) == 2 and components[1] != "charset=utf-8":
+        raise RequestFailure(415, "unsupported_media_type")
+
+    encodings = _raw_header_values(request, "content-encoding")
+    if len(encodings) > 1 or (encodings and encodings[0].strip().lower() != "identity"):
+        raise RequestFailure(415, "unsupported_media_type")
+
+    lengths = _raw_header_values(request, "content-length")
+    if len(lengths) > 1:
+        raise RequestFailure(400, "invalid_content_length")
+    if not lengths:
         return None
-    if isinstance(value, bool):
-        return None
+    if not lengths[0].isascii() or not lengths[0].isdigit():
+        raise RequestFailure(400, "invalid_content_length")
+    normalized_length = lengths[0].lstrip("0") or "0"
+    if len(normalized_length) > len(str(MAX_BODY_CONFIGURATION)):
+        raise RequestFailure(413, "request_too_large")
+    declared = int(normalized_length)
+    if declared > SETTINGS.webhook_max_bytes:
+        raise RequestFailure(413, "request_too_large")
+    return declared
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateJsonKey
+        result[key] = value
+    return result
+
+
+def _reject_constant(_: str) -> None:
+    raise InvalidJsonConstant
+
+
+def _strict_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise InvalidJsonConstant
+    return parsed
+
+
+def _strict_json_int(value: str) -> int:
+    if len(value.removeprefix("-")) > MAX_JSON_INTEGER_DIGITS:
+        raise InvalidJsonConstant
+    return int(value)
+
+
+def _check_json_complexity(value: Any) -> None:
+    nodes = 0
+
+    def visit(item: Any, depth: int) -> None:
+        nonlocal nodes
+        nodes += 1
+        if depth > MAX_JSON_DEPTH or nodes > MAX_JSON_NODES:
+            raise RequestFailure(400, "invalid_json")
+        if isinstance(item, dict):
+            for child in item.values():
+                visit(child, depth + 1)
+        elif isinstance(item, list):
+            for child in item:
+                visit(child, depth + 1)
+
+    visit(value, 0)
+
+
+async def _read_json_object(request: Request) -> tuple[dict[str, Any], str]:
+    declared_length = _validate_media_headers(request)
+    body = bytearray()
     try:
-        if isinstance(value, str):
-            stripped = value.strip().replace("%", "")
-            if stripped == "":
-                return None
-            value = float(stripped)
-        elif isinstance(value, (int, float)):
-            value = float(value)
-        else:
-            value = float(str(value))
-    except (TypeError, ValueError):
-        return None
+        async for chunk in request.stream():
+            if len(chunk) > SETTINGS.webhook_max_bytes - len(body):
+                raise RequestFailure(413, "request_too_large")
+            body.extend(chunk)
+    except ClientDisconnect as error:
+        raise RequestFailure(400, "invalid_body") from error
 
-    if value > 1 and value <= 100:
-        value = value / 100
-    return round(value, 4)
+    if declared_length is not None and declared_length != len(body):
+        raise RequestFailure(400, "invalid_content_length")
+    if not body or not bytes(body).strip():
+        raise RequestFailure(400, "empty_body")
 
-
-def coerce_bool(value: Any) -> Optional[bool]:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        if value in {0, 1}:
-            return bool(int(value))
-        return None
-    if isinstance(value, str):
-        lowered = value.strip().lower()
-        if lowered in {"true", "1", "yes", "y", "on"}:
-            return True
-        if lowered in {"false", "0", "no", "n", "off"}:
-            return False
-    return None
-
-
-def coerce_str(value: Any) -> Optional[str]:
-    if value is None:
-        return None
-    if isinstance(value, str):
-        text = value.strip()
-        return text if text else None
-    if isinstance(value, (bool, dict, list, tuple, set)):
-        return None
-    return str(value)
-
-
-def parse_timestamp(value: Any) -> str:
-    if value is None:
-        return utcnow()
-    if isinstance(value, str):
-        text = value.strip()
-        if not text:
-            return utcnow()
-        if text.endswith("Z"):
-            try:
-                parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
-                if parsed.tzinfo is None:
-                    parsed = parsed.replace(tzinfo=timezone.utc)
-                return parsed.isoformat()
-            except ValueError:
-                pass
-        try:
-            parsed = datetime.fromisoformat(text)
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
-            return parsed.isoformat()
-        except ValueError:
-            return utcnow()
-    if isinstance(value, (int, float)):
-        text = float(value)
-        if text > 1_000_000_000_000:  # millis
-            text = text / 1000
-        try:
-            return datetime.fromtimestamp(text, tz=timezone.utc).isoformat()
-        except (OSError, OverflowError, ValueError):
-            return utcnow()
-    return utcnow()
-
-
-def _extract_detection_type(payload: Any) -> Optional[str]:
-    return coerce_str(find_first(payload, ["label", "object", "detection", "detected", "type", "class", "category"]))
-
-
-def _extract_confidence(payload: Any) -> Optional[float]:
-    return coerce_float(find_first(payload, ["confidence", "score", "probability", "prob" ]))
-
-
-def _extract_media_url(payload: Any) -> Optional[str]:
-    return coerce_str(find_first(payload, ["media_url", "mediaurl", "snapshot", "image_url", "video_url", "url"]))
-
-
-def _extract_received(payload: Any) -> str:
-    candidate = find_first(payload, ["timestamp", "event_time", "eventtime", "received_at", "receivedat", "created_at", "createdat", "time", "ts"])
-    return parse_timestamp(candidate)
-
-
-def _normalize_state(raw_state: Optional[str], detection_type: Optional[str], drone_detected: bool) -> str:
-    normalized = (raw_state or "").strip().lower()
-    if normalized:
-        normalized = re.sub(r"\s+", "_", normalized)
-    if "restricted" in normalized:
-        return "RESTRICTED_ZONE"
-    if "exit" in normalized or "leave" in normalized or "left" in normalized:
-        return "EXITED"
-    if "approach" in normalized or "approaching" in normalized:
-        return "APPROACHING"
-    if "detect" in normalized or "drone" in normalized:
-        return "DETECTED"
-
-    if detection_type and "drone" in detection_type.lower():
-        return "DETECTED"
-    if drone_detected:
-        return "DETECTED"
-    return "UNKNOWN"
-
-
-def _normalize_severity(state: str, confidence: Optional[float], drone_detected: bool) -> str:
-    if state == "RESTRICTED_ZONE":
-        return "HIGH"
-    if state == "APPROACHING":
-        return "WARNING"
-    if state == "DETECTED" and (confidence is None):
-        return "INFO"
-    if confidence is not None and confidence >= 0.85 and (drone_detected or state != "UNKNOWN"):
-        return "WARNING"
-    return "INFO"
-
-
-def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated: bool = False) -> Dict[str, Any]:
-    raw_payload = payload if isinstance(payload, dict) else {"value": payload}
-
-    event_id = coerce_str(
-        find_first(
-            raw_payload,
-            ["event_id", "eventid", "event-id", "id", "uuid", "uuid4", "tracking_id", "trackingid", "trace_id", "traceid"],
+    try:
+        decoded = bytes(body).decode("utf-8", errors="strict")
+        payload = json.loads(
+            decoded,
+            object_pairs_hook=_reject_duplicate_keys,
+            parse_constant=_reject_constant,
+            parse_float=_strict_json_float,
+            parse_int=_strict_json_int,
         )
-    ) or f"evt-{uuid.uuid4()}"
+    except (
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        DuplicateJsonKey,
+        InvalidJsonConstant,
+        RecursionError,
+    ) as error:
+        raise RequestFailure(400, "invalid_json") from error
+    _check_json_complexity(payload)
+    if not isinstance(payload, dict):
+        raise RequestFailure(422, "invalid_observation")
+    return payload, hashlib.sha256(bytes(body)).hexdigest()
 
-    detection_type = _extract_detection_type(raw_payload)
 
-    explicit_drone_detected = coerce_bool(
-        find_first(
-            raw_payload,
-            ["drone_detected", "drone", "isdetected", "detected", "is_drone", "has_drone"],
+def _validate_inbound(payload: dict[str, Any], *, reserve_viso: bool) -> InboundObservationV1:
+    try:
+        inbound = InboundObservationV1.model_validate(payload)
+    except ValidationError as error:
+        raise RequestFailure(422, "invalid_observation") from error
+    if reserve_viso and inbound.source_system == "VISO":
+        raise RequestFailure(422, "reserved_source_system")
+    return inbound
+
+
+def _store_inbound(
+    inbound: InboundObservationV1,
+    *,
+    received_at: datetime,
+    request_digest: str,
+) -> JSONResponse:
+    canonical = build_canonical_observation(inbound, received_at=received_at)
+    try:
+        validate_observation_time(canonical, max_future_seconds=SETTINGS.max_future_seconds)
+    except ValueError as error:
+        raise RequestFailure(422, "invalid_observation_time") from error
+    try:
+        result = store_observation(
+            SETTINGS.database_path,
+            canonical,
+            request_digest=request_digest,
+            retention=SETTINGS.retention,
         )
+    except sqlite3.Error as error:
+        LOGGER.error("webhook.storage_unavailable")
+        raise RequestFailure(503, "storage_unavailable") from error
+
+    if result.status == "conflict":
+        LOGGER.warning("webhook.conflict")
+        raise RequestFailure(409, "delivery_conflict")
+    LOGGER.info("webhook.%s observation_id=%s", result.status, result.observation_id)
+    return JSONResponse(
+        status_code=201 if result.status == "accepted" else 200,
+        content={
+            "status": result.status,
+            "observation_id": result.observation_id,
+            "duplicate": result.status == "duplicate",
+        },
     )
-
-    if explicit_drone_detected is None:
-        if detection_type and "drone" in detection_type.lower():
-            drone_detected = True
-        else:
-            drone_detected = False
-    else:
-        drone_detected = explicit_drone_detected
-
-    state_raw = coerce_str(
-        find_first(
-            raw_payload,
-            ["state", "status", "zone_state", "event-state", "event_type", "incident_type", "condition"],
-        )
-    )
-    state = _normalize_state(state_raw, detection_type, drone_detected)
-    if state not in KNOWN_STATES:
-        state = "UNKNOWN"
-
-    confidence = _extract_confidence(raw_payload)
-    severity = _normalize_severity(state, confidence, drone_detected)
-    if severity not in KNOWN_SEVERITY:
-        severity = "INFO"
-
-    received_at = _extract_received(raw_payload)
-    source = coerce_str(find_first(raw_payload, ["source", "camera", "station"]))
-    if source is None:
-        source = "SIMULATED" if simulated else source_default
-
-    return {
-        "event_id": event_id,
-        "received_at": received_at,
-        "detection_type": detection_type,
-        "drone_detected": bool(drone_detected),
-        "confidence": confidence,
-        "state": state,
-        "severity": severity,
-        "source": source,
-        "media_url": _extract_media_url(raw_payload),
-        "raw_payload": raw_payload,
-        "is_simulated": bool(simulated),
-    }
-
-
-def _write_incident(incident: Dict[str, Any]) -> None:
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.execute(
-            """
-            INSERT INTO incidents (
-                event_id,
-                received_at,
-                detection_type,
-                drone_detected,
-                confidence,
-                state,
-                severity,
-                source,
-                media_url,
-                raw_payload,
-                is_simulated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                incident["event_id"],
-                incident["received_at"],
-                incident.get("detection_type"),
-                int(bool(incident["drone_detected"])),
-                incident.get("confidence"),
-                incident["state"],
-                incident["severity"],
-                incident.get("source"),
-                incident.get("media_url"),
-                json.dumps(incident["raw_payload"], ensure_ascii=False),
-                int(bool(incident["is_simulated"])),
-            ),
-        )
-        conn.commit()
-
-
-def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
-    return {
-        "id": row["id"],
-        "event_id": row["event_id"],
-        "received_at": row["received_at"],
-        "detection_type": row["detection_type"],
-        "drone_detected": bool(row["drone_detected"]),
-        "confidence": row["confidence"],
-        "state": row["state"],
-        "severity": row["severity"],
-        "source": row["source"],
-        "media_url": row["media_url"],
-        "raw_payload": json.loads(row["raw_payload"]),
-        "is_simulated": bool(row["is_simulated"]),
-    }
-
-
-def _query_events(limit: int = 20):
-    if limit < 1:
-        limit = 1
-    if limit > 200:
-        limit = 200
-
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.execute(
-            """
-            SELECT * FROM incidents
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-            (limit,),
-        )
-        return [_row_to_dict(row) for row in cursor.fetchall()]
-
-
-class SimulatePayload(BaseModel):
-    scenario: str
 
 
 @app.get("/")
@@ -375,106 +368,151 @@ def root() -> FileResponse:
 
 
 @app.get("/health")
-def health() -> Dict[str, Any]:
-    return {
-        "status": "ok",
-        "received_at": utcnow(),
-    }
+def health() -> dict[str, Any]:
+    return {"status": "ok", "received_at": rfc3339(utcnow())}
 
 
 @app.get("/api/config")
-def config() -> Dict[str, bool]:
-    return {"simulation_enabled": SIMULATION_ENABLED}
-
-
-@app.get("/api/events")
-def api_events(limit: int = 20) -> Dict[str, Any]:
-    events = _query_events(limit=limit)
-    latest = events[0] if events else None
-    open_incidents = [evt for evt in events if evt["state"] != "EXITED"]
-    status = "SAFE"
-    if any(evt["state"] == "RESTRICTED_ZONE" for evt in open_incidents):
-        status = "CRITICAL"
-    elif any(evt["state"] == "APPROACHING" for evt in open_incidents):
-        status = "WARNING"
-    elif any(evt["state"] == "DETECTED" for evt in open_incidents):
-        status = "ALERT"
-
+def config() -> dict[str, Any]:
     return {
-        "status": status,
-        "latest": latest,
-        "open_incidents": open_incidents,
-        "open_count": len(open_incidents),
-        "events": events,
-        "received_at": utcnow(),
+        "simulation_enabled": SETTINGS.simulation_enabled,
+        "webhook_auth_configured": SETTINGS.webhook_token is not None,
+        "viso_adapter_configured": False,
+        "webhook_max_bytes": SETTINGS.webhook_max_bytes,
+        "observation_retention_days": SETTINGS.retention.observation_days,
+        "observation_max_count": SETTINGS.retention.observation_max_count,
     }
 
 
-@app.post("/webhook/viso")
-async def viso_webhook(request: Request):
-    body_bytes = await request.body()
-    try:
-        if not body_bytes:
-            payload = {}
-        else:
-            payload = json.loads(body_bytes.decode("utf-8"))
-    except json.JSONDecodeError:
-        payload = {"raw_body": body_bytes.decode("utf-8", errors="replace"), "_payload_decode_failed": True}
-
-    incident = _normalize_incident(payload if isinstance(payload, dict) else {"value": payload}, "VISO", simulated=False)
-    _write_incident(incident)
-    LOGGER.info(
-        "Webhook event stored event_id=%s state=%s simulated=%s",
-        incident["event_id"],
-        incident["state"],
-        incident["is_simulated"],
+@app.get("/api/events")
+def api_events(limit: int = 20) -> JSONResponse:
+    events = query_events(SETTINGS.database_path, limit=limit)
+    open_incidents = query_open_tracks(SETTINGS.database_path)
+    status = "SAFE"
+    if any(event["state"] == "RESTRICTED_ZONE" for event in open_incidents):
+        status = "CRITICAL"
+    elif any(event["state"] == "APPROACHING" for event in open_incidents):
+        status = "WARNING"
+    elif any(event["state"] == "DETECTED" for event in open_incidents):
+        status = "ALERT"
+    return JSONResponse(
+        content={
+            "status": status,
+            "latest": events[0] if events else None,
+            "open_incidents": open_incidents,
+            "open_count": len(open_incidents),
+            "events": events,
+            "legacy_unverified_count": legacy_count(SETTINGS.database_path),
+            "received_at": rfc3339(utcnow()),
+        },
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
     )
-    return {"status": "ok"}
+
+
+@app.get("/api/legacy/events")
+def api_legacy_events(request: Request, limit: int = 20) -> JSONResponse:
+    try:
+        _authenticate(request)
+    except RequestFailure as failure:
+        return _failure_response(failure)
+    return JSONResponse(
+        content={
+            "record_status": "LEGACY_UNVERIFIED",
+            "events": query_legacy_events(SETTINGS.database_path, limit=limit),
+        },
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+    )
+
+
+@app.post("/webhook/canonical")
+async def canonical_webhook(request: Request) -> JSONResponse:
+    received_at = utcnow()
+    try:
+        _authenticate(request)
+        payload, request_digest = await _read_json_object(request)
+        inbound = _validate_inbound(payload, reserve_viso=True)
+        return _store_inbound(inbound, received_at=received_at, request_digest=request_digest)
+    except RequestFailure as failure:
+        return _failure_response(failure)
+
+
+@app.post("/webhook/viso")
+async def viso_webhook(request: Request) -> JSONResponse:
+    received_at = utcnow()
+    try:
+        _authenticate(request)
+        payload, request_digest = await _read_json_object(request)
+        try:
+            inbound = map_viso_delivery(payload)
+        except VisoAdapterUnavailable as error:
+            raise RequestFailure(503, "viso_adapter_unavailable") from error
+        if inbound.source_system != "VISO" or inbound.modality != "VISUAL":
+            raise RequestFailure(422, "invalid_viso_mapping")
+        return _store_inbound(inbound, received_at=received_at, request_digest=request_digest)
+    except RequestFailure as failure:
+        return _failure_response(failure)
+
+
+class SimulatePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    scenario: str
 
 
 SIMULATION_TEMPLATES = {
-    "detected": {
-        "label": "drone",
-        "confidence": 0.83,
-        "state": "DETECTED",
-        "media_url": "https://example.com/simulations/drone_detected.mp4",
-        "source": "SIMULATED",
-    },
-    "restricted": {
-        "label": "drone",
-        "confidence": 0.96,
-        "state": "RESTRICTED_ZONE",
-        "media_url": "https://example.com/simulations/drone_restricted_zone.mp4",
-        "source": "SIMULATED",
-    },
-    "left": {
-        "label": "drone",
-        "confidence": 0.79,
-        "state": "EXITED",
-        "media_url": "https://example.com/simulations/drone_left_zone.mp4",
-        "source": "SIMULATED",
-    },
+    "detected": LifecycleState.DETECTED,
+    "restricted": LifecycleState.RESTRICTED_ZONE,
+    "left": LifecycleState.EXITED,
 }
 
 
 @app.post("/dev/simulate")
-def simulate_event(payload: SimulatePayload):
-    if not SIMULATION_ENABLED:
-        raise HTTPException(status_code=404, detail="Simulation endpoint unavailable")
-
-    scenario = (payload.scenario or "").strip().lower()
+async def simulate_event(request: Request) -> JSONResponse:
+    if not SETTINGS.simulation_enabled:
+        return JSONResponse(status_code=404, content={"detail": "Simulation endpoint unavailable"})
+    try:
+        _authenticate(request)
+        raw_payload, request_digest = await _read_json_object(request)
+        try:
+            payload = SimulatePayload.model_validate(raw_payload)
+        except ValidationError as error:
+            raise RequestFailure(422, "invalid_simulation_request") from error
+    except RequestFailure as failure:
+        return _failure_response(failure)
+    scenario = payload.scenario.strip().lower()
     if scenario not in SIMULATION_TEMPLATES:
-        raise HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail=f"Unsupported scenario '{scenario}'. Use detected, restricted, or left.",
+            content={"status": "error", "code": "unsupported_scenario"},
         )
 
-    template = dict(SIMULATION_TEMPLATES[scenario])
-    template["timestamp"] = utcnow()
-    template["event_id"] = f"sim-{uuid.uuid4()}"
-    template["source"] = "SIMULATED"
-    template["SIMULATED"] = True
+    now = utcnow()
+    data = {
+        "schema_version": "dronewatch.event.v1",
+        "source_event_id": f"sim-{uuid.uuid4()}",
+        "source_system": "DRONEWATCH_SIMULATOR",
+        "source_scope": "local-demo",
+        "track_id": "simulated-track-1",
+        "scenario_id": "local-demo",
+        "run_id": "local-demo-run",
+        "observed_at": rfc3339(now),
+        "modality": "VISUAL",
+        "provenance": Provenance.SYNTHETIC.value,
+        "delivery_mode": DeliveryMode.LOCAL_SIMULATION.value,
+        "simulation": True,
+        "lifecycle_state": SIMULATION_TEMPLATES[scenario].value,
+        "detection_result": DetectionResult.POSITIVE.value,
+        "classification": Classification.DRONE.value,
+        "confidence": 0.96 if scenario == "restricted" else 0.83,
+    }
+    inbound = InboundObservationV1.model_validate(data)
+    try:
+        return _store_inbound(inbound, received_at=now, request_digest=request_digest)
+    except RequestFailure as failure:
+        return _failure_response(failure)
 
-    incident = _normalize_incident(template, source_default="SIMULATED", simulated=True)
-    _write_incident(incident)
-    return incident
+
+def current_observation_count() -> int:
+    """Narrow test/diagnostic helper; not an HTTP endpoint."""
+
+    return observation_count(SETTINGS.database_path)

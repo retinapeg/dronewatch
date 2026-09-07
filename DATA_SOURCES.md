@@ -2,6 +2,10 @@
 
 Research status: verified from primary sources on 7 September 2026.
 
+V0.2 fixture status: a six-clip Halmstad selection is pinned and manifest
+controlled. The media itself is external to Git. The selection was made before
+any Viso result was available; no result-based cherry-picking occurred.
+
 ## Decision
 
 Use **Viso Now for discrete visual files**, a small licence-clean evaluation
@@ -62,6 +66,69 @@ path and must not be attributed to the current Viso Now file demo.
 Do not download the full corpora for V0. Start with a small manifest-selected set
 whose hashes, source sequences, annotations, and expected outcomes are reviewable.
 
+## V0.2 Halmstad selection
+
+The checked-in `fixtures/halmstad-selection.v1.json` is the authoritative
+selection manifest. It pins the upstream repository to commit
+`442d0c6750708cc221636f7a1fd31cbd8cb0aeb8`, records access on 7 September
+2026, and identifies the dataset licence as CC0 1.0. Code, paper, and model
+licences are recorded separately as `NOT_USED`; the data licence must not be
+inferred from those artifacts.
+
+Only the pinned licence plus the six selected clips and their matching label
+files were fetched for hash verification. The corpus was not bulk-downloaded.
+No media or label file is committed to DroneWatch, and `/fixture-media/` is
+ignored. Each selected source file is used byte-for-byte
+(`NONE_SOURCE_BYTES`), so its derived byte count and SHA-256 equal its upstream
+values.
+
+| Manifest fixture | Exact upstream file | Class/control | Bytes | SHA-256 |
+| --- | --- | --- | ---: | --- |
+| `halmstad-v-drone-001` | `Data/Video_V/V_DRONE_001.mp4` | Visible drone positive; relatively clear, larger target | 144,518 | `9db5a800377c01db8369dfba808d400ca52cd393e0a32850e1d20a4861eaecbe` |
+| `halmstad-ir-drone-001` | `Data/Video_IR/IR_DRONE_001.mp4` | Thermal drone positive; smaller target near tree line | 25,853 | `19ec2ccbcccfdaf3566fff5122c30f8b82172b9e610c975d37558214dcd349d6` |
+| `halmstad-v-bird-003` | `Data/Video_V/V_BIRD_003.mp4` | Visible bird hard negative; small aerial target | 87,927 | `502229dcf0c3633148e97635fcbc8a2bec520b091da3735a51ee6c7b06e074f4` |
+| `halmstad-v-airplane-004` | `Data/Video_V/V_AIRPLANE_004.mp4` | Visible aircraft hard negative; distant target and haze | 96,903 | `940f2243e5a22701c28229b077347026f539070552254dc62be275819f47df9f` |
+| `halmstad-v-helicopter-004` | `Data/Video_V/V_HELICOPTER_004.mp4` | Visible helicopter hard negative; roof/pole clutter | 93,602 | `7cb2561d567d62086bae684cdd392eeb4c77ee33903a3b068793a6d1a5ef1781` |
+| `halmstad-ir-bird-003` | `Data/Video_IR/IR_BIRD_003.mp4` | Thermal bird hard negative; extremely small difficult target | 20,489 | `5017cbe6415994364987ac5db9dce375059c4709e5ea3d0ecd3aed527926bfdf` |
+
+The manifest also records each matching MATLAB label identity, byte count, and
+SHA-256, plus the pinned upstream URLs and the upstream licence hash. The labels
+are provenance/ground-truth references; the V0.2 replay runner copies only the
+selected MP4 source supplied by the operator.
+
+The pack is for transport and later visual-evaluation evidence, not training.
+Expected outcomes come from the upstream class labels and must not be rewritten
+after processing. A Viso miss, negative, or false positive must be retained in
+the supervised evidence record. Six short clips cannot establish accuracy,
+reliability, operational suitability, range performance, or generalization.
+
+### External-media preparation and validation
+
+1. Obtain only a manifest-listed MP4 from the pinned upstream revision. Do not
+   clone or download the full dataset by default.
+2. Place it in a local external directory such as `fixture-media/`; do not add
+   it to Git.
+3. Run the replay command with the checked-in manifest, exact fixture ID, and
+   local source. The runner rejects a basename, byte count, or SHA-256 mismatch
+   before creating a watched-folder copy.
+4. Keep the source read-only. The runner uses a temporary `.part` file followed
+   by an atomic no-clobber publication and never deletes the source or existing
+   completed files.
+5. Retain the ignored run record as local copy evidence. Do not upgrade that
+   evidence into a Drive, Viso, webhook, or detection claim.
+
+To verify a locally prepared pack containing the exact six MP4 files, six label
+files, and pinned `LICENSE` bytes:
+
+```sh
+.venv/bin/python scripts/verify_replay_artifacts.py \
+  --media-dir /path/to/external-halmstad-selection
+```
+
+Without `--media-dir`, the same command validates only the checked-in manifest
+and blank evidence template and explicitly reports that external bytes were not
+checked.
+
 ## Later synchronized fusion dataset
 
 [TSMS-Drone](https://doi.org/10.25452/figshare.plus.30027313) is the strongest
@@ -109,7 +176,9 @@ Every imported fixture or external corpus must record:
 - canonical title, owner/publisher, source URL, DOI where available, and version;
 - separate data, code, paper, and model licences rather than assuming one covers
   all artifacts;
-- download date, file hashes, bytes, selected source sequences, and local path;
+- download date, file hashes, bytes, selected source sequences, and portable
+  upstream source paths; any machine-local storage path stays outside Git and
+  retained evidence;
 - modality, sensor/acquisition conditions, target classes, negatives, annotations,
   splits, and known quality issues;
 - permitted uses, attribution text, redistribution limits, and permission notes;

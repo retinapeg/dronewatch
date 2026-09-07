@@ -1,0 +1,386 @@
+{
+  "$comment": "This schema defines the portable structure. Cross-field and pack-level semantic rules are normatively enforced by replay_artifacts.py and scripts/verify_replay_artifacts.py.",
+  "$defs": {
+    "EvidenceResult": {
+      "enum": [
+        "POSITIVE",
+        "NEGATIVE",
+        "MISS",
+        "FALSE_POSITIVE",
+        "UNKNOWN"
+      ],
+      "title": "EvidenceResult",
+      "type": "string"
+    },
+    "EvidenceStatus": {
+      "enum": [
+        "TEMPLATE_DO_NOT_USE_AS_EVIDENCE",
+        "RECORDED"
+      ],
+      "title": "EvidenceStatus",
+      "type": "string"
+    },
+    "LatencyBasis": {
+      "enum": [
+        "RECEIPT_MINUS_PROVIDER_OBSERVED",
+        "RECEIPT_MINUS_LOCAL_COPY_COMPLETED"
+      ],
+      "title": "LatencyBasis",
+      "type": "string"
+    }
+  },
+  "$id": "https://dronewatch.invalid/schemas/dronewatch.viso-evidence.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "actual_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EvidenceResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actual_result_notes": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "minLength": 3,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Actual Result Notes"
+    },
+    "authentication_route": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Authentication Route"
+    },
+    "delivery_mode": {
+      "anyOf": [
+        {
+          "const": "NEAR_REAL_TIME_FILE_REPLAY",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Delivery Mode"
+    },
+    "dronewatch_received_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Dronewatch Received At"
+    },
+    "exact_tested_git_commit": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Exact Tested Git Commit"
+    },
+    "fixture_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Fixture Id"
+    },
+    "fixture_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Fixture Sha256"
+    },
+    "latency_basis": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LatencyBasis"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "latency_ms": {
+      "anyOf": [
+        {
+          "maximum": 604800000,
+          "minimum": -604800000,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Latency Ms"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 8,
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "local_copy_completed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Local Copy Completed At"
+    },
+    "provenance": {
+      "anyOf": [
+        {
+          "const": "REPLAYED_REAL",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Provenance"
+    },
+    "provider_observed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Provider Observed At"
+    },
+    "record_status": {
+      "$ref": "#/$defs/EvidenceStatus"
+    },
+    "redacted_request_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Redacted Request Sha256"
+    },
+    "response_status": {
+      "anyOf": [
+        {
+          "maximum": 599,
+          "minimum": 100,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Response Status"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "scenario_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scenario Id"
+    },
+    "schema_version": {
+      "const": "dronewatch.viso-evidence.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "secrets_or_sensitive_data_included": {
+      "const": false,
+      "title": "Secrets Or Sensitive Data Included",
+      "type": "boolean"
+    },
+    "template_notice": {
+      "anyOf": [
+        {
+          "const": "BLANK_TEMPLATE_NOT_RUN_EVIDENCE_DO_NOT_CITE_AS_EXTERNAL_VALIDATION",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Template Notice"
+    },
+    "viso_agent_configuration_date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Viso Agent Configuration Date"
+    },
+    "viso_agent_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Viso Agent Id"
+    },
+    "viso_configuration_id": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Viso Configuration Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "record_status",
+    "template_notice",
+    "exact_tested_git_commit",
+    "viso_agent_configuration_date",
+    "viso_agent_id",
+    "viso_configuration_id",
+    "scenario_id",
+    "run_id",
+    "fixture_id",
+    "fixture_sha256",
+    "local_copy_completed_at",
+    "provider_observed_at",
+    "dronewatch_received_at",
+    "response_status",
+    "redacted_request_sha256",
+    "latency_basis",
+    "latency_ms",
+    "authentication_route",
+    "actual_result",
+    "actual_result_notes",
+    "delivery_mode",
+    "provenance",
+    "limitations",
+    "secrets_or_sensitive_data_included"
+  ],
+  "title": "DroneWatch Viso supervised evidence record v1",
+  "type": "object"
+}

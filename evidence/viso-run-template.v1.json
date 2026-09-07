@@ -1,0 +1,31 @@
+{
+  "schema_version": "dronewatch.viso-evidence.v1",
+  "record_status": "TEMPLATE_DO_NOT_USE_AS_EVIDENCE",
+  "template_notice": "BLANK_TEMPLATE_NOT_RUN_EVIDENCE_DO_NOT_CITE_AS_EXTERNAL_VALIDATION",
+  "exact_tested_git_commit": null,
+  "viso_agent_configuration_date": null,
+  "viso_agent_id": null,
+  "viso_configuration_id": null,
+  "scenario_id": null,
+  "run_id": null,
+  "fixture_id": null,
+  "fixture_sha256": null,
+  "local_copy_completed_at": null,
+  "provider_observed_at": null,
+  "dronewatch_received_at": null,
+  "response_status": null,
+  "redacted_request_sha256": null,
+  "latency_basis": null,
+  "latency_ms": null,
+  "authentication_route": null,
+  "actual_result": null,
+  "actual_result_notes": null,
+  "delivery_mode": null,
+  "provenance": null,
+  "limitations": [
+    "This blank file is a field template and contains no Viso, Drive, or webhook run evidence.",
+    "A completed transport record proves only the conditions explicitly captured for that run.",
+    "One supervised delivery cannot establish live video, accuracy, certified operation, or general reliability."
+  ],
+  "secrets_or_sensitive_data_included": false
+}

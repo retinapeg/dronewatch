@@ -1,0 +1,237 @@
+{
+  "schema_version": "dronewatch.fixture-manifest.v1",
+  "manifest_id": "halmstad-selection.v1",
+  "status": "VERIFIED",
+  "selected_at": "2026-09-07T19:30:00.000000Z",
+  "selection_method": "PRESELECTED_BEFORE_ANY_VISO_RESULT",
+  "selection_rationale": "Six small source clips were selected before any Viso result was available: two drone positives across visible and thermal imagery, plus four materially different hard negatives covering bird, airplane, helicopter, distance, clutter, and difficult visibility.",
+  "dataset": {
+    "title": "Halmstad Drone Detection Dataset",
+    "owner_publisher": "DroneDetectionThesis repository maintainers",
+    "repository_url": "https://github.com/DroneDetectionThesis/Drone-detection-dataset",
+    "pinned_revision": "442d0c6750708cc221636f7a1fd31cbd8cb0aeb8",
+    "revision_url": "https://github.com/DroneDetectionThesis/Drone-detection-dataset/commit/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8",
+    "access_date": "2026-09-07",
+    "licences": {
+      "data": {
+        "status": "VERIFIED",
+        "spdx_id": "CC0-1.0",
+        "name": "CC0 1.0 Universal",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/LICENSE",
+        "source_path": "LICENSE",
+        "source_sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+        "source_bytes": 7048,
+        "attribution_required": false,
+        "redistribution_permitted": true
+      },
+      "code": {
+        "status": "NOT_USED",
+        "reason": "No upstream code is copied or executed by this fixture workflow."
+      },
+      "paper": {
+        "status": "NOT_USED",
+        "reason": "No paper content is copied or treated as the licence for these data files."
+      },
+      "model": {
+        "status": "NOT_USED",
+        "reason": "No upstream or third-party model is included in this fixture pack."
+      }
+    },
+    "permitted_use": "LICENCE_CLEAN_VISUAL_REPLAY_EVALUATION",
+    "media_repository_policy": "MEDIA_EXTERNAL_TO_GIT"
+  },
+  "fixtures": [
+    {
+      "fixture_id": "halmstad-v-drone-001",
+      "source_sequence_id": "V_DRONE_001",
+      "source_path": "Data/Video_V/V_DRONE_001.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_DRONE_001.mp4",
+      "source_sha256": "9db5a800377c01db8369dfba808d400ca52cd393e0a32850e1d20a4861eaecbe",
+      "source_bytes": 144518,
+      "derived_filename": "V_DRONE_001.mp4",
+      "derived_sha256": "9db5a800377c01db8369dfba808d400ca52cd393e0a32850e1d20a4861eaecbe",
+      "derived_bytes": 144518,
+      "modality": "VISIBLE",
+      "category": "DRONE_POSITIVE",
+      "expected_result": "POSITIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_V/V_DRONE_001_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_DRONE_001_LABELS.mat",
+        "source_sha256": "39598c0beded8754d5193f57306897dd9302a309c9e391c37ada23eb94646399",
+        "source_bytes": 14180,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Visible-light clip; an inspected preview shows a comparatively clear aerial target above a field.",
+      "known_limitations": [
+        "One short sequence cannot establish accuracy or operational performance.",
+        "DroneWatch V0.2 does not parse or score the upstream MATLAB annotations."
+      ]
+    },
+    {
+      "fixture_id": "halmstad-ir-drone-001",
+      "source_sequence_id": "IR_DRONE_001",
+      "source_path": "Data/Video_IR/IR_DRONE_001.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_IR/IR_DRONE_001.mp4",
+      "source_sha256": "19ec2ccbcccfdaf3566fff5122c30f8b82172b9e610c975d37558214dcd349d6",
+      "source_bytes": 25853,
+      "derived_filename": "IR_DRONE_001.mp4",
+      "derived_sha256": "19ec2ccbcccfdaf3566fff5122c30f8b82172b9e610c975d37558214dcd349d6",
+      "derived_bytes": 25853,
+      "modality": "THERMAL_INFRARED",
+      "category": "DRONE_POSITIVE",
+      "expected_result": "POSITIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_IR/IR_DRONE_001_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_IR/IR_DRONE_001_LABELS.mat",
+        "source_sha256": "466a726f1b67cb055c1537125ab30a23448cec5a06d015fc624e25e9ebc8c117",
+        "source_bytes": 15145,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Thermal-infrared clip; an inspected preview shows a small aerial target near a tree line.",
+      "known_limitations": [
+        "The small target and low-resolution thermal view are not representative of every deployment.",
+        "DroneWatch V0.2 does not parse or score the upstream MATLAB annotations."
+      ]
+    },
+    {
+      "fixture_id": "halmstad-v-bird-003",
+      "source_sequence_id": "V_BIRD_003",
+      "source_path": "Data/Video_V/V_BIRD_003.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_BIRD_003.mp4",
+      "source_sha256": "502229dcf0c3633148e97635fcbc8a2bec520b091da3735a51ee6c7b06e074f4",
+      "source_bytes": 87927,
+      "derived_filename": "V_BIRD_003.mp4",
+      "derived_sha256": "502229dcf0c3633148e97635fcbc8a2bec520b091da3735a51ee6c7b06e074f4",
+      "derived_bytes": 87927,
+      "modality": "VISIBLE",
+      "category": "BIRD_HARD_NEGATIVE",
+      "expected_result": "NEGATIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_V/V_BIRD_003_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_BIRD_003_LABELS.mat",
+        "source_sha256": "ac5c4c8a967bbfc3ebc14513f9271a463f855568932ab14f153d27060f49e1d8",
+        "source_bytes": 17176,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Visible-light bird sequence; an inspected preview shows a tiny target against sky and field.",
+      "known_limitations": [
+        "Bird appearance varies substantially with species, range, and motion.",
+        "Expected NEGATIVE is a fixture label, not a measured Viso outcome."
+      ]
+    },
+    {
+      "fixture_id": "halmstad-v-airplane-004",
+      "source_sequence_id": "V_AIRPLANE_004",
+      "source_path": "Data/Video_V/V_AIRPLANE_004.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_AIRPLANE_004.mp4",
+      "source_sha256": "940f2243e5a22701c28229b077347026f539070552254dc62be275819f47df9f",
+      "source_bytes": 96903,
+      "derived_filename": "V_AIRPLANE_004.mp4",
+      "derived_sha256": "940f2243e5a22701c28229b077347026f539070552254dc62be275819f47df9f",
+      "derived_bytes": 96903,
+      "modality": "VISIBLE",
+      "category": "AIRPLANE_HARD_NEGATIVE",
+      "expected_result": "NEGATIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_V/V_AIRPLANE_004_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_AIRPLANE_004_LABELS.mat",
+        "source_sha256": "cea4d04549f6a8cbf5c2465466d7e9405b4b20615cd12609a3fbcde3665f0ebb",
+        "source_bytes": 15435,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Visible-light aircraft sequence; an inspected preview shows a distant target in overcast or hazy conditions.",
+      "known_limitations": [
+        "This is one distant-aircraft example and does not cover the diversity of aircraft silhouettes.",
+        "Expected NEGATIVE is a fixture label, not a measured Viso outcome."
+      ]
+    },
+    {
+      "fixture_id": "halmstad-v-helicopter-004",
+      "source_sequence_id": "V_HELICOPTER_004",
+      "source_path": "Data/Video_V/V_HELICOPTER_004.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_HELICOPTER_004.mp4",
+      "source_sha256": "7cb2561d567d62086bae684cdd392eeb4c77ee33903a3b068793a6d1a5ef1781",
+      "source_bytes": 93602,
+      "derived_filename": "V_HELICOPTER_004.mp4",
+      "derived_sha256": "7cb2561d567d62086bae684cdd392eeb4c77ee33903a3b068793a6d1a5ef1781",
+      "derived_bytes": 93602,
+      "modality": "VISIBLE",
+      "category": "HELICOPTER_HARD_NEGATIVE",
+      "expected_result": "NEGATIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_V/V_HELICOPTER_004_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_V/V_HELICOPTER_004_LABELS.mat",
+        "source_sha256": "96da6e92bc1d2075e8a30c51d1a8265efeaaafd3c74ac1fbf7e68f9ffc046c8b",
+        "source_bytes": 15016,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Visible-light helicopter sequence; an inspected preview includes a small target with pole and roof clutter.",
+      "known_limitations": [
+        "This single background and aspect do not represent all helicopter conditions.",
+        "Expected NEGATIVE is a fixture label, not a measured Viso outcome."
+      ]
+    },
+    {
+      "fixture_id": "halmstad-ir-bird-003",
+      "source_sequence_id": "IR_BIRD_003",
+      "source_path": "Data/Video_IR/IR_BIRD_003.mp4",
+      "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_IR/IR_BIRD_003.mp4",
+      "source_sha256": "5017cbe6415994364987ac5db9dce375059c4709e5ea3d0ecd3aed527926bfdf",
+      "source_bytes": 20489,
+      "derived_filename": "IR_BIRD_003.mp4",
+      "derived_sha256": "5017cbe6415994364987ac5db9dce375059c4709e5ea3d0ecd3aed527926bfdf",
+      "derived_bytes": 20489,
+      "modality": "THERMAL_INFRARED",
+      "category": "BIRD_HARD_NEGATIVE",
+      "expected_result": "NEGATIVE",
+      "intended_use": "VISUAL_FILE_REPLAY_EVALUATION",
+      "transformations": [
+        "NONE_SOURCE_BYTES"
+      ],
+      "annotation": {
+        "format": "MATLAB_MAT",
+        "source_path": "Data/Video_IR/IR_BIRD_003_LABELS.mat",
+        "source_url": "https://raw.githubusercontent.com/DroneDetectionThesis/Drone-detection-dataset/442d0c6750708cc221636f7a1fd31cbd8cb0aeb8/Data/Video_IR/IR_BIRD_003_LABELS.mat",
+        "source_sha256": "3d062efa620d92428299b19d4e98618b40525204cb03fb7c9e6366400a28a956",
+        "source_bytes": 16668,
+        "use": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2"
+      },
+      "acquisition_notes": "Thermal-infrared bird sequence; an inspected preview shows a very small target over a thermal landscape.",
+      "known_limitations": [
+        "A very small thermal target is intrinsically difficult and a later miss must be preserved.",
+        "Expected NEGATIVE is a fixture label, not a measured Viso outcome."
+      ]
+    }
+  ],
+  "pack_limitations": [
+    "This six-clip pack is a reviewable transport and behaviour fixture set, not a statistically valid benchmark.",
+    "The selected recorded files are NEAR_REAL_TIME_FILE_REPLAY inputs and never a live video stream.",
+    "Expected fixture labels are not Viso results, accuracy measurements, or operational detection proof.",
+    "Media and annotation bytes remain outside Git; this repository retains only verified provenance metadata."
+  ]
+}

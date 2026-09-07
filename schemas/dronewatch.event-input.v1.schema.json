@@ -1,0 +1,480 @@
+{
+  "$comment": "Frame coordinates are normalized image-plane coordinates, never geographic, radar-derived, or calibrated. The Python validator additionally enforces x + width <= 1 and y + height <= 1.",
+  "$defs": {
+    "Classification": {
+      "enum": [
+        "DRONE",
+        "NOT_DRONE",
+        "UNKNOWN"
+      ],
+      "title": "Classification",
+      "type": "string"
+    },
+    "DeliveryMode": {
+      "enum": [
+        "DIRECT",
+        "LOCAL_SIMULATION",
+        "NEAR_REAL_TIME_FILE_REPLAY"
+      ],
+      "title": "DeliveryMode",
+      "type": "string"
+    },
+    "DetectionResult": {
+      "enum": [
+        "POSITIVE",
+        "NEGATIVE",
+        "UNKNOWN"
+      ],
+      "title": "DetectionResult",
+      "type": "string"
+    },
+    "FrameCoordinates": {
+      "additionalProperties": false,
+      "description": "A normalized frame-relative bounding box; never a geographic position.",
+      "properties": {
+        "coordinate_space": {
+          "const": "FRAME_NORMALIZED",
+          "title": "Coordinate Space",
+          "type": "string"
+        },
+        "height": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Height",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Width",
+          "type": "number"
+        },
+        "x": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "coordinate_space",
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "title": "FrameCoordinates",
+      "type": "object"
+    },
+    "LifecycleState": {
+      "enum": [
+        "DETECTED",
+        "APPROACHING",
+        "RESTRICTED_ZONE",
+        "EXITED",
+        "UNKNOWN"
+      ],
+      "title": "LifecycleState",
+      "type": "string"
+    },
+    "Provenance": {
+      "enum": [
+        "SYNTHETIC",
+        "REPLAYED_REAL",
+        "LIVE"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    }
+  },
+  "$id": "https://dronewatch.invalid/schemas/dronewatch.event-input.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "provenance": {
+            "const": "SYNTHETIC"
+          }
+        },
+        "required": [
+          "provenance"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "properties": {
+              "scenario_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "scenario_id"
+            ]
+          },
+          {
+            "properties": {
+              "run_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "run_id"
+            ]
+          }
+        ],
+        "properties": {
+          "delivery_mode": {
+            "const": "LOCAL_SIMULATION"
+          },
+          "simulation": {
+            "const": true
+          }
+        },
+        "required": [
+          "delivery_mode",
+          "simulation",
+          "scenario_id",
+          "run_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "provenance": {
+            "const": "REPLAYED_REAL"
+          }
+        },
+        "required": [
+          "provenance"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "properties": {
+              "scenario_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "scenario_id"
+            ]
+          },
+          {
+            "properties": {
+              "run_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "run_id"
+            ]
+          }
+        ],
+        "properties": {
+          "delivery_mode": {
+            "const": "NEAR_REAL_TIME_FILE_REPLAY"
+          },
+          "simulation": {
+            "const": false
+          }
+        },
+        "required": [
+          "delivery_mode",
+          "simulation",
+          "scenario_id",
+          "run_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "provenance": {
+            "const": "LIVE"
+          }
+        },
+        "required": [
+          "provenance"
+        ]
+      },
+      "then": {
+        "properties": {
+          "delivery_mode": {
+            "const": "DIRECT"
+          },
+          "simulation": {
+            "const": false
+          }
+        },
+        "required": [
+          "delivery_mode",
+          "simulation"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "detection_result": {
+            "const": "POSITIVE"
+          }
+        },
+        "required": [
+          "detection_result"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "properties": {
+              "track_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "track_id"
+            ]
+          }
+        ],
+        "properties": {
+          "classification": {
+            "const": "DRONE"
+          },
+          "lifecycle_state": {
+            "enum": [
+              "DETECTED",
+              "APPROACHING",
+              "RESTRICTED_ZONE",
+              "EXITED"
+            ]
+          }
+        },
+        "required": [
+          "classification",
+          "lifecycle_state",
+          "track_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "detection_result": {
+            "const": "NEGATIVE"
+          }
+        },
+        "required": [
+          "detection_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "classification": {
+            "const": "NOT_DRONE"
+          },
+          "lifecycle_state": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "classification",
+          "lifecycle_state"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "detection_result": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "detection_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "classification": {
+            "const": "UNKNOWN"
+          },
+          "lifecycle_state": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "classification",
+          "lifecycle_state"
+        ]
+      }
+    }
+  ],
+  "description": "Provider-neutral input before DroneWatch adds receipt identity and time.",
+  "properties": {
+    "classification": {
+      "$ref": "#/$defs/Classification"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "description": "Source-reported numeric score in the inclusive range 0.0 to 1.0; not a calibrated probability.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "delivery_mode": {
+      "$ref": "#/$defs/DeliveryMode"
+    },
+    "detection_result": {
+      "$ref": "#/$defs/DetectionResult"
+    },
+    "frame_coordinates": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FrameCoordinates"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "lifecycle_state": {
+      "$ref": "#/$defs/LifecycleState"
+    },
+    "modality": {
+      "const": "VISUAL",
+      "title": "Modality",
+      "type": "string"
+    },
+    "observed_at": {
+      "description": "Time reported by the source observation; never replaced with DroneWatch receipt time.",
+      "format": "date-time",
+      "pattern": "^(?!.*-00:00$)\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "description": "Opaque non-secret identifier; never a URL or credential.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Run Id"
+    },
+    "scenario_id": {
+      "anyOf": [
+        {
+          "description": "Opaque non-secret identifier; never a URL or credential.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scenario Id"
+    },
+    "schema_version": {
+      "const": "dronewatch.event.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "simulation": {
+      "title": "Simulation",
+      "type": "boolean"
+    },
+    "source_event_id": {
+      "description": "Opaque non-secret identifier; never a URL or credential.",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Source Event Id",
+      "type": "string"
+    },
+    "source_scope": {
+      "description": "Opaque non-secret identifier; never a URL or credential.",
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "title": "Source Scope",
+      "type": "string"
+    },
+    "source_system": {
+      "maxLength": 64,
+      "minLength": 2,
+      "pattern": "^[A-Z][A-Z0-9_]{1,63}$",
+      "title": "Source System",
+      "type": "string"
+    },
+    "track_id": {
+      "anyOf": [
+        {
+          "description": "Opaque non-secret identifier; never a URL or credential.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Track Id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source_event_id",
+    "source_system",
+    "source_scope",
+    "observed_at",
+    "modality",
+    "provenance",
+    "delivery_mode",
+    "simulation",
+    "lifecycle_state",
+    "detection_result",
+    "classification"
+  ],
+  "title": "DroneWatch inbound observation v1",
+  "type": "object"
+}

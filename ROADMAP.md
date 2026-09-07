@@ -15,8 +15,9 @@ The existing frontend remains unchanged until the upstream data model is stable.
 - Replayed real radar is real recorded radar data, but it is not live radar.
 - ADS-B and Remote ID may be live telemetry, but they are not radar and do not
   detect a non-cooperative aircraft.
-- Unknown or conflicting input fails to `UNKNOWN`; narrative text alone cannot
-  create a drone detection.
+- Malformed or conflicting input is rejected; only an explicit schema-valid
+  `UNKNOWN` observation is retained. Narrative text alone cannot create a drone
+  detection.
 - No model accuracy, range, bearing, speed, heading, latency, or reliability
   claim is made without a dated, reproducible measurement.
 - Dataset files stay outside Git. Git stores manifests, licences, checksums,
@@ -98,33 +99,59 @@ unauthenticated and must not be left on a persistent public endpoint.
 
 ## V0.2 — canonical observations and bounded Viso Now replay
 
+Current status: **repository release candidate; external Viso acceptance
+pending**. No `v0.2.0` release or tag is justified yet.
+
 Goal: replace heuristic ambiguity with a stable contract and prove one bounded,
 reproducible file-in/webhook-out run.
 
-Deliverables:
+Repository-local phase implemented in the candidate tree:
 
-- Versioned `dronewatch.event.v1` schema separating `observed_at` and
-  `received_at`, source event ID, track ID, modality, provenance, and simulation.
-- Strict Viso adapter based on an actual redacted delivery fixture; no guessed
-  canonical Viso payload.
-- Idempotent source/event key and a lifecycle where a matching `EXITED` event
-  closes a track.
-- Authenticated webhook using an account-tested Viso-supported token/header or
-  an authenticated relay.
-- Request-size, retention, and safe raw-payload access boundaries.
-- Bounded replay command with run count, scenario ID, input hash, stop behavior,
-  and no uncontrolled infinite file creation.
-- Small CC0/licence-clean visual fixture pack with positives and hard negatives.
+- Versioned `dronewatch.event.v1` Python model and JSON Schema separating the
+  source event ID, internal observation ID, `observed_at`, server-owned
+  `received_at`, source scope, track, modality, provenance, delivery mode, and
+  simulation status.
+- Provider-neutral validation independent of the Viso mapper. Synthetic
+  contract fixtures cannot claim Viso provenance.
+- Atomic delivery keys scoped by source system, source scope, and source event
+  ID, with deterministic content digests and digest-only conflict evidence.
+- Historical observations and materialized effective track heads. A matching
+  newer `EXITED` state closes a track; negative and `UNKNOWN` observations do
+  not open one.
+- Authenticated and streamed-size-limited receiver, with no default credential,
+  no query-string fallback, no complete raw-body retention, and a sanitized
+  dashboard compatibility projection.
+- Transactional, repeatable V0.1 SQLite migration with legacy rows retained as
+  `LEGACY_UNVERIFIED` rather than reinterpreted as Viso observations.
+- Finite replay command with explicit scenario/run/fixture IDs, manifest and
+  hash validation, a hard count limit, atomic copies, interruption cleanup, and
+  a machine-readable local run record.
+- Manifest-controlled six-clip Halmstad selection pinned to upstream commit
+  `442d0c6750708cc221636f7a1fd31cbd8cb0aeb8` under CC0. Media remains outside
+  Git and the selection was fixed before any Viso result was available.
 
-Exit gate:
+Deliberately pending external phase:
 
-- Duplicate delivery stores one logical observation.
-- `DETECTED -> EXITED` produces zero open incidents for the same track.
-- Missing, invalid, conflicting, stale, and out-of-order inputs have tests.
-- A supervised Google Drive -> Viso Now -> webhook run records request/response
-  evidence, delivery latency, fixture hash, and Viso agent configuration date.
-- The run is labelled `NEAR_REAL_TIME_FILE_REPLAY`, never live video.
-- Frontend hash remains unchanged.
+- An actual redacted delivery from the configured Viso account, including the
+  exact body shape and relevant non-secret header names.
+- Proof of what authentication method that account can emit. If it cannot emit
+  the required bearer header, an authenticated relay requires a separate design
+  and explicit authorization.
+- Strict Viso field mapping based only on that captured evidence. Until then,
+  the Viso route returns `503 viso_adapter_unavailable` without storing input.
+- A supervised Google Drive → Viso Now → DroneWatch run with fixture hash,
+  configuration date, transport response, source/receipt timestamps, explicit
+  latency definition, and redacted evidence.
+
+Remaining release exit gate:
+
+- Record the exact repository-local verification results against the candidate
+  commit and confirm the protected frontend hashes.
+- Complete every item in `VISO_ACCEPTANCE.md` using the actual account.
+- Label the run `REPLAYED_REAL` plus `NEAR_REAL_TIME_FILE_REPLAY`, never live
+  video, radar, general model validation, or operational detection proof.
+- Obtain explicit user approval before push, merge, account changes, media
+  upload, tunnel exposure, or creation of `v0.2.0`.
 
 ## V0.3 — deterministic radar/RF replay and synthetic fusion
 
@@ -220,7 +247,7 @@ calibration, field data, documented ground truth, and measured operational
 performance. Until those exist, DroneWatch remains a prototype and must not be
 described as a deployed or certified counter-UAS system.
 
-## Push discipline
+## Push and release discipline
 
 Each stage is one bounded release on `main`:
 
@@ -228,7 +255,13 @@ Each stage is one bounded release on `main`:
 2. Change only the stage's owned files; preserve unrelated work.
 3. Run all baseline and stage-specific gates.
 4. Review the exact staged path set and diff.
-5. Commit and push `main`.
-6. Verify the remote branch SHA equals the local commit.
-7. Wait for CI, then create and push the annotated version tag.
-8. Start the next stage only after the previous SHA, CI, and tag are confirmed.
+5. Create a focused local candidate commit after verification.
+6. Stop at the authorization gate. Do not push, merge, expose a tunnel, change
+   a provider account, upload media, or create a release tag without the user's
+   explicit approval for that action.
+7. After approval, push the intended commit and verify the remote branch SHA
+   equals the local commit.
+8. Wait for CI and satisfy the milestone's external acceptance gates before
+   requesting approval for an annotated version tag.
+9. Start the next stage only after the previous SHA, CI, external evidence, and
+   tag are confirmed.

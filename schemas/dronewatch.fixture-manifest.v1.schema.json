@@ -1,0 +1,463 @@
+{
+  "$comment": "This schema defines the portable structure. Cross-field and pack-level semantic rules are normatively enforced by replay_artifacts.py and scripts/verify_replay_artifacts.py.",
+  "$defs": {
+    "AnnotationArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "const": "MATLAB_MAT",
+          "title": "Format",
+          "type": "string"
+        },
+        "source_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Source Bytes",
+          "type": "integer"
+        },
+        "source_path": {
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "use": {
+          "const": "UPSTREAM_REFERENCE_ONLY_NOT_PARSED_BY_DRONEWATCH_V0_2",
+          "title": "Use",
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "source_path",
+        "source_url",
+        "source_sha256",
+        "source_bytes",
+        "use"
+      ],
+      "title": "AnnotationArtifact",
+      "type": "object"
+    },
+    "DataLicense": {
+      "additionalProperties": false,
+      "properties": {
+        "attribution_required": {
+          "const": false,
+          "title": "Attribution Required",
+          "type": "boolean"
+        },
+        "name": {
+          "const": "CC0 1.0 Universal",
+          "title": "Name",
+          "type": "string"
+        },
+        "redistribution_permitted": {
+          "const": true,
+          "title": "Redistribution Permitted",
+          "type": "boolean"
+        },
+        "source_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Source Bytes",
+          "type": "integer"
+        },
+        "source_path": {
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "spdx_id": {
+          "const": "CC0-1.0",
+          "title": "Spdx Id",
+          "type": "string"
+        },
+        "status": {
+          "const": "VERIFIED",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "spdx_id",
+        "name",
+        "source_url",
+        "source_path",
+        "source_sha256",
+        "source_bytes",
+        "attribution_required",
+        "redistribution_permitted"
+      ],
+      "title": "DataLicense",
+      "type": "object"
+    },
+    "DatasetLicenses": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/NotUsedLicense"
+        },
+        "data": {
+          "$ref": "#/$defs/DataLicense"
+        },
+        "model": {
+          "$ref": "#/$defs/NotUsedLicense"
+        },
+        "paper": {
+          "$ref": "#/$defs/NotUsedLicense"
+        }
+      },
+      "required": [
+        "data",
+        "code",
+        "paper",
+        "model"
+      ],
+      "title": "DatasetLicenses",
+      "type": "object"
+    },
+    "DatasetSource": {
+      "additionalProperties": false,
+      "properties": {
+        "access_date": {
+          "title": "Access Date",
+          "type": "string"
+        },
+        "licences": {
+          "$ref": "#/$defs/DatasetLicenses"
+        },
+        "media_repository_policy": {
+          "const": "MEDIA_EXTERNAL_TO_GIT",
+          "title": "Media Repository Policy",
+          "type": "string"
+        },
+        "owner_publisher": {
+          "maxLength": 160,
+          "minLength": 3,
+          "title": "Owner Publisher",
+          "type": "string"
+        },
+        "permitted_use": {
+          "const": "LICENCE_CLEAN_VISUAL_REPLAY_EVALUATION",
+          "title": "Permitted Use",
+          "type": "string"
+        },
+        "pinned_revision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Pinned Revision",
+          "type": "string"
+        },
+        "repository_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Repository Url",
+          "type": "string"
+        },
+        "revision_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Revision Url",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 160,
+          "minLength": 8,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "owner_publisher",
+        "repository_url",
+        "pinned_revision",
+        "revision_url",
+        "access_date",
+        "licences",
+        "permitted_use",
+        "media_repository_policy"
+      ],
+      "title": "DatasetSource",
+      "type": "object"
+    },
+    "ExpectedResult": {
+      "enum": [
+        "POSITIVE",
+        "NEGATIVE"
+      ],
+      "title": "ExpectedResult",
+      "type": "string"
+    },
+    "FixtureCategory": {
+      "enum": [
+        "DRONE_POSITIVE",
+        "BIRD_HARD_NEGATIVE",
+        "AIRPLANE_HARD_NEGATIVE",
+        "HELICOPTER_HARD_NEGATIVE",
+        "BACKGROUND_NEGATIVE"
+      ],
+      "title": "FixtureCategory",
+      "type": "string"
+    },
+    "FixtureEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition_notes": {
+          "maxLength": 500,
+          "minLength": 8,
+          "title": "Acquisition Notes",
+          "type": "string"
+        },
+        "annotation": {
+          "$ref": "#/$defs/AnnotationArtifact"
+        },
+        "category": {
+          "$ref": "#/$defs/FixtureCategory"
+        },
+        "derived_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Derived Bytes",
+          "type": "integer"
+        },
+        "derived_filename": {
+          "title": "Derived Filename",
+          "type": "string"
+        },
+        "derived_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Derived Sha256",
+          "type": "string"
+        },
+        "expected_result": {
+          "$ref": "#/$defs/ExpectedResult"
+        },
+        "fixture_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "title": "Fixture Id",
+          "type": "string"
+        },
+        "intended_use": {
+          "const": "VISUAL_FILE_REPLAY_EVALUATION",
+          "title": "Intended Use",
+          "type": "string"
+        },
+        "known_limitations": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 8,
+            "type": "string"
+          },
+          "title": "Known Limitations",
+          "type": "array"
+        },
+        "modality": {
+          "$ref": "#/$defs/FixtureModality"
+        },
+        "source_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Source Bytes",
+          "type": "integer"
+        },
+        "source_path": {
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sequence_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "enum": [
+              ".",
+              ".."
+            ]
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+          "title": "Source Sequence Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "transformations": {
+          "items": {
+            "const": "NONE_SOURCE_BYTES",
+            "type": "string"
+          },
+          "title": "Transformations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fixture_id",
+        "source_sequence_id",
+        "source_path",
+        "source_url",
+        "source_sha256",
+        "source_bytes",
+        "derived_filename",
+        "derived_sha256",
+        "derived_bytes",
+        "modality",
+        "category",
+        "expected_result",
+        "intended_use",
+        "transformations",
+        "annotation",
+        "acquisition_notes",
+        "known_limitations"
+      ],
+      "title": "FixtureEntry",
+      "type": "object"
+    },
+    "FixtureModality": {
+      "enum": [
+        "VISIBLE",
+        "THERMAL_INFRARED"
+      ],
+      "title": "FixtureModality",
+      "type": "string"
+    },
+    "ManifestStatus": {
+      "enum": [
+        "VERIFIED"
+      ],
+      "title": "ManifestStatus",
+      "type": "string"
+    },
+    "NotUsedLicense": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "maxLength": 256,
+          "minLength": 8,
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "const": "NOT_USED",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "reason"
+      ],
+      "title": "NotUsedLicense",
+      "type": "object"
+    }
+  },
+  "$id": "https://dronewatch.invalid/schemas/dronewatch.fixture-manifest.v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "dataset": {
+      "$ref": "#/$defs/DatasetSource"
+    },
+    "fixtures": {
+      "items": {
+        "$ref": "#/$defs/FixtureEntry"
+      },
+      "title": "Fixtures",
+      "type": "array"
+    },
+    "manifest_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "not": {
+        "enum": [
+          ".",
+          ".."
+        ]
+      },
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "title": "Manifest Id",
+      "type": "string"
+    },
+    "pack_limitations": {
+      "items": {
+        "maxLength": 500,
+        "minLength": 8,
+        "type": "string"
+      },
+      "title": "Pack Limitations",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "dronewatch.fixture-manifest.v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_at": {
+      "format": "date-time",
+      "title": "Selected At",
+      "type": "string"
+    },
+    "selection_method": {
+      "const": "PRESELECTED_BEFORE_ANY_VISO_RESULT",
+      "title": "Selection Method",
+      "type": "string"
+    },
+    "selection_rationale": {
+      "maxLength": 1000,
+      "minLength": 40,
+      "title": "Selection Rationale",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ManifestStatus"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "status",
+    "selected_at",
+    "selection_method",
+    "selection_rationale",
+    "dataset",
+    "fixtures",
+    "pack_limitations"
+  ],
+  "title": "DroneWatch fixture manifest v1",
+  "type": "object"
+}
