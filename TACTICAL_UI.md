@@ -53,7 +53,7 @@ Run Python tests from the repository root:
 .venv/bin/python -m pytest -q
 ```
 
-Run presentation-data tests from the dronewatch directory:
+Run presentation-data tests from the repository root:
 
 ```sh
 node --test tests/dashboard.test.cjs

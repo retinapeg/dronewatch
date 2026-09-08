@@ -58,6 +58,20 @@ Optional configuration:
 - `DRONEWATCH_DEMO_SOURCE`: source MP4 used by `start-drive-copy.command`.
 - `DRONEWATCH_PYTHON`: Python executable used by `start-drive-copy.command`.
 
+## HTTP endpoints
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/` | Tactical dashboard (`index.html`). |
+| `GET` | `/health` | Liveness check. Returns status and server time only. |
+| `GET` | `/api/events` | Stored events, newest first. `limit` defaults to 20 and is clamped to 200. Returns the derived `status`, `latest`, and `open_incidents`. |
+| `GET` | `/api/config` | Reports whether stored simulation is enabled. |
+| `POST` | `/webhook/viso` | Accepts any JSON payload, normalizes it, and stores it. Always returns `{"status": "ok"}`. |
+| `POST` | `/dev/simulate` | Stores a labelled synthetic event. Body: `{"scenario": "detected"}`, `"restricted"`, or `"left"`. Returns 404 unless `DRONEWATCH_SIMULATION=1`. |
+
+All endpoints are unauthenticated. `GET /api/events` returns stored raw payloads
+verbatim, so treat it as sensitive. See [Internet exposure](#internet-exposure).
+
 ## Viso Now file replay
 
 The source media is deliberately not stored in Git. Use only footage that you
