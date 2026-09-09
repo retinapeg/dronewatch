@@ -30,7 +30,9 @@ class TrackerConfig:
     process_accel_sigma: float = 2.2
     #: Chi-squared gate on 2 degrees of freedom. 9.21 is the 99% point;
     #: 16.0 is deliberately looser so a manoeuvre does not split a track.
-    gate_chi2: float = 16.0
+    # chi-squared, 2 dof. 25 admits a constant-velocity filter's lag through a
+    # gentle turn while staying far tighter than the spacing between contacts.
+    gate_chi2: float = 25.0
     #: Hits required before a tentative track is confirmed.
     confirm_hits: int = 3
     #: A tentative track is discarded if it is not confirmed this quickly.
@@ -316,8 +318,12 @@ class Tracker:
             track = self.tracks[track_id]
             age = now - track.last_update_at
 
-            if track.status is TrackState.TENTATIVE and age > config.tentative_timeout_s:
-                del self.tracks[track_id]
+            if track.status is TrackState.TENTATIVE:
+                # An unconfirmed candidate either gets confirmed by later hits or
+                # expires. It must never age into COASTING, which would put a
+                # never-confirmed contact on the operator's screen.
+                if age > config.tentative_timeout_s:
+                    del self.tracks[track_id]
                 continue
             if age > config.drop_after_s:
                 del self.tracks[track_id]

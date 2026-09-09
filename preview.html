@@ -1,292 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DroneWatch Operator Preview</title>
 <style>
 :root{
-  --bg:#0c1117; --surface:#131a23; --surface-2:#18212c; --line:#232f3d; --line-soft:#1b2531;
-  --ink:#e8eef5; --ink-dim:#9aa9b8; --ink-faint:#6b7c8c;
-  --high:#ff6b6b; --high-dim:#3a1f22; --watch:#f0b429; --watch-dim:#3a2f18;
-  --low:#4dd0c4; --low-dim:#16302f; --accent:#5aa9e6; --site:#8fd0ff;
-  --radius:8px;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
-  --num:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:#0b1016; --panel:#0f161e; --panel-2:#131c26; --line:#1c2833; --line-2:#26343f;
+  --ink:#dbe4ec; --ink-dim:#8d9caa; --ink-faint:#5c6b78;
+  --high:#ff5d5d; --watch:#f2b53a; --low:#49c9d9; --site:#6fb3ff; --select:#ffffff;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
-[hidden]{display:none!important}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans);
-  -webkit-font-smoothing:antialiased;overflow:hidden}
-h1,h2,h3,p{margin:0}
-button{font:inherit;cursor:pointer;color:var(--ink);background:var(--surface-2);
-  border:1px solid var(--line);border-radius:6px;padding:7px 12px;transition:.12s}
-button:hover:not(:disabled){background:#212d3a;border-color:#31414f}
-button:disabled{opacity:.35;cursor:not-allowed}
-button.primary{background:#1a4a63;border-color:#2b6d8f;color:#cfe9f7}
-button.primary:hover:not(:disabled){background:#215b78}
-select{font:inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);
-  border-radius:6px;padding:7px 10px}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.35 var(--sans);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);border-radius:4px;padding:4px 8px}
+.app{display:grid;grid-template-rows:50px minmax(0,1fr) 50px;height:100vh}
 
-.app{display:grid;grid-template-rows:58px minmax(0,1fr) 58px;height:100dvh}
+/* top bar */
+.top{display:flex;align-items:center;gap:18px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;letter-spacing:.2px}
+.brand .mark{width:16px;height:16px;border:2px solid var(--site);border-radius:50%;position:relative}
+.brand .mark::after{content:"";position:absolute;inset:4px;background:var(--site);border-radius:50%}
+.sim{font:600 11px/1 var(--mono);letter-spacing:.08em;color:var(--watch);border:1px solid #5a4416;background:#20190a;padding:6px 9px;border-radius:3px}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:4px;overflow:hidden}
+.seg button{padding:5px 12px;font:600 13px var(--mono);color:var(--ink-dim);border-right:1px solid var(--line-2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:#1a2a3a;color:#fff}
+.spacer{flex:1}
+.viso{display:flex;align-items:center;gap:7px;font:600 11px var(--mono);letter-spacing:.08em;color:var(--ink-dim);padding:6px 9px;border:1px solid var(--line-2);border-radius:3px}
+.viso .dot{width:8px;height:8px;border-radius:50%;background:#48545f}
+.viso.ok .dot{background:#4ad27a}.viso.warn .dot{background:var(--watch)}.viso.bad .dot{background:var(--high)}
+.diag{font-size:12px;color:var(--ink-faint);text-decoration:none}
+.diag:hover{color:var(--ink-dim)}
+.lbl{font-size:12px;color:var(--ink-faint)}
 
-/* ---------- top bar ---------- */
-.topbar{display:flex;align-items:center;gap:18px;padding:0 18px;
-  background:var(--surface);border-bottom:1px solid var(--line)}
-.wordmark{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.02em;font-size:16px}
-.wordmark svg{width:20px;height:20px;color:var(--accent)}
-.sim-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
-  letter-spacing:.04em;color:var(--watch);background:var(--watch-dim);
-  border:1px solid #6b5420;border-radius:5px;padding:4px 9px;white-space:nowrap}
-.sim-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.topbar .group{display:flex;align-items:center;gap:9px}
-.topbar label{font-size:12.5px;color:var(--ink-dim);white-space:nowrap}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{border:0;border-radius:0;padding:7px 14px;background:transparent;
-  font-variant-numeric:tabular-nums;color:var(--ink-dim)}
-.seg button[aria-pressed="true"]{background:#1f3a4d;color:#dff0fb;font-weight:600}
-.spacer{margin-left:auto}
-.linkish{background:transparent;border-color:transparent;color:var(--ink-dim);font-size:13.5px}
-.linkish:hover{color:var(--ink)}
+/* main */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:0}
+.map{position:relative;min-height:0;background:var(--bg);overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.summary{position:absolute;left:14px;top:12px;font:12px/1.45 var(--mono);color:var(--ink-dim);background:#0b1016cc;border:1px solid var(--line);padding:9px 11px;border-radius:4px;min-width:150px;pointer-events:none}
+.summary .h{color:var(--ink);font-weight:700;letter-spacing:.08em;font-size:11px}
+.summary .n{color:#fff;font-size:20px;font-weight:700;line-height:1.1;margin:3px 0 6px}
+.summary .row{display:flex;justify-content:space-between;gap:12px}
+.summary .k{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.viewctl{position:absolute;right:14px;top:12px;display:flex;flex-direction:column;gap:6px}
+.viewctl button{width:34px;height:30px;background:#0f161ecc;border:1px solid var(--line-2);border-radius:4px;color:var(--ink);font:600 15px var(--mono)}
+.viewctl button.wide{width:auto;padding:0 10px;font:600 11px var(--mono);letter-spacing:.06em}
+.viewctl button[aria-pressed="true"]{background:#1a2a3a;border-color:#2f4a63}
+.scale{position:absolute;left:14px;bottom:12px;font:11px var(--mono);color:var(--ink-dim);pointer-events:none}
+.scale .bar{height:2px;background:var(--ink-dim);margin-bottom:4px;position:relative}
+.scale .bar::before,.scale .bar::after{content:"";position:absolute;bottom:0;width:1px;height:7px;background:var(--ink-dim)}
+.scale .bar::after{right:0}
+.north{position:absolute;right:16px;bottom:12px;font:600 11px var(--mono);color:var(--ink-faint);text-align:center;pointer-events:none}
+.north svg{display:block;width:16px;height:22px;margin:0 auto 2px;position:static}
+.mode{position:absolute;left:50%;top:12px;transform:translateX(-50%);font:600 11px var(--mono);letter-spacing:.1em;color:var(--ink-dim);background:#0b1016cc;border:1px solid var(--line);padding:5px 10px;border-radius:3px;pointer-events:none}
+.mode[hidden]{display:none}
 
-/* ---------- main ---------- */
-.main{display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,25vw,410px);min-height:0}
-.scene{position:relative;min-width:0;background:
-  radial-gradient(ellipse at 50% 45%,#111b25 0%,var(--bg) 70%);border-right:1px solid var(--line)}
-.scene svg{display:block;width:100%;height:100%}
-#stage{cursor:grab}
-#stage.dragging{cursor:grabbing}
+/* rail */
+.rail{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:var(--panel)}
+.rail-h{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px 8px;font:700 11px var(--mono);letter-spacing:.1em;color:var(--ink-dim)}
+.rail-h .c{font-weight:400;color:var(--ink-faint);letter-spacing:0}
+.rows{flex:0 1 auto;overflow-y:auto;min-height:0;max-height:52%}
+.row{display:grid;grid-template-columns:1fr auto;gap:1px 10px;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer;border-left:3px solid transparent}
+.row:hover{background:#121b25}
+.row[aria-selected="true"]{background:#152230;border-left-color:var(--select)}
+.row .id{font:700 13.5px var(--mono);color:#fff}
+.row .pr{font:700 10.5px var(--mono);letter-spacing:.08em;text-align:right;align-self:center}
+.row .rg{font:12.5px var(--mono);color:var(--ink-dim)}
+.row .mv{font:11px var(--mono);letter-spacing:.06em;color:var(--ink-faint);text-align:right}
+.row .id .st{font-weight:400;font-size:10px;color:var(--ink-faint);margin-left:6px;letter-spacing:.06em}
+.p-high{color:var(--high)}.p-watch{color:var(--watch)}.p-low{color:var(--low)}
+.card{flex:1 1 auto;min-height:0;overflow-y:auto;border-top:1px solid var(--line-2);padding:12px 14px 14px}
+.card .empty{color:var(--ink-faint);font-size:13px;padding:18px 0;text-align:center}
+.card .top{display:flex;align-items:center;gap:10px;padding:0;border:0;background:none;height:auto}
+.card .cid{font:700 20px var(--mono);color:#fff}
+.badge{font:700 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;border:1px solid}
+.badge.p-high{background:#2a1416;border-color:#5a2426}.badge.p-watch{background:#2a2110;border-color:#5a4416}.badge.p-low{background:#0f272c;border-color:#1f4a52}
+.reason{color:var(--ink-dim);font-size:13px;margin:6px 0 12px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.f .k{font:600 10px var(--mono);letter-spacing:.08em;color:var(--ink-faint)}
+.f .v{font:600 15px var(--mono);color:var(--ink);margin-top:2px}
+.f .v small{font-weight:400;font-size:11px;color:var(--ink-faint);margin-left:3px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px}
+.acts button{padding:9px 0;border:1px solid var(--line-2);border-radius:4px;background:var(--panel-2);font:700 11.5px var(--mono);letter-spacing:.1em}
+.acts button[aria-pressed="true"]{background:#1f3448;border-color:#3a5b7a;color:#fff}
+details{color:var(--ink-faint);font-size:12px}
+details summary{cursor:pointer;list-style:none;padding:6px 0}
+details summary::before{content:"▸ ";font-size:10px}
+details[open] summary::before{content:"▾ "}
+details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wrap}
 
-.overlay{position:absolute;display:flex;gap:8px;z-index:2}
-.ov-tl{top:14px;left:14px;flex-direction:column;align-items:flex-start}
-.ov-tr{top:14px;right:14px}
-.ov-bl{bottom:14px;left:14px;flex-direction:column;gap:10px}
-.viewbtn{background:#111a23e6;backdrop-filter:blur(6px);font-size:13px;padding:6px 11px}
-.zoomstack{display:flex;flex-direction:column;gap:5px}
-.zoomstack button{width:34px;height:34px;padding:0;font-size:17px;line-height:1;
-  background:#111a23e6;backdrop-filter:blur(6px)}
-.scalebar{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-dim);
-  background:#111a23cc;padding:6px 9px;border-radius:6px;border:1px solid var(--line-soft)}
-.scalebar .bar{height:5px;border-left:2px solid var(--ink-dim);border-right:2px solid var(--ink-dim);
-  border-bottom:2px solid var(--ink-dim)}
-.inset{position:absolute;right:14px;bottom:14px;width:150px;height:150px;background:#0b1119ee;
-  border:1px solid var(--line);border-radius:6px;z-index:2;overflow:hidden}
-.inset-label{position:absolute;top:4px;left:7px;font-size:10.5px;color:var(--ink-faint);letter-spacing:.05em}
+/* transport */
+.bot{display:flex;align-items:center;gap:10px;padding:0 14px;border-top:1px solid var(--line);background:var(--panel)}
+.bot button{padding:6px 14px;border:1px solid var(--line-2);border-radius:4px;background:var(--panel-2)}
+.bot button.primary{background:#1a3a5a;border-color:#2b5a85;color:#fff}
+.bot button:disabled{opacity:.4;cursor:default}
+.clock{font:600 13.5px var(--mono);color:var(--ink);margin-left:8px}
+.clock .of{color:var(--ink-faint);font-weight:400}
 
-/* ---------- right rail ---------- */
-.rail{display:flex;flex-direction:column;min-height:0;background:var(--surface)}
-.rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-  padding:14px 16px 10px;border-bottom:1px solid var(--line)}
-.rail-head h2{font-size:12.5px;letter-spacing:.09em;color:var(--ink-dim);font-weight:600}
-.rail-head .count{font-size:13px;color:var(--ink-faint)}
-.contacts{overflow-y:auto;flex:0 0 auto;max-height:46%}
-.contact{display:grid;grid-template-columns:auto 1fr auto;gap:3px 11px;align-items:center;
-  padding:11px 16px;border-bottom:1px solid var(--line-soft);cursor:pointer;border-left:3px solid transparent}
-.contact:hover{background:#182029}
-.contact[aria-selected="true"]{background:#16283a;border-left-color:var(--accent)}
-.contact .cid{font:600 14.5px var(--num);letter-spacing:.01em}
-.contact .rng{font:13px var(--num);color:var(--ink-dim);text-align:right}
-.contact .why{grid-column:1/-1;font-size:12.5px;color:var(--ink-faint);display:flex;
-  align-items:center;gap:7px}
-.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:2.5px 7px;border-radius:4px;
-  white-space:nowrap;border:1px solid}
-.p-high{color:var(--high);background:var(--high-dim);border-color:#6d3236}
-.p-watch{color:var(--watch);background:var(--watch-dim);border-color:#6b5420}
-.p-low{color:var(--low);background:var(--low-dim);border-color:#245049}
-.status-chip{font-size:10.5px;color:var(--ink-faint);border:1px solid var(--line);
-  border-radius:4px;padding:2px 6px;letter-spacing:.04em}
-.status-chip.warn{color:var(--watch);border-color:#6b5420}
+/* drawer */
+.drawer{position:fixed;top:50px;right:0;width:380px;bottom:50px;background:var(--panel);border-left:1px solid var(--line-2);padding:16px 18px;overflow:auto;z-index:5;box-shadow:-12px 0 30px #0008}
+.drawer[hidden]{display:none}
+.drawer h3{margin:0 0 6px;font:700 12px var(--mono);letter-spacing:.1em;color:var(--ink-dim)}
+.drawer .x{position:absolute;right:12px;top:10px;color:var(--ink-dim);font-size:18px}
+.drawer p{color:var(--ink-dim);font-size:13px}
+.drawer .kv{font:12px/1.7 var(--mono);color:var(--ink);white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--line);padding:10px;border-radius:4px}
+.pill{display:inline-block;font:700 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;border:1px solid var(--line-2);color:var(--ink-dim)}
 
-.card{border-top:1px solid var(--line);padding:15px 16px;overflow-y:auto;flex:1;min-height:0}
-.card-empty{color:var(--ink-faint);font-size:13.5px;padding:22px 4px;text-align:center}
-.card-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.card-top .cid{font:650 20px var(--num)}
-.card-why{font-size:13.5px;color:var(--ink-dim);margin:8px 0 14px}
-.facts{display:grid;grid-template-columns:1fr 1fr;gap:13px 14px;margin-bottom:15px}
-.fact .k{font-size:11px;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:3px}
-.fact .v{font:15.5px var(--num);color:var(--ink)}
-.fact .v small{font-size:11.5px;color:var(--ink-faint);font-family:var(--sans)}
-.card-actions{display:flex;gap:8px;margin-bottom:14px}
-.card-actions button{flex:1}
-details.tech{border-top:1px solid var(--line-soft);padding-top:11px}
-details.tech summary{font-size:12.5px;color:var(--ink-dim);cursor:pointer;list-style:none}
-details.tech summary::-webkit-details-marker{display:none}
-details.tech summary::before{content:"▸ ";color:var(--ink-faint)}
-details.tech[open] summary::before{content:"▾ "}
-.tech-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:10px;
-  font:12px var(--num);color:var(--ink-dim)}
-.tech-grid .k{color:var(--ink-faint)}
-
-/* ---------- transport ---------- */
-.transport{display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--surface);
-  border-top:1px solid var(--line)}
-.transport .time{font:14px var(--num);color:var(--ink-dim);min-width:118px}
-.progress{flex:1;height:5px;background:#1d2732;border-radius:3px;overflow:hidden;min-width:60px}
-.progress i{display:block;height:100%;background:var(--accent);width:0}
-.hint{font-size:12.5px;color:var(--ink-faint)}
-
-/* ---------- drawer ---------- */
-.drawer{position:fixed;inset:0;background:#060a0ecc;display:flex;justify-content:flex-end;z-index:20}
-.drawer-panel{width:min(560px,92vw);background:var(--surface);border-left:1px solid var(--line);
-  padding:22px 24px;overflow-y:auto}
-.drawer-panel h2{font-size:17px;margin-bottom:4px}
-.drawer-panel h3{font-size:12.5px;letter-spacing:.07em;color:var(--ink-dim);margin:20px 0 8px}
-.drawer-panel p{font-size:13.5px;color:var(--ink-dim);margin-bottom:9px}
-.drawer-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-code{font:12.5px var(--num);background:#0d141c;border:1px solid var(--line);border-radius:5px;
-  padding:9px 11px;display:block;color:#bcd3e6;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
-.kvrow{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:13px;margin-bottom:5px}
-.kvrow .k{color:var(--ink-faint)}
-.status-line{display:flex;align-items:center;gap:8px;font-size:13.5px}
-
+@media (max-width:1500px){
+  .main{grid-template-columns:minmax(0,1fr) 300px}
+  .row{padding:7px 12px}
+  .card{padding:10px 12px 12px}
+  .f .v{font-size:14px}
+  .card .cid{font-size:18px}
+}
 @media (max-height:820px){
-  /* Shorter viewports: tighten the rows so the whole contact list is reachable
-     with minimal scrolling, and give the list a larger share of the rail. */
-  .app{grid-template-rows:52px minmax(0,1fr) 52px}
-  .contacts{max-height:52%}
-  .contact{padding:8px 16px;gap:2px 10px}
-  .contact .cid{font-size:13.5px}
-  .contact .why{font-size:12px}
-  .rail-head{padding:11px 16px 8px}
-  .facts{gap:9px 12px}
-  .fact .v{font-size:14.5px}
-  .card{padding:12px 16px}
-  .card-top .cid{font-size:18px}
-  .card-actions{margin-bottom:10px}
+  .app{grid-template-rows:46px minmax(0,1fr) 46px}
+  .drawer{top:46px;bottom:46px}
+  .rows{max-height:50%}
+  .row{padding:6px 12px}
+  .rail-h{padding:9px 12px 6px}
+  .facts{gap:8px 10px}
+  .acts{margin:10px 0 8px}
 }
 </style>
-
+</head>
+<body>
 <div class="app">
-  <header class="topbar">
-    <div class="wordmark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-        <circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8.5" opacity=".55"></circle>
-        <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"></path>
-      </svg>
-      DroneWatch
+  <header class="top">
+    <div class="brand"><span class="mark"></span>DroneWatch</div>
+    <span class="sim">SIMULATION — NOT LIVE</span>
+    <select id="scenario" aria-label="Scenario">
+      <option value="operator_demo">Incoming group</option>
+      <option value="operator_demo_signal_loss">Incoming group + contact loss</option>
+    </select>
+    <div class="seg" id="count-seg" role="group" aria-label="Contact count">
+      <button data-n="3">3</button><button data-n="6" aria-pressed="true">6</button><button data-n="10">10</button>
     </div>
-    <span class="sim-chip"><i class="dot"></i>SIMULATION &mdash; NOT LIVE</span>
-
-    <div class="group">
-      <label for="scenario">Scenario</label>
-      <select id="scenario">
-        <option value="operator_demo">Incoming group</option>
-        <option value="operator_demo_signal_loss">Incoming group + contact loss</option>
-      </select>
-    </div>
-    <div class="group">
-      <label>Contacts</label>
-      <div class="seg" id="count-seg" role="group" aria-label="Number of contacts"></div>
-    </div>
-
-    <div class="spacer"></div>
-    <button class="linkish" id="open-connections" title="Viso Now connection status"><span id="viso-dot" aria-hidden="true">&#9679;</span> VISO</button>
-    <button class="linkish" onclick="location.href='/preview/diagnostics'">Diagnostics &rarr;</button>
+    <span class="spacer"></span>
+    <button class="viso" id="viso-btn" title="Viso Now connection"><span class="dot" id="viso-dot"></span><span id="viso-text">VISO</span></button>
+    <a class="diag" href="/preview/diagnostics">Diagnostics</a>
   </header>
 
   <div class="main">
-    <section class="scene">
-      <svg id="stage" aria-label="Contact picture in a local simulation frame"></svg>
-
-      <div class="overlay ov-tl">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="viewbtn" id="v-overview">Overview</button>
-          <button class="viewbtn" id="v-high">Focus priority</button>
-        </div>
+    <section class="map" id="map">
+      <svg id="stage" xmlns="http://www.w3.org/2000/svg" aria-label="Tactical picture"></svg>
+      <div class="summary" id="summary" aria-live="polite"></div>
+      <div class="mode" id="mode" hidden>FOCUS</div>
+      <div class="viewctl">
+        <button id="zoom-in" title="Zoom in">+</button>
+        <button id="zoom-out" title="Zoom out">−</button>
+        <button id="v-overview" class="wide" title="Operator framing">OVERVIEW</button>
       </div>
-
-      <div class="overlay ov-tr">
-        <div class="zoomstack">
-          <button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
-          <button id="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
-        </div>
-      </div>
-
-      <div class="overlay ov-bl">
-        <div class="scalebar">
-          <div class="bar" id="scale-bar" style="width:90px"></div>
-          <span class="num" id="scale-text">500 m</span>
-        </div>
-      </div>
-
-      <div class="inset" id="inset" hidden>
-        <span class="inset-label">OVERVIEW</span>
-        <svg id="inset-svg" viewBox="0 0 150 150"></svg>
-      </div>
+      <div class="scale"><div class="bar" id="scale-bar" style="width:90px"></div><span id="scale-text">500 m</span></div>
+      <div class="north"><svg viewBox="0 0 16 22"><path d="M8 1 L13 14 L8 11 L3 14 Z" fill="#8d9caa"/></svg>N</div>
     </section>
 
     <aside class="rail">
-      <div class="rail-head">
-        <h2>CONTACTS</h2>
-        <span class="count" id="contact-count">&mdash;</span>
-      </div>
-      <div class="contacts" id="contacts"></div>
-      <div class="card" id="card">
-        <div class="card-empty">Select a contact on the map or in the list.</div>
-      </div>
+      <div class="rail-h"><span>CONTACTS</span><span class="c" id="contact-count">loading…</span></div>
+      <div class="rows" id="rows"></div>
+      <div class="card" id="card"><div class="empty">Select a contact on the map or in the list.</div></div>
     </aside>
   </div>
 
-  <footer class="transport">
-    <button class="primary" id="play">Play</button>
-    <button id="pause" disabled>Pause</button>
+  <footer class="bot">
+    <button id="play" class="primary">Play</button>
+    <button id="pause">Pause</button>
     <button id="reset">Reset</button>
-    <div class="group">
-      <label for="speed">Speed</label>
-      <select id="speed">
-        <option value="0.5">0.5&times;</option>
-        <option value="1" selected>1&times;</option>
-        <option value="2">2&times;</option>
-        <option value="4">4&times;</option>
-      </select>
-    </div>
-    <span class="time num" id="clock">T+00.0 / 90.0 s</span>
-    <div class="progress"><i id="progress"></i></div>
+    <span class="lbl">Speed</span>
+    <select id="speed" aria-label="Playback speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    <span class="clock" id="clock">T+00.0 <span class="of">/ 90 s</span></span>
   </footer>
 </div>
 
 <div class="drawer" id="connections" hidden>
-  <div class="drawer-panel">
-    <div class="drawer-head">
-      <div><h2>Connections</h2><p>External sensor ingestion. Independent of the simulation.</p></div>
-      <button onclick="document.getElementById('connections').hidden=true">Close</button>
-    </div>
-    <div class="status-line"><span id="viso-pill" class="pill p-low">LOADING</span>
-      <span id="viso-note" style="color:var(--ink-dim);font-size:13px"></span></div>
-    <h3>VISO NOW</h3>
-    <div id="viso-kv"></div>
-    <div id="viso-setup"></div>
-    <h3>SEPARATION</h3>
-    <p>Synthetic playback never changes this status. Only an authenticated delivery
-       to the protected endpoint can. A simulated contact never carries Viso evidence.</p>
-  </div>
-</div>
-
-<div class="drawer" id="about" hidden>
-  <div class="drawer-panel">
-    <div class="drawer-head">
-      <div><h2>About this preview</h2><p>What is real, what is simulated, and what is not validated.</p></div>
-      <button onclick="document.getElementById('about').hidden=true">Close</button>
-    </div>
-    <h3>DATA PATH</h3>
-    <p>Seeded synthetic entities produce simulated sensor observations. One positional
-       modality (radar) is passed to a constant-velocity tracker, whose estimated tracks
-       are what this screen displays. Ground truth is never used for association or display.</p>
-    <div class="kvrow"><span class="k">Configured entities</span><span id="ab-entities" class="num">&mdash;</span></div>
-    <div class="kvrow"><span class="k">Sensor observations</span><span id="ab-obs" class="num">&mdash;</span></div>
-    <div class="kvrow"><span class="k">Radar measurements used</span><span id="ab-meas" class="num">&mdash;</span></div>
-    <div class="kvrow"><span class="k">Estimated tracks now</span><span id="ab-tracks" class="num">&mdash;</span></div>
-    <p style="margin-top:10px">These are different counts and are not interchangeable.</p>
-    <h3>LIMITATIONS</h3>
-    <p>This is a small tracking baseline demonstrated on synthetic observations. It is not
-       production tracking, not validated threat classification, and not multi-sensor fusion.
-       Attention levels are scenario-awareness rules applied to estimated geometry; they are
-       not evidence of hostile intent, and nothing here infers a weapon, an attacker or a
-       control mode. Altitude is a simulation value in the local frame, not height above ground.</p>
-    <h3>ATTENTION THRESHOLDS</h3>
-    <p>Demonstration values, chosen for legibility, not from any operational standard:
-       inside the monitored radius is high priority; closing faster than 2 m/s with under
-       45 s to the boundary is high priority; a level must hold for 3 s before the display
-       changes, so noise does not make the list reorder.</p>
-  </div>
+  <button class="x" id="close-connections" aria-label="Close">×</button>
+  <h3>VISO NOW</h3>
+  <p>Visual-evidence source. Synthetic playback never changes this status; only genuine webhook deliveries do.</p>
+  <p><span class="pill" id="viso-pill">—</span></p>
+  <div class="kv" id="viso-kv">Loading…</div>
 </div>
 
 <script id="operator-core">
@@ -294,7 +188,6 @@ code{font:12.5px var(--num);background:#0d141c;border:1px solid var(--line);bord
 const OP=(()=>{
   const PRIORITY_RANK={'HIGH PRIORITY':0,'WATCH':1,'LOW PRIORITY':2};
   const MIN_SCALE=0.008, MAX_SCALE=2.2;   // screen pixels per simulation metre
-
   const clampScale=s=>Math.min(MAX_SCALE,Math.max(MIN_SCALE,s));
 
   // One projection for the whole scene. Simulation y grows north, screen y
@@ -307,22 +200,16 @@ const OP=(()=>{
     };
   }
 
-  // Fit a set of world points, leaving margin so nothing sits on the edge.
   function fitCamera(points,viewport,pad){
     if(!points||!points.length) return null;
     const margin=typeof pad==='number'?pad:0.18;
     const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
     const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
     const spanX=Math.max(maxX-minX,120), spanY=Math.max(maxY-minY,120);
-    const scale=clampScale(Math.min(
-      viewport.w/(spanX*(1+margin*2)),
-      viewport.h/(spanY*(1+margin*2))
-    ));
+    const scale=clampScale(Math.min(viewport.w/(spanX*(1+margin*2)),viewport.h/(spanY*(1+margin*2))));
     return {cx:(minX+maxX)/2, cy:(minY+maxY)/2, scale};
   }
 
-  // Every position the scenario visits, plus the monitored area, sampled so a
-  // 450-frame timeline does not cost a full scan on every reframe.
   function scenarioEnvelope(frames,site){
     const points=[];
     if(site){
@@ -331,38 +218,51 @@ const OP=(()=>{
     }
     const list=frames||[];
     const stride=Math.max(1,Math.floor(list.length/60));
-    for(let i=0;i<list.length;i+=stride){
-      for(const track of list[i].tracks) points.push({x:track.x,y:track.y});
-    }
+    for(let i=0;i<list.length;i+=stride) for(const t of list[i].tracks) points.push({x:t.x,y:t.y});
     return points;
   }
 
-  // Focus keeps context: the site and the contact both stay in view, so zooming
-  // in never destroys the sense of where the contact is relative to the site.
-  function focusCamera(track,site,viewport){
-    if(!track) return null;
-    const points=[{x:track.x,y:track.y}];
-    if(site) points.push({x:site.x,y:site.y});
-    const fitted=fitCamera(points,viewport,0.55);
-    if(!fitted) return null;
-    // Bias toward the contact while keeping the site on screen.
-    return {
-      cx:track.x*0.62+fitted.cx*0.38,
-      cy:track.y*0.62+fitted.cy*0.38,
-      scale:clampScale(Math.min(fitted.scale*1.35,0.45))
-    };
+  // The operator camera. Not a generic fit: the protected area is always whole
+  // and sits lower-centre, the group sits above it, and the corridor between
+  // them is what the screen is about. Scale is the tightest of three limits:
+  // the group must clear the top, the boundary must clear the bottom, and the
+  // whole thing must fit the width.
+  const SITE_ANCHOR=0.70;         // site's screen y as a fraction of height
+  function operatorCamera(tracks,site,viewport){
+    if(!site) return null;
+    const r=site.radius_m||600, {w,h}=viewport, m=Math.max(34,h*0.05);
+    const live=(tracks||[]).filter(t=>Number.isFinite(t.x)&&Number.isFinite(t.y));
+    const xs=[site.x-r,site.x+r,...live.map(t=>t.x)];
+    const minX=Math.min(...xs), maxX=Math.max(...xs);
+    const topY=Math.max(site.y+r, ...live.map(t=>t.y));
+    const byWidth=(w-2*m)/Math.max(maxX-minX,2*r);
+    const byTop=(SITE_ANCHOR*h-m)/Math.max(topY-site.y,r);
+    const byBottom=((1-SITE_ANCHOR)*h-m)/r;
+    const scale=clampScale(Math.min(byWidth,byTop,byBottom,0.6));
+    return {cx:(minX+maxX)/2, cy:site.y+(SITE_ANCHOR-0.5)*h/scale, scale};
   }
 
-  // Exponential approach, frame-rate independent. Used for every camera move,
-  // so zoom, focus and follow all feel the same.
+  // Focus: close enough to inspect the contact, but the site stays on screen
+  // whenever the geometry allows it, so "where is this relative to the site"
+  // is never lost.
+  function focusCamera(track,site,viewport){
+    if(!track) return null;
+    if(!site) return {cx:track.x,cy:track.y,scale:0.45};
+    // Centre 60% of the way from the site to the contact, and cap the zoom so
+    // the site stays inside the frame while the contact is within ~2.5 km.
+    // Beyond that, inspecting the contact wins and the site leaves the frame.
+    const d=Math.hypot(track.x-site.x,track.y-site.y);
+    const room=Math.min(viewport.w,viewport.h)/2-70;
+    const keepSite=room/Math.max(0.6*d,1);
+    return {cx:track.x*0.6+site.x*0.4, cy:track.y*0.6+site.y*0.4,
+            scale:clampScale(Math.min(0.6,Math.max(0.25,keepSite)))};
+  }
+
   function stepCamera(camera,target,dt){
     if(!target) return camera;
     const k=1-Math.exp(-6*Math.max(0,dt));
-    return {
-      cx:camera.cx+(target.cx-camera.cx)*k,
-      cy:camera.cy+(target.cy-camera.cy)*k,
-      scale:clampScale(camera.scale+(target.scale-camera.scale)*k)
-    };
+    return {cx:camera.cx+(target.cx-camera.cx)*k, cy:camera.cy+(target.cy-camera.cy)*k,
+            scale:clampScale(camera.scale+(target.scale-camera.scale)*k)};
   }
 
   function zoomAt(camera,factor,px,py,viewport){
@@ -373,7 +273,6 @@ const OP=(()=>{
     return {cx:moved.cx+(before.x-after.x), cy:moved.cy+(before.y-after.y), scale};
   }
 
-  // A readable round number for the scale bar.
   function niceScale(scale,maxPixels){
     const steps=[10,20,50,100,200,500,1000,2000,5000];
     const limit=(maxPixels||120)/scale;
@@ -382,8 +281,6 @@ const OP=(()=>{
     return {metres:chosen,pixels:chosen*scale};
   }
 
-  // Priority first, then proximity. Ties broken by ID so the order is stable
-  // rather than depending on object iteration.
   function sortTracks(tracks){
     return [...(tracks||[])].sort((a,b)=>{
       const pa=PRIORITY_RANK[a.priority]??9, pb=PRIORITY_RANK[b.priority]??9;
@@ -393,36 +290,67 @@ const OP=(()=>{
     });
   }
 
-  // Selection is by ID and survives reordering. A selected contact that is no
-  // longer reported stays selected so the operator keeps its last known state,
-  // rather than the app silently jumping to a different contact.
   function resolveSelection(selectedId,tracks){
     if(!selectedId) return null;
     return (tracks||[]).find(t=>t.id===selectedId)||null;
   }
 
-  // Six labels do not need force-directed layout; nudging the later of any two
-  // that collide is enough to keep them all readable.
+  // Simple vertical nudge; kept for callers that only need that.
   function declutter(labels,minGapY,minGapX){
     const gapY=minGapY||18, gapX=minGapX||64;
     const placed=[];
     for(const label of [...labels].sort((a,b)=>a.py-b.py)){
       let py=label.py;
       for(const other of placed){
-        if(Math.abs(other.px-label.px)<gapX && Math.abs(other.py-py)<gapY){
-          py=other.py+gapY;
-        }
+        if(Math.abs(other.px-label.px)<gapX && Math.abs(other.py-py)<gapY) py=other.py+gapY;
       }
       placed.push({...label,py});
     }
     return placed;
   }
 
+  // Real label placement. Each label tries a ring of anchor positions around
+  // its symbol and takes the first that overlaps neither an already-placed
+  // label nor any symbol. Symbols never move, so the map stays truthful; only
+  // the text finds room. Returns {id, x, y, w, h, anchor} in screen space.
+  const OFFSETS=[[14,-6],[14,8],[-14,-6],[-14,8],[0,-22],[0,20],[22,-16],[-22,-16],[22,16],[-22,16],[0,-38],[0,36]];
+  function placeLabels(items,opts){
+    const o=Object.assign({w:52,h:26,symbol:22,gap:3},opts||{});
+    const boxes=[];
+    for(const it of items) boxes.push({x:it.px-o.symbol/2,y:it.py-o.symbol/2,w:o.symbol,h:o.symbol,sym:true});
+    const hit=(a,b)=>!(a.x+a.w+o.gap<b.x||b.x+b.w+o.gap<a.x||a.y+a.h+o.gap<b.y||b.y+b.h+o.gap<a.y);
+    const out=[];
+    const order=[...items].sort((a,b)=>(b.rank||0)-(a.rank||0)||a.py-b.py);
+    for(const it of order){
+      const w=it.w||o.w, h=it.h||o.h;
+      let chosen=null;
+      for(const [dx,dy] of OFFSETS){
+        const anchor=dx>0?'start':dx<0?'end':'middle';
+        const x=dx>0?it.px+dx:dx<0?it.px+dx-w:it.px-w/2;
+        const y=it.py+dy-h/2;
+        const box={x,y,w,h};
+        if(!boxes.some(b=>hit(box,b))){chosen={x,y,w,h,anchor,dx,dy};break}
+      }
+      if(!chosen){const x=it.px+14,y=it.py-6-h/2;chosen={x,y,w,h,anchor:'start',dx:14,dy:-6}}
+      boxes.push(chosen);
+      out.push({id:it.id,...chosen});
+    }
+    return out;
+  }
+
   function priorityClass(priority){
     return priority==='HIGH PRIORITY'?'p-high':priority==='WATCH'?'p-watch':'p-low';
   }
 
-  // Playback cursor over precomputed frames. Bounded at both ends.
+  // Positive when the contact is moving toward the site.
+  function closingSpeed(track,site){
+    const h=(track.heading||0)*Math.PI/180, s=track.speed||0;
+    const vx=s*Math.cos(h), vy=s*Math.sin(h);
+    const dx=track.x-site.x, dy=track.y-site.y, d=Math.hypot(dx,dy);
+    if(d<1e-6) return 0;
+    return -(dx*vx+dy*vy)/d;
+  }
+
   function createPlayback(frames){
     const list=frames||[];
     let index=0, playing=false;
@@ -445,9 +373,9 @@ const OP=(()=>{
     };
   }
 
-  return {project,fitCamera,scenarioEnvelope,focusCamera,stepCamera,zoomAt,niceScale,sortTracks,
-          resolveSelection,declutter,priorityClass,createPlayback,
-          PRIORITY_RANK,MIN_SCALE,MAX_SCALE};
+  return {project,fitCamera,scenarioEnvelope,operatorCamera,focusCamera,stepCamera,zoomAt,niceScale,
+          sortTracks,resolveSelection,declutter,placeLabels,priorityClass,closingSpeed,createPlayback,
+          PRIORITY_RANK,MIN_SCALE,MAX_SCALE,SITE_ANCHOR};
 })();
 if(typeof module!=='undefined') module.exports=OP;
 </script>
@@ -455,526 +383,343 @@ if(typeof module!=='undefined') module.exports=OP;
 <script>
 (()=>{
   const $=id=>document.getElementById(id);
-  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;
-    if(text!=null)n.textContent=text;return n};
   const NS='http://www.w3.org/2000/svg';
-  const svg=(tag,attrs)=>{const n=document.createElementNS(NS,tag);
-    for(const[k,v]of Object.entries(attrs||{}))n.setAttribute(k,String(v));return n};
+  const COLOR={'HIGH PRIORITY':'#ff5d5d','WATCH':'#f2b53a','LOW PRIORITY':'#49c9d9'};
+  const SHORT={'HIGH PRIORITY':'HIGH','WATCH':'WATCH','LOW PRIORITY':'LOW'};
 
   const state={
-    data:null, playback:OP.createPlayback([]), camera:{cx:-900,cy:900,scale:0.15}, envelope:null,
-    target:null, selectedId:null, following:false, autoFrame:true, timer:null, lastRaf:0,
-    trail:[], trailId:null, viewport:{w:1000,h:600}, site:{x:0,y:0,radius_m:600,name:'SITE'}
+    data:null, playback:OP.createPlayback([]), site:{x:0,y:0,radius_m:600},
+    camera:{cx:0,cy:900,scale:0.2}, target:null, viewport:{w:1200,h:800},
+    mode:'operator',            // operator | focus | follow | manual
+    selectedId:null, timer:null, lastRaf:0, lastFrame:-1,
+    count:6, scenario:'operator_demo', seed:42, drag:null,
   };
-
-  const COLOUR={'HIGH PRIORITY':'#ff6b6b','WATCH':'#f0b429','LOW PRIORITY':'#4dd0c4'};
-  const colourOf=t=>COLOUR[t.priority]||'#4dd0c4';
+  window.OPSTATE=state;
 
   /* ---------------- data ---------------- */
   async function load(){
     stop();
-    const name=$('scenario').value, count=Number($('count-seg').dataset.value||6);
+    state.playback=OP.createPlayback([]); state.lastFrame=-1;
     $('contact-count').textContent='loading…';
-    try{
-      const url=`/api/preview/tracks?name=${encodeURIComponent(name)}&seed=42&count=${count}`;
-      const response=await fetch(url,{cache:'no-store'});
-      if(!response.ok) throw new Error('HTTP '+response.status);
-      const data=await response.json();
-      state.data=data;
-      state.site=data.site;
-      state.playback=OP.createPlayback(data.frames);
-      state.trail=[]; state.trailId=null; state.following=false;
-      // Frame the site and the whole approach corridor before anything plays,
-      // so PLAY begins with a useful picture rather than an empty canvas.
-      resizeViewport();
-      // Frame the envelope the scenario actually occupies: every track position
-      // across the whole run, plus the monitored area. A guessed radius either
-      // wastes half the canvas or lets contacts fly in from off-screen, and a
-      // camera that re-fits during playback is disorienting.
-      state.envelope=OP.scenarioEnvelope(data.frames,state.site);
-      state.camera=OP.fitCamera(state.envelope,state.viewport,0.1)||state.camera;
-      state.target=null;
-      $('ab-entities').textContent=data.configured_entities;
-      $('ab-obs').textContent=data.observation_count;
-      $('ab-meas').textContent=data.measurement_count;
-      render();
-    }catch(error){
-      $('contact-count').textContent='load failed';
-      console.error('scenario load failed',error);
-    }
+    $('rows').innerHTML=''; renderCard();
+    const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}`;
+    let data;
+    try{ const r=await fetch(url); if(!r.ok) throw new Error(r.status); data=await r.json(); }
+    catch(e){ $('contact-count').textContent='load failed'; return; }
+    state.data=data; state.site=data.site||state.site;
+    state.playback=OP.createPlayback(data.frames||[]);
+    resizeViewport();
+    state.mode='operator'; state.target=null;
+    state.camera=OP.operatorCamera(firstPopulatedFrame().tracks,state.site,state.viewport)||state.camera;
+    $('clock').innerHTML=`T+00.0 <span class="of">/ ${Math.round(data.duration_s||90)} s</span>`;
+    render();
+  }
+  function firstPopulatedFrame(){
+    const f=state.data.frames.find(f=>f.tracks.length)||state.data.frames[0]||{tracks:[]};
+    return f;
   }
 
   /* ---------------- playback ---------------- */
-  function stop(){ if(state.timer){clearInterval(state.timer);state.timer=null}
-    state.playback.pause(); syncTransport() }
-
   function start(){
-    if(!state.playback.total||state.playback.done) return;
-    state.playback.play();
-    if(state.timer) clearInterval(state.timer);
-    const hz=(state.data&&state.data.frame_hz)||5;
-    const speed=Number($('speed').value)||1;
+    if(!state.playback.play()) return;
+    const hz=state.data.frame_hz||5, speed=parseFloat($('speed').value)||1;
+    clearInterval(state.timer);
     state.timer=setInterval(()=>{
       state.playback.step(1);
-      if(state.playback.done) stop();
+      if(!state.playback.playing) stop();
       render();
-    },Math.max(16,1000/(hz*speed)));
+    },1000/(hz*speed));
     syncTransport();
   }
-
-  function syncTransport(){
-    const p=state.playback;
-    $('play').disabled=p.playing||p.done||!p.total;
-    $('pause').disabled=!p.playing;
-    $('reset').disabled=!p.index;
-  }
+  function stop(){ clearInterval(state.timer); state.timer=null; state.playback.pause(); syncTransport(); }
+  function reset(){ stop(); state.playback.reset(); state.lastFrame=-1; overview(); render(); }
 
   /* ---------------- camera ---------------- */
   function resizeViewport(){
-    const rect=$('stage').getBoundingClientRect();
-    state.viewport={w:Math.max(320,rect.width),h:Math.max(240,rect.height)};
+    const r=$('stage').getBoundingClientRect();
+    state.viewport={w:Math.max(320,r.width),h:Math.max(240,r.height)};
+  }
+  function currentTracks(){ const f=state.playback.frame(); return f?f.tracks:[]; }
+
+  function overview(){ state.mode='operator'; state.target=null; $('mode').hidden=true; syncViewButtons(); }
+  function focusSelected(follow){
+    const t=OP.resolveSelection(state.selectedId,currentTracks());
+    if(!t) return;
+    state.mode=follow?'follow':'focus';
+    state.target=OP.focusCamera(t,state.site,state.viewport);
+    $('mode').hidden=false; $('mode').textContent=follow?'FOLLOWING '+t.id:'FOCUS '+t.id;
+    syncViewButtons();
+  }
+  function manual(){ if(state.mode!=='manual'){ state.mode='manual'; state.target=null; $('mode').hidden=false; $('mode').textContent='MANUAL VIEW'; syncViewButtons(); } }
+  function syncViewButtons(){
+    $('v-overview').setAttribute('aria-pressed',String(state.mode==='operator'));
+    renderCard();
   }
 
-  // The protected area must stay wholly visible: frame its full extent, not just
-  // the site point, or the boundary circle spills off the edge of the map.
-  function allPoints(tracks){
-    const r=(state.site.radius_m||600);
-    const points=[{x:state.site.x-r,y:state.site.y-r},{x:state.site.x+r,y:state.site.y+r}];
-    for(const t of tracks) points.push({x:t.x,y:t.y});
-    return points;
-  }
-
-  function fitAll(){ const f=state.playback.frame();
-    state.following=false; state.autoFrame=true;
-    state.target=OP.fitCamera(allPoints(f?f.tracks:[]),state.viewport)||state.target; }
-
-  function overview(){
-    state.following=false; state.autoFrame=true;
-    state.target=OP.fitCamera(state.envelope||[{x:state.site.x,y:state.site.y}],
-      state.viewport,0.1);
-  }
-
-  function focusSelected(){
-    const frame=state.playback.frame();
-    const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
-    if(!track) return;
-    state.autoFrame=false;
-    state.target=OP.focusCamera(track,state.site,state.viewport);
-  }
-
-  function focusHighPriority(){
-    const frame=state.playback.frame();
-    const high=(frame?frame.tracks:[]).filter(t=>t.priority==='HIGH PRIORITY');
-    if(!high.length){ fitAll(); return }
-    state.following=false; state.autoFrame=false;
-    state.target=OP.fitCamera(allPoints(high),state.viewport,0.4);
-  }
-
-  // Auto-range: the tactical picture should fill the map, not sit in one corner.
-  // Retarget only when the ideal framing has drifted materially, so the camera
-  // reads as a slow deliberate pan rather than continuous creep.
-  function autoFrame(){
-    if(!state.autoFrame||state.following) return;
-    const frame=state.playback.frame();
-    if(!frame||!frame.tracks.length) return;
-    const want=OP.fitCamera(allPoints(frame.tracks),state.viewport,0.16);
+  // Operator framing re-targets only when the ideal has drifted materially,
+  // so the camera reads as an occasional deliberate adjustment.
+  function steerOperator(){
+    const want=OP.operatorCamera(currentTracks(),state.site,state.viewport);
     if(!want) return;
     const ref=state.target||state.camera;
-    const scaleDrift=Math.abs(want.scale-ref.scale)/Math.max(ref.scale,1e-6);
+    const dScale=Math.abs(want.scale-ref.scale)/Math.max(ref.scale,1e-6);
     const span=Math.max(state.viewport.w,state.viewport.h)/Math.max(want.scale,1e-6);
-    const moveDrift=Math.hypot(want.cx-ref.cx,want.cy-ref.cy)/span;
-    if(scaleDrift>0.10||moveDrift>0.06) state.target=want;
+    const dMove=Math.hypot(want.cx-ref.cx,want.cy-ref.cy)/span;
+    if(dScale>0.12||dMove>0.07) state.target=want;
   }
 
-  function tickCamera(now){
+  function tick(now){
     const dt=state.lastRaf?Math.min(0.1,(now-state.lastRaf)/1000):0.016;
     state.lastRaf=now;
-    autoFrame();
-    if(state.following){
-      const frame=state.playback.frame();
-      const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
-      if(track) state.target={cx:track.x,cy:track.y,
-        scale:Math.max(state.camera.scale,0.12)};
+    if(state.mode==='operator') steerOperator();
+    if(state.mode==='follow'){
+      const t=OP.resolveSelection(state.selectedId,currentTracks());
+      if(t) state.target={cx:t.x,cy:t.y,scale:state.camera.scale};
     }
     if(state.target){
       state.camera=OP.stepCamera(state.camera,state.target,dt);
-      const close=Math.abs(state.camera.cx-state.target.cx)<1
-        &&Math.abs(state.camera.cy-state.target.cy)<1
-        &&Math.abs(state.camera.scale-state.target.scale)<0.0005;
-      if(close&&!state.following) state.target=null;
+      const close=Math.abs(state.camera.cx-state.target.cx)<0.5&&Math.abs(state.camera.cy-state.target.cy)<0.5
+        &&Math.abs(state.camera.scale-state.target.scale)<0.0003;
+      if(close&&state.mode!=='follow') state.target=null;
       draw();
     }
-    requestAnimationFrame(tickCamera);
+    requestAnimationFrame(tick);
   }
 
   /* ---------------- rendering ---------------- */
-  function render(){ draw(); renderList(); renderCard(); syncTransport(); renderClock() }
+  function render(){ draw(); renderRows(); renderCard(); renderClock(); renderSummary(); syncTransport(); }
 
-  function renderClock(){
-    const frame=state.playback.frame();
-    const total=(state.data&&state.data.duration_s)||90;
-    const t=frame?frame.t:0;
-    $('clock').textContent=`T+${t.toFixed(1).padStart(4,'0')} / ${total.toFixed(1)} s`;
-    $('progress').style.width=`${Math.min(100,(t/total)*100)}%`;
+  const svg=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs) e.setAttribute(k,attrs[k]);return e};
+  const fmtRange=m=>m>=1000?`${(m/1000).toFixed(2)} km`:`${Math.round(m)} m`;
+  const compass=h=>Math.round((90-h+360)%360);
+
+  function trailFor(id,span){
+    const frames=state.data?state.data.frames:[], i=state.playback.index;
+    const pts=[];
+    for(let k=Math.max(0,i-span);k<=i;k+=2){
+      const t=frames[k]&&frames[k].tracks.find(x=>x.id===id);
+      if(t) pts.push(t);
+    }
+    return pts;
   }
 
   function draw(){
-    const stage=$('stage');
-    resizeViewport();
-    const {w,h}=state.viewport;
-    stage.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    const stage=$('stage'); resizeViewport();
+    const {w,h}=state.viewport, P=OP.project(state.camera,state.viewport), sc=state.camera.scale;
     stage.replaceChildren();
-    const view=OP.project(state.camera,state.viewport);
-    const frame=state.playback.frame();
-    const tracks=frame?frame.tracks:[];
+    const tracks=currentTracks(), site=state.site;
+    const s=P.toScreen(site.x,site.y);
 
-    // -- monitored area
-    const site=view.toScreen(state.site.x,state.site.y);
-    const radiusPx=state.site.radius_m*state.camera.scale;
-    stage.append(svg('circle',{cx:site.px,cy:site.py,r:Math.max(4,radiusPx),
-      fill:'rgba(90,169,230,.06)',stroke:'#3d6f96','stroke-width':1.5,'stroke-dasharray':'7 6'}));
-    // A single outer range ring. One extra reference makes distance judgeable
-    // without turning the display into concentric decoration.
-    const outerPx=1500*state.camera.scale;
-    if(outerPx>40&&outerPx<Math.max(w,h)){
-      stage.append(svg('circle',{cx:site.px,cy:site.py,r:outerPx,fill:'none',
-        stroke:'#22394d','stroke-width':1,'stroke-dasharray':'2 8'}));
-      const ringLabel=svg('text',{x:site.px,y:site.py-outerPx-6,'text-anchor':'middle',
-        fill:'#4d6ywh','font-size':10.5});
-      ringLabel.setAttribute('fill','#4d6b85');
-      ringLabel.textContent='1.5 km';
-      stage.append(ringLabel);
-    }
-    // Below the circle: contacts approach from the north-west, so a caption
-    // above it would sit under the inbound traffic.
-    const boundaryLabel=svg('text',{x:site.px,y:site.py+Math.max(4,radiusPx)+18,
-      'text-anchor':'middle',fill:'#6f93b3','font-size':11.5,'letter-spacing':'.06em'});
-    boundaryLabel.textContent='MONITORED AREA · 600 m';
-    stage.append(boundaryLabel);
+    // grid
+    const step=OP.niceScale(sc,170).metres;
+    const g=svg('g',{stroke:'#141d27','stroke-width':1});
+    const w0=P.toWorld(0,h), w1=P.toWorld(w,0);
+    for(let x=Math.floor(w0.x/step)*step;x<=w1.x;x+=step){const p=P.toScreen(x,0).px;g.append(svg('line',{x1:p,y1:0,x2:p,y2:h}))}
+    for(let y=Math.floor(w0.y/step)*step;y<=w1.y;y+=step){const p=P.toScreen(0,y).py;g.append(svg('line',{x1:0,y1:p,x2:w,y2:p}))}
+    stage.append(g);
 
-    // -- site marker
-    const marker=svg('g',{});
-    marker.append(svg('path',{d:`M ${site.px-9} ${site.py} L ${site.px} ${site.py-9} L ${site.px+9} ${site.py} L ${site.px} ${site.py+9} Z`,
-      fill:'#8fd0ff',stroke:'#0c1117','stroke-width':1.5}));
-    const siteText=svg('text',{x:site.px,y:site.py+22,'text-anchor':'middle',
-      fill:'#8fd0ff','font-size':12,'font-weight':600,'letter-spacing':'.05em'});
-    siteText.textContent=state.site.name;
-    marker.append(siteText);
-    stage.append(marker);
+    // protected area
+    const rp=site.radius_m*sc;
+    stage.append(svg('circle',{cx:s.px,cy:s.py,r:rp,fill:'#6fb3ff0d',stroke:'#4d8bd0',
+      'stroke-width':1.5,'stroke-dasharray':'6 5'}));
+    const cap=svg('text',{x:s.px,y:s.py+rp+16,'text-anchor':'middle',fill:'#4d8bd0','font-size':10.5,
+      'font-family':'var(--mono)','letter-spacing':'.1em'});
+    cap.textContent=`MONITORED AREA · ${site.radius_m} m`; stage.append(cap);
+    stage.append(svg('path',{d:`M ${s.px} ${s.py-8} L ${s.px+8} ${s.py} L ${s.px} ${s.py+8} L ${s.px-8} ${s.py} Z`,fill:'#6fb3ff',stroke:'#0b1016','stroke-width':1.5}));
+    const st=svg('text',{x:s.px,y:s.py+22,'text-anchor':'middle',fill:'#9cc4ee','font-size':11,'font-weight':700,'font-family':'var(--mono)','letter-spacing':'.1em'});
+    st.textContent='SITE ALPHA'; stage.append(st);
 
-    // -- trail for the selected contact only
-    const selected=OP.resolveSelection(state.selectedId,tracks);
-    if(selected){
-      if(state.trailId!==selected.id){ state.trailId=selected.id; state.trail=[] }
-      const last=state.trail[state.trail.length-1];
-      if(!last||last[0]!==selected.x||last[1]!==selected.y){
-        state.trail.push([selected.x,selected.y]);
-        if(state.trail.length>120) state.trail.shift();
+    // trails, vectors, symbols
+    const selected=state.selectedId, focus=state.mode==='focus'||state.mode==='follow';
+    const items=[];
+    for(const t of tracks){
+      const col=COLOR[t.priority]||'#9aa', isSel=t.id===selected, high=t.priority==='HIGH PRIORITY';
+      const p=P.toScreen(t.x,t.y);
+      const trail=trailFor(t.id,isSel?100:40);
+      if(trail.length>1){
+        const d=trail.map((q,i)=>{const z=P.toScreen(q.x,q.y);return `${i?'L':'M'} ${z.px.toFixed(1)} ${z.py.toFixed(1)}`}).join(' ');
+        stage.append(svg('path',{d,fill:'none',stroke:col,'stroke-opacity':isSel?0.75:0.32,'stroke-width':isSel?2:1.2,'stroke-linecap':'round'}));
       }
-      if(state.trail.length>1){
-        const points=state.trail.map(([x,y])=>{const p=view.toScreen(x,y);
-          return `${p.px.toFixed(1)},${p.py.toFixed(1)}`}).join(' ');
-        stage.append(svg('polyline',{points,fill:'none',stroke:'#5aa9e6',
-          'stroke-width':1.6,'stroke-opacity':.55}));
+      if(t.status!=='STALE'){
+        const hr=(t.heading||0)*Math.PI/180;
+        const len=Math.min(72,Math.max(16,(t.speed||0)*14*sc));
+        const vx=p.px+Math.cos(hr)*len, vy=p.py-Math.sin(hr)*len;
+        stage.append(svg('line',{x1:p.px,y1:p.py,x2:vx,y2:vy,stroke:col,'stroke-width':high?2.2:1.4,'stroke-opacity':high?0.95:0.7,'stroke-linecap':'round'}));
+        if(high) stage.append(svg('path',{d:`M ${vx} ${vy} l -6 -3 l 0 6 z`,fill:col,transform:`rotate(${-(t.heading||0)} ${vx} ${vy})`}));
+      }
+      if(isSel&&focus){
+        stage.append(svg('line',{x1:p.px,y1:p.py,x2:s.px,y2:s.py,stroke:'#ffffff','stroke-opacity':0.28,'stroke-width':1,'stroke-dasharray':'3 5'}));
+      }
+      if(isSel) stage.append(svg('circle',{cx:p.px,cy:p.py,r:16,fill:'none',stroke:'#fff','stroke-width':1.5,'stroke-opacity':0.9}));
+      const sym=svg('path',{d:'M -12,-9 L 14,0 L -12,9 L -5,0 Z',
+        fill:t.status==='STALE'?'none':col, stroke:col,'stroke-width':t.status==='STALE'?1.5:1,
+        'stroke-dasharray':t.status==='COASTING'?'3 2':'none',
+        transform:`translate(${p.px} ${p.py}) rotate(${-(t.heading||0)})`,'data-id':t.id,style:'cursor:pointer'});
+      sym.addEventListener('click',ev=>{ev.stopPropagation();select(t.id)});
+      stage.append(sym);
+      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:isSel?86:56,h:t.status==='STALE'?38:26,track:t,col});
+    }
+
+    // labels, decluttered
+    for(const L of OP.placeLabels(items)){
+      const it=items.find(i=>i.id===L.id), t=it.track;
+      const x=L.anchor==='start'?L.x:L.anchor==='end'?L.x+L.w:L.x+L.w/2;
+      const g=svg('g',{'font-family':'var(--mono)','pointer-events':'none'});
+      const a=svg('text',{x,y:L.y+11,'text-anchor':L.anchor,fill:t.id===selected?'#fff':it.col,'font-size':11.5,'font-weight':700});
+      a.textContent=t.id; g.append(a);
+      const b=svg('text',{x,y:L.y+23,'text-anchor':L.anchor,fill:'#9aa9b6','font-size':10.5});
+      b.textContent=fmtRange(t.range_m); g.append(b);
+      if(t.status==='STALE'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:it.col,'font-size':9.5,'letter-spacing':'.08em'});c.textContent='LAST KNOWN';g.append(c)}
+      stage.append(g);
+    }
+
+    // off-screen cues in focus/follow: where is the rest of the group
+    if(focus){
+      for(const it of items){
+        if(it.px>=8&&it.px<=w-8&&it.py>=8&&it.py<=h-8) continue;
+        const cx=w/2, cy=h/2, dx=it.px-cx, dy=it.py-cy;
+        const k=Math.min((w/2-26)/Math.abs(dx||1e-6),(h/2-26)/Math.abs(dy||1e-6));
+        const ex=cx+dx*k, ey=cy+dy*k, ang=Math.atan2(dy,dx)*180/Math.PI;
+        stage.append(svg('path',{d:'M 0,-5 L 9,0 L 0,5 Z',fill:it.col,transform:`translate(${ex} ${ey}) rotate(${ang})`}));
+        const tx=svg('text',{x:ex-Math.cos(ang*Math.PI/180)*14,y:ey-Math.sin(ang*Math.PI/180)*14+4,'text-anchor':'middle',fill:it.col,'font-size':10,'font-family':'var(--mono)'});
+        tx.textContent=it.id.replace('DW-',''); stage.append(tx);
       }
     }
 
-    // -- contacts
-    const labels=[];
-    for(const track of tracks){
-      const p=view.toScreen(track.x,track.y);
-      const colour=colourOf(track);
-      const isSelected=track.id===state.selectedId;
-      const stale=track.status==='STALE', coasting=track.status==='COASTING';
-
-      const group=svg('g',{});
-      group.style.cursor='pointer';
-      group.addEventListener('click',ev=>{ev.stopPropagation();select(track.id)});
-
-      if(isSelected){
-        group.append(svg('circle',{cx:p.px,cy:p.py,r:19,fill:'none',
-          stroke:'#5aa9e6','stroke-width':1.6,'stroke-opacity':.9}));
-      }
-      // Heading-oriented chevron. Screen y is inverted, hence the negated angle.
-      const chevron=svg('path',{
-        d:'M -13,-10 L 17,0 L -13,10 L -5.5,0 Z',
-        transform:`translate(${p.px},${p.py}) rotate(${-track.heading})`,
-        fill:stale?'none':colour, stroke:colour,'stroke-width':stale?1.8:1,
-        'stroke-dasharray':coasting?'3 2':'none','fill-opacity':stale?0:.92
-      });
-      group.append(chevron);
-      group.append(svg('circle',{cx:p.px,cy:p.py,r:16,fill:'transparent'}));
-      stage.append(group);
-
-      labels.push({id:track.id,px:p.px+15,py:p.py-11,text:track.id,
-        priority:track.priority,colour,selected:isSelected,status:track.status});
-    }
-
-    for(const label of OP.declutter(labels,17,96)){
-      const text=svg('text',{x:label.px,y:label.py,fill:label.selected?'#e8eef5':label.colour,
-        'font-size':label.selected?13:12,'font-weight':label.selected?700:600,
-        'font-family':'ui-monospace,Menlo,monospace','paint-order':'stroke',
-        stroke:'#0c1117','stroke-width':3.2,'stroke-linejoin':'round'});
-      text.textContent=label.status==='STALE'?`${label.text} · LAST KNOWN`:label.text;
-      stage.append(text);
-    }
-
-    drawScale();
-    drawInset(tracks,view);
-  }
-
-  function drawScale(){
-    const nice=OP.niceScale(state.camera.scale,110);
+    const nice=OP.niceScale(sc,140);
     $('scale-bar').style.width=`${Math.max(24,nice.pixels).toFixed(0)}px`;
     $('scale-text').textContent=nice.metres>=1000?`${nice.metres/1000} km`:`${nice.metres} m`;
   }
 
-  function drawInset(tracks,view){
-    // Shown only when zoomed in past the overview, so the operator can always
-    // see where the current view sits in the wider scene.
-    const zoomed=state.camera.scale>0.09;
-    $('inset').hidden=!zoomed;
-    if(!zoomed) return;
-    const box=$('inset-svg'); box.replaceChildren();
-    const world=OP.fitCamera(state.envelope||[{x:state.site.x,y:state.site.y}],{w:150,h:150},0.06);
-    if(!world) return;
-    const mini=OP.project(world,{w:150,h:150});
-    const s=mini.toScreen(state.site.x,state.site.y);
-    box.append(svg('circle',{cx:s.px,cy:s.py,r:Math.max(2,state.site.radius_m*world.scale),
-      fill:'none',stroke:'#3d6f96','stroke-width':1}));
-    for(const t of tracks){
-      const p=mini.toScreen(t.x,t.y);
-      box.append(svg('circle',{cx:p.px,cy:p.py,r:2.4,fill:colourOf(t)}));
-    }
-    // Current viewport footprint.
-    const tl=view.toWorld(0,0), br=view.toWorld(state.viewport.w,state.viewport.h);
-    const a=mini.toScreen(tl.x,tl.y), b=mini.toScreen(br.x,br.y);
-    box.append(svg('rect',{x:Math.min(a.px,b.px),y:Math.min(a.py,b.py),
-      width:Math.abs(b.px-a.px),height:Math.abs(b.py-a.py),
-      fill:'rgba(90,169,230,.10)',stroke:'#5aa9e6','stroke-width':1}));
+  function renderSummary(){
+    const tracks=currentTracks();
+    const n={h:0,w:0,l:0};
+    for(const t of tracks){ if(t.priority==='HIGH PRIORITY') n.h++; else if(t.priority==='WATCH') n.w++; else n.l++; }
+    $('summary').innerHTML=`<div class="h">INCOMING GROUP</div><div class="n">${tracks.length} TRACK${tracks.length===1?'':'S'}</div>
+      <div class="row"><span><i class="k" style="background:var(--high)"></i>HIGH</span><span>${n.h}</span></div>
+      <div class="row"><span><i class="k" style="background:var(--watch)"></i>WATCH</span><span>${n.w}</span></div>
+      <div class="row"><span><i class="k" style="background:var(--low)"></i>LOW</span><span>${n.l}</span></div>`;
   }
 
-  /* ---------------- rail ---------------- */
-  function renderList(){
-    const frame=state.playback.frame();
-    const tracks=OP.sortTracks(frame?frame.tracks:[]);
+  function renderRows(){
+    const tracks=OP.sortTracks(currentTracks());
     $('contact-count').textContent=tracks.length?`${tracks.length} tracked`:'none yet';
-    $('ab-tracks').textContent=tracks.length;
-    const host=$('contacts'); host.replaceChildren();
-
-    if(!tracks.length){
-      const empty=el('div','card-empty','No contacts yet. Press Play.');
-      host.append(empty); return;
-    }
-    for(const track of tracks){
-      const row=el('div','contact');
-      row.setAttribute('role','option');
-      row.setAttribute('aria-selected',String(track.id===state.selectedId));
-      row.append(el('span','cid num',track.id));
-      const pill=el('span',`pill ${OP.priorityClass(track.priority)}`,track.priority);
-      row.append(pill);
-      row.append(el('span','rng num',`${formatRange(track.range_m)}`));
-      const why=el('div','why');
-      why.append(el('span',null,track.reason));
-      if(track.status!=='TRACKING'){
-        why.append(el('span',`status-chip${track.status==='STALE'?' warn':''}`,track.status));
-      }
-      row.append(why);
-      row.addEventListener('click',()=>select(track.id));
-      host.append(row);
+    const rows=$('rows'); rows.replaceChildren();
+    for(const t of tracks){
+      const c=OP.closingSpeed(t,state.site);
+      const mv=t.status==='STALE'?'LAST KNOWN':c>2?'CLOSING':c<-2?'OPENING':'HOLDING';
+      const el=document.createElement('div'); el.className='row'; el.setAttribute('role','button');
+      el.setAttribute('aria-selected',String(t.id===state.selectedId));
+      el.innerHTML=`<div class="id">${t.id}${t.status!=='TRACKING'?`<span class="st">${t.status}</span>`:''}</div>
+        <div class="pr ${OP.priorityClass(t.priority)}">${SHORT[t.priority]||t.priority}</div>
+        <div class="rg">${fmtRange(t.range_m)}</div><div class="mv">${mv}</div>`;
+      el.addEventListener('click',()=>select(t.id));
+      rows.append(el);
     }
   }
-
-  const formatRange=m=>m>=1000?`${(m/1000).toFixed(2)} km`:`${Math.round(m)} m`;
-  const compass=deg=>['E','NE','N','NW','W','SW','S','SE'][Math.round(((deg%360)+360)%360/45)%8];
 
   function renderCard(){
-    const host=$('card'); host.replaceChildren();
-    const frame=state.playback.frame();
-    const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
-    if(!track){
-      host.append(el('div','card-empty',
-        state.selectedId?`${state.selectedId} is no longer reported.`
-                        :'Select a contact on the map or in the list.'));
-      return;
-    }
-    const top=el('div','card-top');
-    top.append(el('span','cid num',track.id));
-    top.append(el('span',`pill ${OP.priorityClass(track.priority)}`,track.priority));
-    if(track.status!=='TRACKING') top.append(el('span',`status-chip${track.status==='STALE'?' warn':''}`,track.status));
-    host.append(top);
-    host.append(el('p','card-why',track.reason));
+    const card=$('card');
+    const t=OP.resolveSelection(state.selectedId,currentTracks());
+    if(!t){ card.innerHTML=`<div class="empty">${state.selectedId?state.selectedId+' is no longer reported.':'Select a contact on the map or in the list.'}</div>`; return; }
+    const c=OP.closingSpeed(t,state.site), pc=OP.priorityClass(t.priority);
+    card.innerHTML=`
+      <div class="top"><span class="cid">${t.id}</span><span class="badge ${pc}">${t.priority}</span></div>
+      <div class="reason">${t.reason||''}</div>
+      <div class="facts">
+        <div class="f"><div class="k">RANGE TO SITE</div><div class="v">${fmtRange(t.range_m)}</div></div>
+        <div class="f"><div class="k">CLOSING SPEED</div><div class="v">${c>=0?'+':''}${c.toFixed(1)}<small>m/s</small></div></div>
+        <div class="f"><div class="k">HEADING</div><div class="v">${String(compass(t.heading)).padStart(3,'0')}°<small>${t.speed.toFixed(0)} m/s</small></div></div>
+        <div class="f"><div class="k">ALTITUDE</div><div class="v">${t.altitude_m==null?'—':t.altitude_m+'<small>m sim</small>'}</div></div>
+        <div class="f"><div class="k">TRACK STATUS</div><div class="v ${t.status==='STALE'?pc:''}">${t.status}</div></div>
+        <div class="f"><div class="k">LAST UPDATE</div><div class="v">${t.age_s.toFixed(1)}<small>s ago</small></div></div>
+      </div>
+      <div class="acts">
+        <button id="act-focus" aria-pressed="${state.mode==='focus'}">FOCUS</button>
+        <button id="act-follow" aria-pressed="${state.mode==='follow'}">FOLLOW</button>
+      </div>
+      <details><summary>Technical details</summary><div class="kv">position   x ${t.x.toFixed(0)}  y ${t.y.toFixed(0)}  (sim metres)
+heading    ${t.heading.toFixed(1)}° math · ${compass(t.heading)}° compass
+speed      ${t.speed.toFixed(1)} m/s
+source     radar only · constant-velocity filter
+identity   tracker-assigned, not ground truth</div></details>`;
+    $('act-focus').addEventListener('click',()=>{ if(state.mode==='focus') overview(); else focusSelected(false); });
+    $('act-follow').addEventListener('click',()=>{ if(state.mode==='follow') overview(); else focusSelected(true); });
+  }
 
-    const facts=el('div','facts');
-    const fact=(k,v,note)=>{const f=el('div','fact');f.append(el('div','k',k));
-      const value=el('div','v',v); if(note){const s=document.createElement('small');
-      s.textContent=' '+note; value.append(s)} f.append(value); facts.append(f)};
-    fact('SEPARATION',formatRange(track.range_m));
-    fact('SPEED',`${track.speed.toFixed(1)}`,'m/s');
-    fact('DIRECTION',`${Math.round(track.heading)}°`,compass(track.heading));
-    fact('ALTITUDE',track.altitude_m==null?'—':`${track.altitude_m}`,
-      track.altitude_m==null?'':'m (sim frame)');
-    fact('LAST UPDATE',`${track.age_s.toFixed(1)}`,'s ago');
-    fact('TRACK STATE',track.status);
-    host.append(facts);
-
-    const actions=el('div','card-actions');
-    const focusBtn=el('button',null,'Focus');
-    focusBtn.addEventListener('click',focusSelected);
-    const followBtn=el('button',state.following?'primary':null,
-      state.following?'Following':'Follow');
-    followBtn.addEventListener('click',()=>{
-      state.following=!state.following;
-      if(state.following) focusSelected(); else state.target=null;
-      renderCard();
-    });
-    actions.append(focusBtn,followBtn);
-    host.append(actions);
-
-    host.append(el('p','card-empty','No visual evidence attached.'));
-
-    const tech=document.createElement('details');
-    tech.className='tech';
-    const summary=document.createElement('summary');
-    summary.textContent='Technical details';
-    tech.append(summary);
-    const grid=el('div','tech-grid');
-    const add=(k,v)=>{grid.append(el('span','k',k),el('span',null,v))};
-    add('estimate x',`${track.x.toFixed(1)} m`);
-    add('estimate y',`${track.y.toFixed(1)} m`);
-    add('frame','LOCAL_SIM_METRES');
-    add('scenario time',`T+${(frame?frame.t:0).toFixed(1)} s`);
-    add('observations fed',String(frame?frame.obs:0));
-    add('modality',(state.data&&state.data.tracking_modality)||'RADAR');
-    add('filter','constant velocity, gated NN association');
-    tech.append(grid);
-    const caveat=el('p','card-why',
-      'Estimated from one simulated positional sensor. No classification, no fusion, no validated accuracy.');
-    caveat.style.marginTop='10px';
-    tech.append(caveat);
-    host.append(tech);
+  function renderClock(){
+    const f=state.playback.frame(), t=f?f.t:0, dur=Math.round((state.data&&state.data.duration_s)||90);
+    $('clock').innerHTML=`T+${t.toFixed(1).padStart(4,'0')} <span class="of">/ ${dur} s</span>`;
+  }
+  function syncTransport(){
+    const p=state.playback;
+    $('play').disabled=p.playing||p.done||!p.total; $('pause').disabled=!p.playing;
   }
 
   function select(id){
     state.selectedId=id;
-    state.trailId=null; state.trail=[];
+    if(state.mode==='focus'||state.mode==='follow') focusSelected(state.mode==='follow');
     render();
   }
 
-  /* ---------------- interaction ---------------- */
-  function bindStage(){
-    const stage=$('stage');
-    stage.addEventListener('wheel',ev=>{
-      ev.preventDefault();
-      const rect=stage.getBoundingClientRect();
-      const factor=Math.exp(-ev.deltaY*0.0016);
-      state.autoFrame=false; state.camera=OP.zoomAt(state.camera,factor,ev.clientX-rect.left,ev.clientY-rect.top,
-        state.viewport);
-      state.target=null; state.following=false;
-      draw(); drawScale();
-    },{passive:false});
-
-    let dragging=false,lastX=0,lastY=0;
-    stage.addEventListener('pointerdown',ev=>{
-      dragging=true;lastX=ev.clientX;lastY=ev.clientY;
-      stage.classList.add('dragging');stage.setPointerCapture(ev.pointerId);
-    });
-    stage.addEventListener('pointermove',ev=>{
-      if(!dragging) return;
-      const dx=(ev.clientX-lastX)/state.camera.scale, dy=(ev.clientY-lastY)/state.camera.scale;
-      lastX=ev.clientX;lastY=ev.clientY;
-      state.autoFrame=false;
-      state.camera={...state.camera,cx:state.camera.cx-dx,cy:state.camera.cy+dy};
-      // Manual panning takes over from Follow, predictably and immediately.
-      if(state.following){state.following=false;renderCard()}
-      state.target=null;
-      draw();
-    });
-    const endDrag=ev=>{dragging=false;stage.classList.remove('dragging');
-      if(ev&&ev.pointerId!=null&&stage.hasPointerCapture&&stage.hasPointerCapture(ev.pointerId))
-        stage.releasePointerCapture(ev.pointerId)};
-    stage.addEventListener('pointerup',endDrag);
-    stage.addEventListener('pointercancel',endDrag);
-    stage.addEventListener('pointerleave',endDrag);
-  }
-
-  function buildCountSeg(choices,current){
-    const seg=$('count-seg'); seg.replaceChildren(); seg.dataset.value=String(current);
-    for(const choice of choices){
-      const button=el('button',null,String(choice));
-      button.setAttribute('aria-pressed',String(choice===current));
-      button.addEventListener('click',()=>{
-        seg.dataset.value=String(choice);
-        for(const other of seg.children) other.setAttribute('aria-pressed',
-          String(Number(other.textContent)===choice));
-        state.selectedId=null;
-        load();
+  /* ---------------- input ---------------- */
+  function bind(){
+    $('play').addEventListener('click',start);
+    $('pause').addEventListener('click',stop);
+    $('reset').addEventListener('click',reset);
+    $('speed').addEventListener('change',()=>{ if(state.playback.playing) start(); });
+    $('scenario').addEventListener('change',e=>{ state.scenario=e.target.value; state.selectedId=null; load(); });
+    for(const b of document.querySelectorAll('#count-seg button')){
+      b.addEventListener('click',()=>{
+        for(const o of document.querySelectorAll('#count-seg button')) o.setAttribute('aria-pressed','false');
+        b.setAttribute('aria-pressed','true'); state.count=parseInt(b.dataset.n,10); state.selectedId=null; load();
       });
-      seg.append(button);
     }
+    $('v-overview').addEventListener('click',overview);
+    $('zoom-in').addEventListener('click',()=>{manual();state.camera=OP.zoomAt(state.camera,1.5,state.viewport.w/2,state.viewport.h/2,state.viewport);draw()});
+    $('zoom-out').addEventListener('click',()=>{manual();state.camera=OP.zoomAt(state.camera,1/1.5,state.viewport.w/2,state.viewport.h/2,state.viewport);draw()});
+    const map=$('map');
+    map.addEventListener('wheel',ev=>{
+      ev.preventDefault(); manual();
+      const r=map.getBoundingClientRect(), f=Math.exp(-ev.deltaY*0.0018);
+      state.camera=OP.zoomAt(state.camera,f,ev.clientX-r.left,ev.clientY-r.top,state.viewport); draw();
+    },{passive:false});
+    map.addEventListener('mousedown',ev=>{ if(ev.button!==0) return; state.drag={x:ev.clientX,y:ev.clientY,moved:false}; });
+    window.addEventListener('mousemove',ev=>{
+      if(!state.drag) return;
+      const dx=ev.clientX-state.drag.x, dy=ev.clientY-state.drag.y;
+      if(!state.drag.moved&&Math.hypot(dx,dy)<3) return;
+      state.drag.moved=true; manual();
+      state.camera={...state.camera,cx:state.camera.cx-dx/state.camera.scale,cy:state.camera.cy+dy/state.camera.scale};
+      state.drag.x=ev.clientX; state.drag.y=ev.clientY; draw();
+    });
+    window.addEventListener('mouseup',()=>{ state.drag=null; });
+    window.addEventListener('resize',()=>{ resizeViewport(); draw(); });
+    $('viso-btn').addEventListener('click',()=>{ $('connections').hidden=false; refreshViso(); });
+    $('close-connections').addEventListener('click',()=>{ $('connections').hidden=true; });
   }
 
-  /* ---------------- viso ---------------- */
+  /* ---------------- Viso status (never driven by playback) ---------------- */
   async function refreshViso(){
     try{
-      const data=await (await fetch('/api/preview/viso/status',{cache:'no-store'})).json();
-      const connected=data.state==='VALID DELIVERY RECEIVED';
-      $('viso-dot').style.color=connected?'#4dd0c4':data.state==='ERROR'?'#ff6b6b':'#6b7c8c';
-      $('viso-pill').textContent=data.state;
-      $('viso-pill').className=`pill ${connected?'p-low':data.state==='ERROR'?'p-high':'p-watch'}`;
-      $('viso-note').textContent=data.note||'';
-      const kv=$('viso-kv'); kv.replaceChildren();
-      const add=(k,v)=>{const row=el('div','kvrow');row.append(el('span','k',k),
-        el('span','num',String(v)));kv.append(row)};
-      add('Endpoint',data.webhook_path);
-      add('Auth header',data.header_name);
-      add('Deliveries',data.delivery_count);
-      add('Mapped',data.mapped_count);
-      add('Unmapped',data.unmapped_count);
-      add('Last receipt',data.last_receipt_at||'—');
-      const setup=$('viso-setup'); setup.replaceChildren();
-      if(!data.configured){
-        setup.append(el('p',null,
-          'External ingestion is disabled because no webhook secret is set. The simulation is unaffected.'));
-        const code=document.createElement('code');
-        code.textContent=`DRONEWATCH_WEBHOOK_SECRET='<your-secret>' \\\n  .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8010`;
-        setup.append(code);
-        setup.append(el('p',null,
-          '127.0.0.1 is not reachable from the internet. Viso needs an authenticated HTTPS ingress you control, terminating on this path only.'));
-      }
-    }catch(error){ console.error('viso status failed',error) }
+      const r=await fetch('/api/preview/viso/status'); const v=await r.json();
+      const st=(v.state||'UNKNOWN'), cls=st==='RECEIVING'?'ok':st==='NOT CONFIGURED'||st==='WAITING FOR DELIVERY'?'':st.includes('ERROR')?'bad':'warn';
+      $('viso-btn').className='viso '+cls; $('viso-text').textContent='VISO · '+st;
+      $('viso-pill').textContent=st;
+      $('viso-kv').textContent=`state          ${st}
+configured     ${v.configured}
+webhook        ${v.webhook_path||'—'}
+auth header    ${v.header_name||'—'}
+last receipt   ${v.last_receipt_at||'none'}
+last outcome   ${v.last_outcome||'—'}
+deliveries     ${v.delivery_count??0}
+${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this source is inactive; the simulation above does not depend on it.'}`;
+    }catch(e){ $('viso-text').textContent='VISO · UNAVAILABLE'; }
   }
 
-  /* ---------------- init ---------------- */
-  function init(){
-    buildCountSeg([3,6,10],6);
-    bindStage();
-    $('play').addEventListener('click',start);
-    $('pause').addEventListener('click',()=>{stop();render()});
-    $('reset').addEventListener('click',()=>{
-      stop(); state.playback.reset(); state.trail=[]; state.trailId=null;
-      state.following=false; state.target=null; render();
-    });
-    $('speed').addEventListener('change',()=>{ if(state.playback.playing) start() });
-    $('scenario').addEventListener('change',()=>{state.selectedId=null;load()});
-    $('zoom-in').addEventListener('click',()=>{state.following=false;
-      state.target={...state.camera,scale:state.camera.scale*1.6}});
-    $('zoom-out').addEventListener('click',()=>{state.following=false;
-      state.target={...state.camera,scale:state.camera.scale/1.6}});
-    $('v-overview').addEventListener('click',overview);
-    $('v-high').addEventListener('click',focusHighPriority);
-    $('stage').addEventListener('click',()=>{});
-    $('open-connections').addEventListener('click',()=>{$('connections').hidden=false;refreshViso()});
-    for(const drawer of ['connections','about']){
-      $(drawer).addEventListener('click',ev=>{if(ev.target.id===drawer)$(drawer).hidden=true});
-    }
-    window.addEventListener('resize',()=>{resizeViewport();draw()});
-    requestAnimationFrame(tickCamera);
-    load();
-    refreshViso();
-    setInterval(refreshViso,8000);
-  }
-
+  function init(){ bind(); requestAnimationFrame(tick); load(); refreshViso(); setInterval(refreshViso,8000); }
   init();
 })();
 </script>
+</body>
+</html>

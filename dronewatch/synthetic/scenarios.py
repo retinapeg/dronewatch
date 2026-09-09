@@ -262,26 +262,68 @@ SITE_X, SITE_Y = 0.0, 0.0
 MONITORED_RADIUS_M = 600.0
 DEMO_SPEED_M_S = 25.0
 DEMO_DISTURBANCE = 0.12
-GROUP_BEARING_DEG = 145.0   # entities sit NW of the site and fly inbound
-GROUP_ARC_DEG = 26.0
 SPLIT_TIME_S = 35.0
+TURN_RATE_DEG_S = 2.6
+TURN_DURATION_S = 34.0
+
+# The group arrives from the north as a wedge pointing at the site, so on a
+# north-up display it reads as "these are coming here". Lateral separation is
+# deliberately generous: a demonstration must be legible by design, with the
+# geometry dominating the measurement noise rather than the other way round.
+FORMATION_BEARING_DEG = 90.0
+NEAR_DEPTH_M = 1900.0
+DEPTH_SPREAD_M = 800.0
 
 
-def _inbound_initial(index: int, count: int, rng: random.Random) -> SimState:
-    """Place an entity in the approach sector, heading at the site."""
-    spread = 0.0 if count == 1 else (index / (count - 1)) - 0.5
-    angle = math.radians(GROUP_BEARING_DEG + spread * GROUP_ARC_DEG)
-    radius = 2200.0 + (index % 3) * 190.0 + rng.uniform(-40.0, 40.0)
-    x, y = radius * math.cos(angle), radius * math.sin(angle)
-    # Aim at an offset point inside the area rather than the exact centre.
-    # A contact passing directly overhead has an enormous angular rate at close
-    # range, which a constant-velocity filter cannot follow; the track would
-    # break and re-form. Contacts still cross the boundary, so the geometry the
-    # demonstration needs is unchanged.
-    aim_lateral = 180.0 + (index % 4) * 90.0
-    aim_x = SITE_X + aim_lateral * math.cos(math.radians(GROUP_BEARING_DEG - 90.0))
-    aim_y = SITE_Y + aim_lateral * math.sin(math.radians(GROUP_BEARING_DEG - 90.0))
-    heading = math.atan2(aim_y - y, aim_x - x) + math.radians(rng.uniform(-2.0, 2.0))
+def _formation_slot(index: int, count: int) -> tuple[float, float]:
+    """Lateral fraction in [-1, 1] and depth for one slot of the wedge.
+
+    The centre of the wedge is nearest the site and the wings trail behind,
+    with a small alternating stagger so no two contacts share a range.
+    """
+    if count == 1:
+        return 0.0, NEAR_DEPTH_M
+    lateral = (index - (count - 1) / 2.0) / ((count - 1) / 2.0)
+    depth = NEAR_DEPTH_M + DEPTH_SPREAD_M * abs(lateral) + (120.0 if index % 2 else 0.0)
+    return lateral, depth
+
+
+def _half_width_m(count: int) -> float:
+    # Wider fronts for larger groups keep neighbouring labels apart.
+    return 500.0 + 110.0 * count
+
+
+def _assign_fates(count: int) -> Dict[int, str]:
+    """Centre of the wedge continues inbound, one wing skims, the outer wings peel."""
+    inbound = math.ceil(count / 2)
+    skim = 1 if count >= 4 else 0
+    by_centre = sorted(range(count), key=lambda i: (abs(_formation_slot(i, count)[0]), i))
+    fates: Dict[int, str] = {}
+    for rank, index in enumerate(by_centre):
+        if rank < inbound:
+            fates[index] = "INBOUND"
+        elif rank < inbound + skim:
+            fates[index] = "SKIM"
+        else:
+            fates[index] = "PASSING"
+    return fates
+
+
+def _inbound_initial(index: int, count: int, fate: str, rng: random.Random) -> SimState:
+    """Place an entity in its formation slot, heading at its aim point."""
+    lateral, depth = _formation_slot(index, count)
+    x = lateral * _half_width_m(count) + rng.uniform(-30.0, 30.0)
+    y = depth + rng.uniform(-40.0, 40.0)
+    side = 1.0 if lateral >= 0 else -1.0
+    if fate == "INBOUND":
+        # Cross the boundary but not the exact centre: a direct overhead pass has an
+        # angular rate a constant-velocity filter cannot follow.
+        aim_x, aim_y = side * (170.0 + 110.0 * (index % 3)), SITE_Y - 150.0
+    elif fate == "SKIM":
+        aim_x, aim_y = side * 720.0, SITE_Y - 350.0
+    else:
+        aim_x, aim_y = side * 220.0, SITE_Y
+    heading = math.atan2(aim_y - y, aim_x - x) + math.radians(rng.uniform(-1.5, 1.5))
     return SimState(
         t=0.0, x=x, y=y, z=90.0 + rng.uniform(-15.0, 25.0),
         vx=DEMO_SPEED_M_S * math.cos(heading),
@@ -294,41 +336,50 @@ def _continues_inbound(duration: float) -> List[TrajectorySegment]:
     return [ConstantVelocity(duration)]
 
 
-def _turns_away(duration: float) -> List[TrajectorySegment]:
-    remaining = max(1.0, duration - SPLIT_TIME_S - 26.0)
-    return [
-        ConstantVelocity(SPLIT_TIME_S),
-        HeadingChange(26.0, turn_rate_deg_s=3.4),
-        ConstantVelocity(remaining),
-    ]
+def _turns_away(sign: float):
+    def build(duration: float) -> List[TrajectorySegment]:
+        remaining = max(1.0, duration - SPLIT_TIME_S - TURN_DURATION_S)
+        return [
+            ConstantVelocity(SPLIT_TIME_S),
+            HeadingChange(TURN_DURATION_S, turn_rate_deg_s=sign * TURN_RATE_DEG_S),
+            ConstantVelocity(remaining),
+        ]
+    return build
 
 
 def generate_incoming_group(
     count: int, *, seed: int, duration: float, dt: float
 ) -> List[GroundTruthEntity]:
-    """The operator demo: an incoming group that separates.
+    """The operator demo: an incoming wedge that separates.
 
-    Roughly half continue toward the site and cross the monitored boundary; the
-    remainder turn and pass at separation. That populates every attention level
-    in a single run without any clutter.
+    The centre continues toward the site and crosses the monitored boundary, one
+    wing skims the boundary, and the outer wings turn away. That populates every
+    attention level in a single run without any clutter.
     """
     if not 3 <= count <= 10:
         raise ValueError("the operator demo supports 3 to 10 contacts")
 
     rng = stream(seed, "operator-demo", str(count))
-    inbound = math.ceil(count / 2)
+    fates = _assign_fates(count)
     entities: List[GroundTruthEntity] = []
     for index in range(count):
-        continues = index < inbound
+        fate = fates[index]
+        lateral, _ = _formation_slot(index, count)
+        if fate == "PASSING":
+            # Wings peel outward: left wing turns clockwise (negative), right wing
+            # anticlockwise, so both move away from the approach axis.
+            segments = _turns_away(1.0 if lateral >= 0 else -1.0)
+        else:
+            segments = _continues_inbound
         entities.append(
             make_entity(
                 f"gt-contact-{index + 1:02d}",
                 ObjectClass.UNKNOWN, ControlMode.CONTROLLED,
-                _continues_inbound if continues else _turns_away,
+                segments,
                 seed=seed, duration=duration, dt=dt,
-                initial=_inbound_initial(index, count, rng),
+                initial=_inbound_initial(index, count, fate, rng),
                 disturbance_sigma=DEMO_DISTURBANCE,
-                intent="INBOUND" if continues else "PASSING",
+                intent="INBOUND" if fate == "INBOUND" else "PASSING",
             )
         )
     return entities
