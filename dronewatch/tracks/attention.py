@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Dict, Optional, Tuple
 
 from .site import MonitoredSite
-from .tracker import Track, TrackState
+from .tracker import Freshness, Track, TrackState
 
 
 class Priority(str, Enum):
@@ -37,6 +37,10 @@ DWELL_S = 3.0
 class AttentionRule:
     priority: Priority
     reason: str
+    #: What the judgement rests on: "measured" (fresh positional data),
+    #: "predicted" (propagated without a measurement) or "stale" (too old to
+    #: keep re-evaluating; the last measured band is held and flagged).
+    basis: str = "measured"
 
 
 def evaluate_priority(track: Track, site: MonitoredSite) -> AttentionRule:
@@ -76,7 +80,7 @@ class AttentionModel:
         self._shown: Dict[str, AttentionRule] = {}
         self._candidate: Dict[str, Tuple[AttentionRule, float]] = {}
 
-    def update(self, track: Track, now: float) -> AttentionRule:
+    def _update_fresh(self, track: Track, now: float) -> AttentionRule:
         instantaneous = evaluate_priority(track, self.site)
         shown = self._shown.get(track.track_id)
 
@@ -103,9 +107,19 @@ class AttentionModel:
 
         return self._decorate(track, shown)
 
+    def update(self, track: Track, now: float) -> AttentionRule:  # noqa: F811
+        if track.freshness is Freshness.STALE:
+            # Old geometry must not keep producing confident new labels. Hold
+            # the last band that was justified by fresh or predicted data, and
+            # say so; do not re-evaluate closing speed from a frozen position.
+            held = self._shown.get(track.track_id)
+            band = held.priority if held else Priority.WATCH
+            return AttentionRule(band, "Position update overdue", "stale")
+        rule = self._update_fresh(track, now)
+        basis = "predicted" if track.freshness is Freshness.PREDICTED else "measured"
+        return AttentionRule(rule.priority, rule.reason, basis)
+
     def _decorate(self, track: Track, rule: AttentionRule) -> AttentionRule:
-        if track.status is TrackState.STALE:
-            return AttentionRule(rule.priority, "Position update overdue")
         return rule
 
     def forget(self, track_id: str) -> None:

@@ -28,6 +28,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="DroneWatch", lifespan=lifespan)
+from starlette.middleware.gzip import GZipMiddleware  # noqa: E402
+app.add_middleware(GZipMiddleware, minimum_size=4096)
 
 KNOWN_STATES = {"DETECTED", "APPROACHING", "RESTRICTED_ZONE", "EXITED", "UNKNOWN"}
 KNOWN_SEVERITY = {"INFO", "WARNING", "HIGH"}

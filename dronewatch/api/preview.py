@@ -38,6 +38,8 @@ from ..synthetic.generator import (
     DEFAULT_TICK_HZ,
     T_ZERO,
     observations_only,
+    pipeline_input,
+    FaultSpec,
 )
 from ..synthetic.scenarios import SCENARIO_NAMES
 from ..tracks.frames import build_timeline
@@ -402,12 +404,34 @@ def viso_status() -> Dict[str, Any]:
 # Track timeline for the operator view
 # --------------------------------------------------------------------------
 
+#: Sensor-loss demonstration modes. Each is a fault specification applied to
+#: the generated observation stream plus the set of sources the estimator is
+#: allowed to use. The browser cannot alter these; it only picks one.
+SENSOR_LOSS_MODES: Dict[str, Dict[str, Any]] = {
+    "normal": {"label": "Normal operation", "faults": "", "admit": ["radar-north"]},
+    "radar_off": {"label": "Radar off 40-55 s", "faults": "radar:40-55", "admit": ["radar-north"]},
+    "all_off": {"label": "All positional inputs off 40-55 s", "faults": "all:40-55",
+                "admit": ["radar-north", "eo-south"]},
+    "radar_off_bearing": {"label": "Radar off 40-55 s, bearing-only backup",
+                          "faults": "radar:40-55;backup:bearing",
+                          "admit": ["radar-north", "bearing-west"]},
+    "radar_off_eo": {"label": "Radar off 40-55 s, EO position backup (25 m)",
+                     "faults": "radar:40-55;backup:position",
+                     "admit": ["radar-north", "eo-south"]},
+    "radar_degraded": {"label": "Radar noise x4, 40-55 s", "faults": "degrade:40-55x4",
+                       "admit": ["radar-north"]},
+    "single_loss": {"label": "One contact unobserved 40-55 s", "faults": "loss:2@40-55",
+                    "admit": ["radar-north"]},
+}
+
+
 @router.get("/api/preview/tracks")
 def get_tracks(
     name: str = Query("operator_demo"),
     seed: int = Query(42, ge=0, le=999_999),
     count: int = Query(6, ge=MIN_CONTACTS, le=MAX_CONTACTS),
     duration_s: float = Query(OPERATOR_DEMO_DURATION_S, gt=0, le=MAX_DURATION_S),
+    mode: str = Query("normal"),
 ) -> Dict[str, Any]:
     """Estimated tracks over time, for replay by the operator view.
 
@@ -421,16 +445,21 @@ def get_tracks(
             detail=f"unknown operator scenario {name!r}; known: {list(OPERATOR_SCENARIOS)}",
         )
 
-    key = (name, seed, count, duration_s)
+    if mode not in SENSOR_LOSS_MODES:
+        raise HTTPException(status_code=404, detail=f"unknown mode {mode!r}; known: {list(SENSOR_LOSS_MODES)}")
+    key = (name, seed, count, duration_s, mode)
     if key in _TRACK_CACHE:
         _TRACK_CACHE.move_to_end(key)
         return _TRACK_CACHE[key]
 
-    observations = observations_only(
-        name, seed=seed, duration_s=duration_s, count=count
+    spec = SENSOR_LOSS_MODES[mode]
+    faults = FaultSpec.parse(spec["faults"])
+    observations, scans = pipeline_input(
+        name, seed=seed, duration_s=duration_s, count=count, faults=faults
     )
     timeline = build_timeline(
-        observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite()
+        observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite(),
+        scans=scans, admit=spec["admit"],
     )
     timeline.update({
         "scenario": name,
@@ -441,6 +470,10 @@ def get_tracks(
         "frame": "LOCAL_SIM_METRES",
         "contact_choices": list(CONTACT_CHOICES),
         "scenarios": list(OPERATOR_SCENARIOS),
+        "mode": mode,
+        "mode_label": spec["label"],
+        "faults": faults.label(),
+        "modes": [{"id": k, "label": v["label"]} for k, v in SENSOR_LOSS_MODES.items()],
     })
     _TRACK_CACHE[key] = timeline
     while len(_TRACK_CACHE) > MAX_CACHED_SCENARIOS:

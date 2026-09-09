@@ -17,6 +17,7 @@ always retaining mass.
 """
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 from dataclasses import dataclass, field
@@ -65,9 +66,32 @@ class SensorModel:
     emits_signal_features: bool = False
     #: Scales detection probability, standing in for synthetic visibility.
     visibility: float = 1.0
+    #: Sensor location in simulation metres; required for bearing-only sensors.
+    location: Optional[Tuple[float, float]] = None
+    #: A bearing-only sensor reports the angle from `location` to the target,
+    #: mathematical convention, and no position at all.
+    bearing_only: bool = False
+    bearing_noise_deg: float = 2.0
+    #: Windows in which the sensor scans normally but its position noise is
+    #: multiplied by the given factor (quality degradation, not outage).
+    degraded_windows: List[Tuple[float, float, float]] = field(default_factory=list)
+    #: Windows in which the sensor scans normally but cannot see the named
+    #: entities (a single contact temporarily unobserved). Keyed by entity id;
+    #: the generator owns ground truth, the pipeline never sees this.
+    blind_windows: Dict[str, List[Tuple[float, float]]] = field(default_factory=dict)
 
     def is_dropped_out(self, t: float) -> bool:
+        """Source outage: no scans, no heartbeat, nothing at all."""
         return any(start <= t <= end for start, end in self.dropout_windows)
+
+    def noise_factor(self, t: float) -> float:
+        for start, end, factor in self.degraded_windows:
+            if start <= t <= end:
+                return factor
+        return 1.0
+
+    def is_blind_to(self, entity_id: str, t: float) -> bool:
+        return any(start <= t <= end for start, end in self.blind_windows.get(entity_id, ()))
 
     @property
     def interval_s(self) -> float:
@@ -141,11 +165,21 @@ def _class_evidence(
     distribution = ClassificationDistribution.from_scores(scores)
     top_class, top_probability = distribution.top()
     if top_probability > MAX_CLASS_MASS:
-        # Bleed the excess into UNKNOWN so no observation is ever an oracle.
+        # Bleed the excess away from the top class so no observation is ever
+        # an oracle. Into UNKNOWN normally; when UNKNOWN itself is on top,
+        # spread it over the other hypotheses instead.
         adjusted = distribution.as_dict()
         excess = top_probability - MAX_CLASS_MASS
         adjusted[top_class] = MAX_CLASS_MASS
-        adjusted[ObjectClass.UNKNOWN] = adjusted.get(ObjectClass.UNKNOWN, 0.0) + excess
+        if top_class is not ObjectClass.UNKNOWN:
+            adjusted[ObjectClass.UNKNOWN] = adjusted.get(ObjectClass.UNKNOWN, 0.0) + excess
+        else:
+            others = [c for c in adjusted if c is not top_class]
+            if others:
+                for c in others:
+                    adjusted[c] += excess / len(others)
+            else:
+                adjusted[top_class] = top_probability
         distribution = ClassificationDistribution.normalised(adjusted)
     return distribution
 
@@ -178,60 +212,104 @@ def observe_entity(
     duration_s: float,
     rng: random.Random,
     sequence: "Counter",
+    noise_rng: Optional[random.Random] = None,
 ) -> List[Tuple[float, SensorObservation]]:
     """Generate one sensor's observations of one entity.
 
     Returns (simulation_time, observation) pairs. Arrival effects are applied
     later by the delivery layer.
+
+    `rng` decides detection, `noise_rng` (defaults to `rng`) draws measurement
+    noise. Both are consumed at every scan time, including scans suppressed by
+    a fault window, so changing a fault configuration changes only the
+    affected reports and nothing else.
     """
+    noise_rng = noise_rng or rng
     results: List[Tuple[float, SensorObservation]] = []
     t = max(0.0, entity.spawn_time)
     end = min(duration_s, entity.end_time or duration_s)
     while t <= end:
-        if sensor.is_dropped_out(t):
-            t += sensor.interval_s
-            continue
-        if rng.random() > sensor.detection_probability * sensor.visibility:
+        detected = rng.random() <= sensor.detection_probability * sensor.visibility
+        gauss = [noise_rng.gauss(0.0, 1.0) for _ in range(3)]
+        conf = noise_rng.uniform(*sensor.confidence_range)
+        class_rng = random.Random(noise_rng.random())
+        if sensor.is_dropped_out(t) or not detected or sensor.is_blind_to(entity.entity_id, t):
             t += sensor.interval_s
             continue
 
         point = entity.state_at(t)
-        x, y, z = _measure(point, sensor, rng)
-        low, high = sensor.confidence_range
+        factor = sensor.noise_factor(t)
         signals: Tuple[SignalFeature, ...] = ()
         if sensor.emits_signal_features:
             signals = (
                 SignalFeature(
-                    centre_frequency_hz=round(rng.uniform(2.40e9, 2.48e9), 1),
-                    amplitude=round(rng.uniform(0.1, 1.0), 4),
-                    bandwidth_hz=round(rng.uniform(1e6, 2e7), 1),
+                    centre_frequency_hz=round(class_rng.uniform(2.40e9, 2.48e9), 1),
+                    amplitude=round(class_rng.uniform(0.1, 1.0), 4),
+                    bandwidth_hz=round(class_rng.uniform(1e6, 2e7), 1),
                 ),
             )
+        raw = {
+            "sensor_id": sensor.sensor_id,
+            "modality": sensor.modality.value,
+            "simulation_time_s": round(t, 4),
+            "synthetic": True,
+        }
+        if sensor.bearing_only:
+            sx, sy = sensor.location or (0.0, 0.0)
+            sigma = math.radians(sensor.bearing_noise_deg) * factor
+            bearing = math.atan2(point.y - sy, point.x - sx) + gauss[0] * sigma
+            position = None
+            raw.update({"kind": "bearing", "bearing_rad": round(bearing, 6),
+                        "sensor_xy": [sx, sy], "sigma_rad": round(sigma, 6)})
+        else:
+            sigma = sensor.position_noise_m * factor
+            x = point.x + gauss[0] * sigma
+            y = point.y + gauss[1] * sigma
+            z = max(0.0, point.z + gauss[2] * sigma / 2)
+            position = _to_position(x, y, z)
+            raw.update({"kind": "position", "sigma_m": round(sigma, 3)})
 
         observation = SensorObservation(
-            observation_id=sequence.next(sensor.sensor_id),
+            observation_id=sequence.derived(sensor.sensor_id, entity.entity_id, t),
             sensor_id=sensor.sensor_id,
             modality=sensor.modality,
             observed_at=t_zero + timedelta(seconds=t),
-            # Overwritten by the delivery layer; a placeholder equal to the
-            # observation time keeps the object valid in the meantime.
             received_at=t_zero + timedelta(seconds=t),
-            position=_to_position(x, y, z),
+            position=position,
             classification=_class_evidence(
-                entity.true_class, sensor.class_evidence_strength, rng
+                entity.true_class, sensor.class_evidence_strength, class_rng
             ),
-            confidence=round(rng.uniform(low, high), 4),
+            confidence=round(conf, 4),
             signals=signals,
-            raw={
-                "sensor_id": sensor.sensor_id,
-                "modality": sensor.modality.value,
-                "simulation_time_s": round(t, 4),
-                "synthetic": True,
-            },
+            raw=raw,
         )
         results.append((t, observation))
         t += sensor.interval_s
     return results
+
+
+@dataclass(frozen=True)
+class SensorScan:
+    """A heartbeat: the sensor ran at time t. Carries no detection.
+
+    Source health is derived from these, never from the absence of
+    detections, because a dead sensor and an empty sky produce the same
+    detection stream.
+    """
+    sensor_id: str
+    t: float
+    noise_sigma_m: Optional[float]
+
+
+def scan_records(sensor: SensorModel, duration_s: float) -> List[SensorScan]:
+    scans: List[SensorScan] = []
+    t = 0.0
+    while t <= duration_s:
+        if not sensor.is_dropped_out(t):
+            sigma = None if sensor.bearing_only else sensor.position_noise_m * sensor.noise_factor(t)
+            scans.append(SensorScan(sensor.sensor_id, round(t, 4), sigma))
+        t += sensor.interval_s
+    return scans
 
 
 def spurious_observations(
@@ -289,12 +367,24 @@ def spurious_observations(
 
 
 class Counter:
-    """Deterministic observation identifiers, stable across runs."""
+    """Deterministic observation identifiers, stable across runs.
 
-    def __init__(self) -> None:
+    Identifiers are derived from what was observed (sensor, subject, time)
+    through a hash, so injecting a fault into one sensor cannot renumber
+    another sensor's reports. The subject is hashed with the seed and never
+    appears in the identifier: the pipeline must not be able to read ground
+    truth out of an id.
+    """
+
+    def __init__(self, seed: int = 0) -> None:
+        self._seed = seed
         self._counts: Dict[str, int] = {}
 
     def next(self, sensor_id: str) -> str:
         index = self._counts.get(sensor_id, 0)
         self._counts[sensor_id] = index + 1
         return f"{sensor_id}-{index:06d}"
+
+    def derived(self, sensor_id: str, subject: str, t: float) -> str:
+        digest = hashlib.sha1(f"{self._seed}|{sensor_id}|{subject}|{t:.3f}".encode()).hexdigest()
+        return f"{sensor_id}-{digest[:10]}"

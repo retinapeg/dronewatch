@@ -45,9 +45,13 @@ def deliver(
     can legitimately contain out-of-order observations.
     """
     delivered: List[Tuple[float, SensorObservation]] = []
+    master = rng.getrandbits(64)
 
     for simulation_time, observation in pairs:
         sensor: SensorModel = sensors_by_id[observation.sensor_id]
+        # One derived stream per report: removing or adding a report elsewhere
+        # in the stream must not change this report's latency or duplication.
+        rng = random.Random(f"{master}|{observation.observation_id}")
 
         if rng.random() < profile.loss_probability:
             continue

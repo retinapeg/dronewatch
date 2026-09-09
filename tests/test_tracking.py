@@ -346,16 +346,21 @@ def test_stale_status_does_not_change_the_priority_band():
 
 # --- timeline payload ---------------------------------------------------
 
-def test_timeline_payload_stays_under_one_megabyte():
+def test_timeline_payload_stays_bounded():
     """The whole 90-second demo has to ship to the browser as one document.
 
-    At 5 Hz for 90 s and up to 10 tracks, the JSON needs to stay comfortably
-    small, which is exactly why the snapshot fields are kept minimal.
+    At 5 Hz for 90 s and up to 10 tracks, the JSON needs to stay bounded.
+    Projection v2 carries a position covariance, a 95% ellipse, the last
+    measurement, source ages and freshness per track per frame; that is what
+    the uncertainty display is built from, so the budget is 1.5 MB raw (the
+    API also serves it gzip-compressed, roughly a fifth of that on the wire).
     """
     scenario = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=10)
-    timeline = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0)
-    payload = json.dumps(timeline)
-    assert len(payload.encode("utf-8")) < 1_000_000
+    timeline = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0,
+                              scans=scenario.scans)
+    # Compact separators, as FastAPI's JSONResponse serialises it.
+    payload = json.dumps(timeline, separators=(",", ":"))
+    assert len(payload.encode("utf-8")) < 1_500_000
 
 
 def test_tracking_uses_only_radar_observations():

@@ -145,3 +145,5 @@ class ScenarioResult:
     metadata: ScenarioMetadata
     ground_truth: ScenarioGroundTruth
     observations: Tuple["SensorObservation", ...] = field(default_factory=tuple)
+    #: Sensor heartbeats (scan records) in delivery order. Pipeline input.
+    scans: tuple = ()

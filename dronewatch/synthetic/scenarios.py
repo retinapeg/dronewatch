@@ -309,12 +309,17 @@ def _assign_fates(count: int) -> Dict[int, str]:
     return fates
 
 
-def _inbound_initial(index: int, count: int, fate: str, rng: random.Random) -> SimState:
+def _inbound_initial(index: int, count: int, fate: str, rng: random.Random,
+                     crossing: bool = False) -> SimState:
     """Place an entity in its formation slot, heading at its aim point."""
     lateral, depth = _formation_slot(index, count)
     x = lateral * _half_width_m(count) + rng.uniform(-30.0, 30.0)
     y = depth + rng.uniform(-40.0, 40.0)
     side = 1.0 if lateral >= 0 else -1.0
+    if crossing and fate == "INBOUND":
+        # Aim across the axis so the inbound pair's paths intersect on the
+        # way in: the association stress case.
+        side = -side
     if fate == "INBOUND":
         # Cross the boundary but not the exact centre: a direct overhead pass has an
         # angular rate a constant-velocity filter cannot follow.
@@ -348,7 +353,7 @@ def _turns_away(sign: float):
 
 
 def generate_incoming_group(
-    count: int, *, seed: int, duration: float, dt: float
+    count: int, *, seed: int, duration: float, dt: float, crossing: bool = False
 ) -> List[GroundTruthEntity]:
     """The operator demo: an incoming wedge that separates.
 
@@ -377,7 +382,7 @@ def generate_incoming_group(
                 ObjectClass.UNKNOWN, ControlMode.CONTROLLED,
                 segments,
                 seed=seed, duration=duration, dt=dt,
-                initial=_inbound_initial(index, count, fate, rng),
+                initial=_inbound_initial(index, count, fate, rng, crossing),
                 disturbance_sigma=DEMO_DISTURBANCE,
                 intent="INBOUND" if fate == "INBOUND" else "PASSING",
             )

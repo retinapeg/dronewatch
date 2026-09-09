@@ -57,6 +57,12 @@ select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid 
 .north svg{display:block;width:16px;height:22px;margin:0 auto 2px;position:static}
 .mode{position:absolute;left:50%;top:12px;transform:translateX(-50%);font:600 11px var(--mono);letter-spacing:.1em;color:var(--ink-dim);background:#0b1016cc;border:1px solid var(--line);padding:5px 10px;border-radius:3px;pointer-events:none}
 .mode[hidden]{display:none}
+.summary .src{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);font-size:11px;letter-spacing:.06em}
+.summary .src .ok{color:#4ad27a}.summary .src .bad{color:var(--high)}.summary .src .unk{color:var(--ink-faint)}.summary .src .deg{color:var(--watch)}
+.row .fr{font:600 10px var(--mono);letter-spacing:.06em;color:var(--ink-faint);margin-left:6px}
+.row .fr.p{color:var(--watch)}.row .fr.s{color:var(--high)}
+.fact-wide{grid-column:1 / -1}
+.f .v.small{font-size:12.5px;font-weight:500;color:var(--ink-dim)}
 
 /* rail */
 .rail{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:var(--panel)}
@@ -139,6 +145,8 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
     <div class="seg" id="count-seg" role="group" aria-label="Contact count">
       <button data-n="3">3</button><button data-n="6" aria-pressed="true">6</button><button data-n="10">10</button>
     </div>
+    <span class="lbl">Sensor loss</span>
+    <select id="mode" aria-label="Sensor-loss demonstration"><option value="normal">Normal operation</option></select>
     <span class="spacer"></span>
     <button class="viso" id="viso-btn" title="Viso Now connection"><span class="dot" id="viso-dot"></span><span id="viso-text">VISO</span></button>
     <a class="diag" href="/preview/diagnostics">Diagnostics</a>
@@ -392,7 +400,7 @@ if(typeof module!=='undefined') module.exports=OP;
     camera:{cx:0,cy:900,scale:0.2}, target:null, viewport:{w:1200,h:800},
     mode:'operator',            // operator | focus | follow | manual
     selectedId:null, timer:null, lastRaf:0, lastFrame:-1,
-    count:6, scenario:'operator_demo', seed:42, drag:null,
+    count:6, scenario:'operator_demo', seed:42, mode:'normal', drag:null,
   };
   window.OPSTATE=state;
 
@@ -402,12 +410,17 @@ if(typeof module!=='undefined') module.exports=OP;
     state.playback=OP.createPlayback([]); state.lastFrame=-1;
     $('contact-count').textContent='loading…';
     $('rows').innerHTML=''; renderCard();
-    const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}`;
+    const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}&mode=${encodeURIComponent(state.mode)}`;
     let data;
     try{ const r=await fetch(url); if(!r.ok) throw new Error(r.status); data=await r.json(); }
     catch(e){ $('contact-count').textContent='load failed'; return; }
     state.data=data; state.site=data.site||state.site;
     state.playback=OP.createPlayback(data.frames||[]);
+    if(Array.isArray(data.modes)){
+      const sel=$('mode'); sel.replaceChildren();
+      for(const m of data.modes){const o=document.createElement('option');o.value=m.id;o.textContent=m.label;sel.append(o)}
+      sel.value=data.mode||state.mode;
+    }
     resizeViewport();
     state.mode='operator'; state.target=null;
     state.camera=OP.operatorCamera(firstPopulatedFrame().tracks,state.site,state.viewport)||state.camera;
@@ -550,6 +563,27 @@ if(typeof module!=='undefined') module.exports=OP;
       if(isSel&&focus){
         stage.append(svg('line',{x1:p.px,y1:p.py,x2:s.px,y2:s.py,stroke:'#ffffff','stroke-opacity':0.28,'stroke-width':1,'stroke-dasharray':'3 5'}));
       }
+      // Uncertainty from the backend covariance: the 95% ellipse around the
+      // predicted state. Drawn for the selected track always, and for any
+      // track whose positional information is no longer fresh.
+      const lost=t.fresh==='P'||t.fresh==='S';
+      if(t.ell&&(isSel||lost)){
+        const ec=t.est?P.toScreen(t.est[0],t.est[1]):p;
+        const rx=Math.max(2,t.ell[0]*sc), ry=Math.max(2,t.ell[1]*sc);
+        stage.append(svg('ellipse',{cx:ec.px,cy:ec.py,rx,ry,transform:`rotate(${-t.ell[2]} ${ec.px} ${ec.py})`,
+          fill:col,'fill-opacity':isSel?0.07:0.035,stroke:col,'stroke-opacity':isSel?0.75:0.35,
+          'stroke-width':isSel?1.2:0.8,'stroke-dasharray':t.fresh==='S'?'3 3':'none'}));
+        if(t.est){
+          // Marker is held at the last measured position; show where the
+          // model thinks the contact is now, and the gap between the two.
+          stage.append(svg('line',{x1:p.px,y1:p.py,x2:ec.px,y2:ec.py,stroke:col,'stroke-opacity':0.5,'stroke-width':1,'stroke-dasharray':'2 3'}));
+          stage.append(svg('circle',{cx:ec.px,cy:ec.py,r:3,fill:'none',stroke:col,'stroke-width':1.2}));
+        }
+      }
+      if(t.meas&&(isSel||lost)&&t.fresh!=='S'){
+        const mq=P.toScreen(t.meas[0],t.meas[1]);
+        stage.append(svg('path',{d:`M ${mq.px-4} ${mq.py-4} L ${mq.px+4} ${mq.py+4} M ${mq.px-4} ${mq.py+4} L ${mq.px+4} ${mq.py-4}`,stroke:'#dbe4ec','stroke-width':1,'stroke-opacity':0.7}));
+      }
       if(isSel) stage.append(svg('circle',{cx:p.px,cy:p.py,r:16,fill:'none',stroke:'#fff','stroke-width':1.5,'stroke-opacity':0.9}));
       const sym=svg('path',{d:'M -12,-9 L 14,0 L -12,9 L -5,0 Z',
         fill:t.status==='STALE'?'none':col, stroke:col,'stroke-width':t.status==='STALE'?1.5:1,
@@ -557,7 +591,7 @@ if(typeof module!=='undefined') module.exports=OP;
         transform:`translate(${p.px} ${p.py}) rotate(${-(t.heading||0)})`,'data-id':t.id,style:'cursor:pointer'});
       sym.addEventListener('click',ev=>{ev.stopPropagation();select(t.id)});
       stage.append(sym);
-      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:isSel?86:56,h:t.status==='STALE'?38:26,track:t,col});
+      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:(t.fresh!=='U')?92:56,h:(t.fresh!=='U')?38:26,track:t,col});
     }
 
     // labels, decluttered
@@ -569,7 +603,8 @@ if(typeof module!=='undefined') module.exports=OP;
       a.textContent=t.id; g.append(a);
       const b=svg('text',{x,y:L.y+23,'text-anchor':L.anchor,fill:'#9aa9b6','font-size':10.5});
       b.textContent=fmtRange(t.range_m); g.append(b);
-      if(t.status==='STALE'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:it.col,'font-size':9.5,'letter-spacing':'.08em'});c.textContent='LAST KNOWN';g.append(c)}
+      if(t.fresh==='S'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:it.col,'font-size':9.5,'letter-spacing':'.08em'});c.textContent=`LAST KNOWN · ${t.age_s.toFixed(0)} s`;g.append(c)}
+      else if(t.fresh==='P'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:'#f2b53a','font-size':9.5,'letter-spacing':'.08em'});c.textContent=`PREDICTED · ${t.age_s.toFixed(1)} s`;g.append(c)}
       stage.append(g);
     }
 
@@ -595,10 +630,16 @@ if(typeof module!=='undefined') module.exports=OP;
     const tracks=currentTracks();
     const n={h:0,w:0,l:0};
     for(const t of tracks){ if(t.priority==='HIGH PRIORITY') n.h++; else if(t.priority==='WATCH') n.w++; else n.l++; }
+    const f=state.playback.frame(); const srcs=(f&&f.sources)||{};
+    const cls=s=>s==='REPORTING'?'ok':s==='UNAVAILABLE'?'bad':s==='DEGRADED'?'deg':'unk';
+    const short=id=>id.replace('-north','').replace('-south','').replace('-west','').replace('-east','').toUpperCase();
+    const srcHtml=Object.keys(srcs).length?`<div class="src">${Object.entries(srcs).map(([id,s])=>`<div class="row"><span>${short(id)}</span><span class="${cls(s)}">${s}</span></div>`).join('')}</div>`:'';
+    const lost=tracks.filter(t=>t.fresh&&t.fresh!=='U').length;
     $('summary').innerHTML=`<div class="h">INCOMING GROUP</div><div class="n">${tracks.length} TRACK${tracks.length===1?'':'S'}</div>
       <div class="row"><span><i class="k" style="background:var(--high)"></i>HIGH</span><span>${n.h}</span></div>
       <div class="row"><span><i class="k" style="background:var(--watch)"></i>WATCH</span><span>${n.w}</span></div>
-      <div class="row"><span><i class="k" style="background:var(--low)"></i>LOW</span><span>${n.l}</span></div>`;
+      <div class="row"><span><i class="k" style="background:var(--low)"></i>LOW</span><span>${n.l}</span></div>
+      ${lost?`<div class="row" style="margin-top:4px"><span>PREDICTED / STALE</span><span>${lost}</span></div>`:''}${srcHtml}`;
   }
 
   function renderRows(){
@@ -610,7 +651,8 @@ if(typeof module!=='undefined') module.exports=OP;
       const mv=t.status==='STALE'?'LAST KNOWN':c>2?'CLOSING':c<-2?'OPENING':'HOLDING';
       const el=document.createElement('div'); el.className='row'; el.setAttribute('role','button');
       el.setAttribute('aria-selected',String(t.id===state.selectedId));
-      el.innerHTML=`<div class="id">${t.id}${t.status!=='TRACKING'?`<span class="st">${t.status}</span>`:''}</div>
+      const fr=t.fresh==='P'?`<span class="fr p">PREDICTED ${t.age_s.toFixed(0)}s</span>`:t.fresh==='S'?`<span class="fr s">LAST KNOWN ${t.age_s.toFixed(0)}s</span>`:'';
+      el.innerHTML=`<div class="id">${t.id}${fr}</div>
         <div class="pr ${OP.priorityClass(t.priority)}">${SHORT[t.priority]||t.priority}</div>
         <div class="rg">${fmtRange(t.range_m)}</div><div class="mv">${mv}</div>`;
       el.addEventListener('click',()=>select(t.id));
@@ -625,23 +667,29 @@ if(typeof module!=='undefined') module.exports=OP;
     const c=OP.closingSpeed(t,state.site), pc=OP.priorityClass(t.priority);
     card.innerHTML=`
       <div class="top"><span class="cid">${t.id}</span><span class="badge ${pc}">${t.priority}</span></div>
-      <div class="reason">${t.reason||''}</div>
+      <div class="reason">${t.reason||''}${t.basis==='p'?' <span style="color:var(--watch)">· from predicted state</span>':t.basis==='s'?' <span style="color:var(--high)">· held, position stale</span>':''}</div>
       <div class="facts">
         <div class="f"><div class="k">RANGE TO SITE</div><div class="v">${fmtRange(t.range_m)}</div></div>
         <div class="f"><div class="k">CLOSING SPEED</div><div class="v">${c>=0?'+':''}${c.toFixed(1)}<small>m/s</small></div></div>
         <div class="f"><div class="k">HEADING</div><div class="v">${String(compass(t.heading)).padStart(3,'0')}°<small>${t.speed.toFixed(0)} m/s</small></div></div>
         <div class="f"><div class="k">ALTITUDE</div><div class="v">${t.altitude_m==null?'—':t.altitude_m+'<small>m sim</small>'}</div></div>
-        <div class="f"><div class="k">TRACK STATUS</div><div class="v ${t.status==='STALE'?pc:''}">${t.status}</div></div>
-        <div class="f"><div class="k">LAST UPDATE</div><div class="v">${t.age_s.toFixed(1)}<small>s ago</small></div></div>
+        <div class="f"><div class="k">ESTIMATE</div><div class="v ${t.fresh==='S'?'p-high':t.fresh==='P'?'p-watch':''}">${t.fresh==='U'?'UPDATED':t.fresh==='P'?'PREDICTED':'STALE'}</div></div>
+        <div class="f"><div class="k">POSITION INFO AGE</div><div class="v">${t.age_s.toFixed(1)}<small>s</small></div></div>
+        ${t.ell?`<div class="f"><div class="k">95% REGION</div><div class="v">±${t.ell[0]}<small>× ±${t.ell[1]} m</small></div></div>`:''}
+        ${t.meas?`<div class="f"><div class="k">LAST MEASURED</div><div class="v small">${fmtRange(Math.hypot(t.meas[0]-state.site.x,t.meas[1]-state.site.y))} from site · T+${t.meas[2].toFixed(1)}</div></div>`:''}
+        ${t.src?`<div class="f fact-wide"><div class="k">SOURCES</div><div class="v small">${Object.entries(t.src).map(([k,v])=>`${k.replace(/-(north|south|east|west)$/,'')} ${v.toFixed(1)} s ago`).join(' · ')}</div></div>`:''}
+        ${(t.amb!=null||t.ambn)?`<div class="f fact-wide"><div class="k">ASSOCIATION</div><div class="v small ${t.amb!=null&&t.amb<2?'p-watch':''}">${t.amb!=null?(t.amb<2?`ambiguous — competing track within ${t.amb.toFixed(1)} (−2 ln L)`:`supported — next candidate ${t.amb.toFixed(1)} (−2 ln L) worse`):'supported'}${t.ambn?` · ${t.ambn} ambiguous update${t.ambn===1?'':'s'} so far`:''}</div></div>`:''}
       </div>
       <div class="acts">
         <button id="act-focus" aria-pressed="${state.mode==='focus'}">FOCUS</button>
         <button id="act-follow" aria-pressed="${state.mode==='follow'}">FOLLOW</button>
       </div>
-      <details><summary>Technical details</summary><div class="kv">position   x ${t.x.toFixed(0)}  y ${t.y.toFixed(0)}  (sim metres)
+      <details><summary>Technical details</summary><div class="kv">position   x ${t.x.toFixed(0)}  y ${t.y.toFixed(0)}  (sim metres${t.est?', last measured; predicted '+t.est[0].toFixed(0)+', '+t.est[1].toFixed(0):''})
 heading    ${t.heading.toFixed(1)}° math · ${compass(t.heading)}° compass
 speed      ${t.speed.toFixed(1)} m/s
-source     radar only · constant-velocity filter
+cov        Pxx ${t.cov?t.cov[0]:'—'}  Pxy ${t.cov?t.cov[1]:'—'}  Pyy ${t.cov?t.cov[2]:'—'}  (m²)
+region     95% ellipse, chi²(2)=5.99 · model-based, not empirical
+model      nearly constant velocity, continuous white acceleration
 identity   tracker-assigned, not ground truth</div></details>`;
     $('act-focus').addEventListener('click',()=>{ if(state.mode==='focus') overview(); else focusSelected(false); });
     $('act-follow').addEventListener('click',()=>{ if(state.mode==='follow') overview(); else focusSelected(true); });
@@ -669,6 +717,7 @@ identity   tracker-assigned, not ground truth</div></details>`;
     $('reset').addEventListener('click',reset);
     $('speed').addEventListener('change',()=>{ if(state.playback.playing) start(); });
     $('scenario').addEventListener('change',e=>{ state.scenario=e.target.value; state.selectedId=null; load(); });
+    $('mode').addEventListener('change',e=>{ state.mode=e.target.value; load(); });
     for(const b of document.querySelectorAll('#count-seg button')){
       b.addEventListener('click',()=>{
         for(const o of document.querySelectorAll('#count-seg button')) o.setAttribute('aria-pressed','false');
