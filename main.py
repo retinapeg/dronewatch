@@ -120,6 +120,10 @@ def coerce_float(value: Any) -> Optional[float]:
 
     if value > 1 and value <= 100:
         value = value / 100
+    if not 0.0 <= value <= 1.0:
+        # Out of range means the sender's scale is unknown. Reporting "unknown"
+        # is safer than clamping, which would invent maximum confidence.
+        return None
     return round(value, 4)
 
 
@@ -195,9 +199,21 @@ def _extract_media_url(payload: Any) -> Optional[str]:
     return coerce_str(find_first(payload, ["media_url", "mediaurl", "snapshot", "image_url", "video_url", "url"]))
 
 
+def _clamp_to_now(value: str) -> str:
+    """A sender cannot date an observation in the future."""
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return utcnow()
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    return now.isoformat() if parsed > now else value
+
+
 def _extract_received(payload: Any) -> str:
     candidate = find_first(payload, ["timestamp", "event_time", "eventtime", "received_at", "receivedat", "created_at", "createdat", "time", "ts"])
-    return parse_timestamp(candidate)
+    return _clamp_to_now(parse_timestamp(candidate))
 
 
 def _normalize_state(raw_state: Optional[str], detection_type: Optional[str], drone_detected: bool) -> str:
@@ -374,6 +390,18 @@ def root() -> FileResponse:
     return FileResponse(BASE_DIR / "index.html")
 
 
+@app.get("/preview")
+def preview() -> FileResponse:
+    """Track-centric operator preview. The V0.1 dashboard at / is unchanged."""
+    return FileResponse(BASE_DIR / "preview.html")
+
+
+@app.get("/preview/diagnostics")
+def preview_diagnostics() -> FileResponse:
+    """The raw-observation research view, kept rather than deleted."""
+    return FileResponse(BASE_DIR / "diagnostics.html")
+
+
 @app.get("/health")
 def health() -> Dict[str, Any]:
     return {
@@ -391,7 +419,9 @@ def config() -> Dict[str, bool]:
 def api_events(limit: int = 20) -> Dict[str, Any]:
     events = _query_events(limit=limit)
     latest = events[0] if events else None
-    open_incidents = [evt for evt in events if evt["state"] != "EXITED"]
+    # UNKNOWN means the state could not be determined, not that an incident is
+    # open. Counting it lets undecodable input inflate the operator-facing count.
+    open_incidents = [evt for evt in events if evt["state"] not in {"EXITED", "UNKNOWN"}]
     status = "SAFE"
     if any(evt["state"] == "RESTRICTED_ZONE" for evt in open_incidents):
         status = "CRITICAL"
@@ -478,3 +508,11 @@ def simulate_event(payload: SimulatePayload):
     incident = _normalize_incident(template, source_default="SIMULATED", simulated=True)
     _write_incident(incident)
     return incident
+
+
+# --- V0.2 preview surface --------------------------------------------------
+# Additive only. Every route above keeps its V0.1 behaviour, including the
+# unauthenticated /webhook/viso path that existing deployments rely on.
+from dronewatch.api.preview import router as _preview_router  # noqa: E402
+
+app.include_router(_preview_router)

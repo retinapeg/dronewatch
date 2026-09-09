@@ -26,8 +26,10 @@ mean clear airspace.
 
 Without a sensor track ID, TRK identifiers are display aliases for events grouped
 by source/application. Active tracks counts these groups, not verified aircraft.
-Open incidents preserves the API count of non-EXITED records within its last 200
-events, including test and simulation records.
+Open incidents counts records within the API's last 200 events whose state is
+neither EXITED nor UNKNOWN, including test and simulation records. UNKNOWN is
+excluded because the state was never determined; those records remain visible in
+the event list. Unknown still does not mean clear airspace.
 
 Radar rings and the zone boundary are schematic and uncalibrated. Supplied frame
 coordinates and understood bounding boxes are used where possible. Text positions

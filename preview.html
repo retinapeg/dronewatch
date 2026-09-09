@@ -1,0 +1,980 @@
+<title>DroneWatch Operator Preview</title>
+<style>
+:root{
+  --bg:#0c1117; --surface:#131a23; --surface-2:#18212c; --line:#232f3d; --line-soft:#1b2531;
+  --ink:#e8eef5; --ink-dim:#9aa9b8; --ink-faint:#6b7c8c;
+  --high:#ff6b6b; --high-dim:#3a1f22; --watch:#f0b429; --watch-dim:#3a2f18;
+  --low:#4dd0c4; --low-dim:#16302f; --accent:#5aa9e6; --site:#8fd0ff;
+  --radius:8px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --num:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+h1,h2,h3,p{margin:0}
+button{font:inherit;cursor:pointer;color:var(--ink);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:6px;padding:7px 12px;transition:.12s}
+button:hover:not(:disabled){background:#212d3a;border-color:#31414f}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.primary{background:#1a4a63;border-color:#2b6d8f;color:#cfe9f7}
+button.primary:hover:not(:disabled){background:#215b78}
+select{font:inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);
+  border-radius:6px;padding:7px 10px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+
+.app{display:grid;grid-template-rows:58px minmax(0,1fr) 58px;height:100dvh}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;gap:18px;padding:0 18px;
+  background:var(--surface);border-bottom:1px solid var(--line)}
+.wordmark{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.02em;font-size:16px}
+.wordmark svg{width:20px;height:20px;color:var(--accent)}
+.sim-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+  letter-spacing:.04em;color:var(--watch);background:var(--watch-dim);
+  border:1px solid #6b5420;border-radius:5px;padding:4px 9px;white-space:nowrap}
+.sim-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.topbar .group{display:flex;align-items:center;gap:9px}
+.topbar label{font-size:12.5px;color:var(--ink-dim);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:7px 14px;background:transparent;
+  font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.seg button[aria-pressed="true"]{background:#1f3a4d;color:#dff0fb;font-weight:600}
+.spacer{margin-left:auto}
+.linkish{background:transparent;border-color:transparent;color:var(--ink-dim);font-size:13.5px}
+.linkish:hover{color:var(--ink)}
+
+/* ---------- main ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1fr) clamp(330px,25vw,410px);min-height:0}
+.scene{position:relative;min-width:0;background:
+  radial-gradient(ellipse at 50% 45%,#111b25 0%,var(--bg) 70%);border-right:1px solid var(--line)}
+.scene svg{display:block;width:100%;height:100%}
+#stage{cursor:grab}
+#stage.dragging{cursor:grabbing}
+
+.overlay{position:absolute;display:flex;gap:8px;z-index:2}
+.ov-tl{top:14px;left:14px;flex-direction:column;align-items:flex-start}
+.ov-tr{top:14px;right:14px}
+.ov-bl{bottom:14px;left:14px;flex-direction:column;gap:10px}
+.viewbtn{background:#111a23e6;backdrop-filter:blur(6px);font-size:13px;padding:6px 11px}
+.zoomstack{display:flex;flex-direction:column;gap:5px}
+.zoomstack button{width:34px;height:34px;padding:0;font-size:17px;line-height:1;
+  background:#111a23e6;backdrop-filter:blur(6px)}
+.scalebar{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-dim);
+  background:#111a23cc;padding:6px 9px;border-radius:6px;border:1px solid var(--line-soft)}
+.scalebar .bar{height:5px;border-left:2px solid var(--ink-dim);border-right:2px solid var(--ink-dim);
+  border-bottom:2px solid var(--ink-dim)}
+.inset{position:absolute;right:14px;bottom:14px;width:150px;height:150px;background:#0b1119ee;
+  border:1px solid var(--line);border-radius:6px;z-index:2;overflow:hidden}
+.inset-label{position:absolute;top:4px;left:7px;font-size:10.5px;color:var(--ink-faint);letter-spacing:.05em}
+
+/* ---------- right rail ---------- */
+.rail{display:flex;flex-direction:column;min-height:0;background:var(--surface)}
+.rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.rail-head h2{font-size:12.5px;letter-spacing:.09em;color:var(--ink-dim);font-weight:600}
+.rail-head .count{font-size:13px;color:var(--ink-faint)}
+.contacts{overflow-y:auto;flex:0 0 auto;max-height:46%}
+.contact{display:grid;grid-template-columns:auto 1fr auto;gap:3px 11px;align-items:center;
+  padding:11px 16px;border-bottom:1px solid var(--line-soft);cursor:pointer;border-left:3px solid transparent}
+.contact:hover{background:#182029}
+.contact[aria-selected="true"]{background:#16283a;border-left-color:var(--accent)}
+.contact .cid{font:600 14.5px var(--num);letter-spacing:.01em}
+.contact .rng{font:13px var(--num);color:var(--ink-dim);text-align:right}
+.contact .why{grid-column:1/-1;font-size:12.5px;color:var(--ink-faint);display:flex;
+  align-items:center;gap:7px}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:2.5px 7px;border-radius:4px;
+  white-space:nowrap;border:1px solid}
+.p-high{color:var(--high);background:var(--high-dim);border-color:#6d3236}
+.p-watch{color:var(--watch);background:var(--watch-dim);border-color:#6b5420}
+.p-low{color:var(--low);background:var(--low-dim);border-color:#245049}
+.status-chip{font-size:10.5px;color:var(--ink-faint);border:1px solid var(--line);
+  border-radius:4px;padding:2px 6px;letter-spacing:.04em}
+.status-chip.warn{color:var(--watch);border-color:#6b5420}
+
+.card{border-top:1px solid var(--line);padding:15px 16px;overflow-y:auto;flex:1;min-height:0}
+.card-empty{color:var(--ink-faint);font-size:13.5px;padding:22px 4px;text-align:center}
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.card-top .cid{font:650 20px var(--num)}
+.card-why{font-size:13.5px;color:var(--ink-dim);margin:8px 0 14px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:13px 14px;margin-bottom:15px}
+.fact .k{font-size:11px;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:3px}
+.fact .v{font:15.5px var(--num);color:var(--ink)}
+.fact .v small{font-size:11.5px;color:var(--ink-faint);font-family:var(--sans)}
+.card-actions{display:flex;gap:8px;margin-bottom:14px}
+.card-actions button{flex:1}
+details.tech{border-top:1px solid var(--line-soft);padding-top:11px}
+details.tech summary{font-size:12.5px;color:var(--ink-dim);cursor:pointer;list-style:none}
+details.tech summary::-webkit-details-marker{display:none}
+details.tech summary::before{content:"▸ ";color:var(--ink-faint)}
+details.tech[open] summary::before{content:"▾ "}
+.tech-grid{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:10px;
+  font:12px var(--num);color:var(--ink-dim)}
+.tech-grid .k{color:var(--ink-faint)}
+
+/* ---------- transport ---------- */
+.transport{display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--surface);
+  border-top:1px solid var(--line)}
+.transport .time{font:14px var(--num);color:var(--ink-dim);min-width:118px}
+.progress{flex:1;height:5px;background:#1d2732;border-radius:3px;overflow:hidden;min-width:60px}
+.progress i{display:block;height:100%;background:var(--accent);width:0}
+.hint{font-size:12.5px;color:var(--ink-faint)}
+
+/* ---------- drawer ---------- */
+.drawer{position:fixed;inset:0;background:#060a0ecc;display:flex;justify-content:flex-end;z-index:20}
+.drawer-panel{width:min(560px,92vw);background:var(--surface);border-left:1px solid var(--line);
+  padding:22px 24px;overflow-y:auto}
+.drawer-panel h2{font-size:17px;margin-bottom:4px}
+.drawer-panel h3{font-size:12.5px;letter-spacing:.07em;color:var(--ink-dim);margin:20px 0 8px}
+.drawer-panel p{font-size:13.5px;color:var(--ink-dim);margin-bottom:9px}
+.drawer-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+code{font:12.5px var(--num);background:#0d141c;border:1px solid var(--line);border-radius:5px;
+  padding:9px 11px;display:block;color:#bcd3e6;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+.kvrow{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:13px;margin-bottom:5px}
+.kvrow .k{color:var(--ink-faint)}
+.status-line{display:flex;align-items:center;gap:8px;font-size:13.5px}
+
+@media (max-height:820px){
+  /* Shorter viewports: tighten the rows so the whole contact list is reachable
+     with minimal scrolling, and give the list a larger share of the rail. */
+  .app{grid-template-rows:52px minmax(0,1fr) 52px}
+  .contacts{max-height:52%}
+  .contact{padding:8px 16px;gap:2px 10px}
+  .contact .cid{font-size:13.5px}
+  .contact .why{font-size:12px}
+  .rail-head{padding:11px 16px 8px}
+  .facts{gap:9px 12px}
+  .fact .v{font-size:14.5px}
+  .card{padding:12px 16px}
+  .card-top .cid{font-size:18px}
+  .card-actions{margin-bottom:10px}
+}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="wordmark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8.5" opacity=".55"></circle>
+        <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"></path>
+      </svg>
+      DroneWatch
+    </div>
+    <span class="sim-chip"><i class="dot"></i>SIMULATION &mdash; NOT LIVE</span>
+
+    <div class="group">
+      <label for="scenario">Scenario</label>
+      <select id="scenario">
+        <option value="operator_demo">Incoming group</option>
+        <option value="operator_demo_signal_loss">Incoming group + contact loss</option>
+      </select>
+    </div>
+    <div class="group">
+      <label>Contacts</label>
+      <div class="seg" id="count-seg" role="group" aria-label="Number of contacts"></div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="linkish" id="open-connections" title="Viso Now connection status"><span id="viso-dot" aria-hidden="true">&#9679;</span> VISO</button>
+    <button class="linkish" onclick="location.href='/preview/diagnostics'">Diagnostics &rarr;</button>
+  </header>
+
+  <div class="main">
+    <section class="scene">
+      <svg id="stage" aria-label="Contact picture in a local simulation frame"></svg>
+
+      <div class="overlay ov-tl">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="viewbtn" id="v-overview">Overview</button>
+          <button class="viewbtn" id="v-high">Focus priority</button>
+        </div>
+      </div>
+
+      <div class="overlay ov-tr">
+        <div class="zoomstack">
+          <button id="zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+          <button id="zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        </div>
+      </div>
+
+      <div class="overlay ov-bl">
+        <div class="scalebar">
+          <div class="bar" id="scale-bar" style="width:90px"></div>
+          <span class="num" id="scale-text">500 m</span>
+        </div>
+      </div>
+
+      <div class="inset" id="inset" hidden>
+        <span class="inset-label">OVERVIEW</span>
+        <svg id="inset-svg" viewBox="0 0 150 150"></svg>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <div class="rail-head">
+        <h2>CONTACTS</h2>
+        <span class="count" id="contact-count">&mdash;</span>
+      </div>
+      <div class="contacts" id="contacts"></div>
+      <div class="card" id="card">
+        <div class="card-empty">Select a contact on the map or in the list.</div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="transport">
+    <button class="primary" id="play">Play</button>
+    <button id="pause" disabled>Pause</button>
+    <button id="reset">Reset</button>
+    <div class="group">
+      <label for="speed">Speed</label>
+      <select id="speed">
+        <option value="0.5">0.5&times;</option>
+        <option value="1" selected>1&times;</option>
+        <option value="2">2&times;</option>
+        <option value="4">4&times;</option>
+      </select>
+    </div>
+    <span class="time num" id="clock">T+00.0 / 90.0 s</span>
+    <div class="progress"><i id="progress"></i></div>
+  </footer>
+</div>
+
+<div class="drawer" id="connections" hidden>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div><h2>Connections</h2><p>External sensor ingestion. Independent of the simulation.</p></div>
+      <button onclick="document.getElementById('connections').hidden=true">Close</button>
+    </div>
+    <div class="status-line"><span id="viso-pill" class="pill p-low">LOADING</span>
+      <span id="viso-note" style="color:var(--ink-dim);font-size:13px"></span></div>
+    <h3>VISO NOW</h3>
+    <div id="viso-kv"></div>
+    <div id="viso-setup"></div>
+    <h3>SEPARATION</h3>
+    <p>Synthetic playback never changes this status. Only an authenticated delivery
+       to the protected endpoint can. A simulated contact never carries Viso evidence.</p>
+  </div>
+</div>
+
+<div class="drawer" id="about" hidden>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div><h2>About this preview</h2><p>What is real, what is simulated, and what is not validated.</p></div>
+      <button onclick="document.getElementById('about').hidden=true">Close</button>
+    </div>
+    <h3>DATA PATH</h3>
+    <p>Seeded synthetic entities produce simulated sensor observations. One positional
+       modality (radar) is passed to a constant-velocity tracker, whose estimated tracks
+       are what this screen displays. Ground truth is never used for association or display.</p>
+    <div class="kvrow"><span class="k">Configured entities</span><span id="ab-entities" class="num">&mdash;</span></div>
+    <div class="kvrow"><span class="k">Sensor observations</span><span id="ab-obs" class="num">&mdash;</span></div>
+    <div class="kvrow"><span class="k">Radar measurements used</span><span id="ab-meas" class="num">&mdash;</span></div>
+    <div class="kvrow"><span class="k">Estimated tracks now</span><span id="ab-tracks" class="num">&mdash;</span></div>
+    <p style="margin-top:10px">These are different counts and are not interchangeable.</p>
+    <h3>LIMITATIONS</h3>
+    <p>This is a small tracking baseline demonstrated on synthetic observations. It is not
+       production tracking, not validated threat classification, and not multi-sensor fusion.
+       Attention levels are scenario-awareness rules applied to estimated geometry; they are
+       not evidence of hostile intent, and nothing here infers a weapon, an attacker or a
+       control mode. Altitude is a simulation value in the local frame, not height above ground.</p>
+    <h3>ATTENTION THRESHOLDS</h3>
+    <p>Demonstration values, chosen for legibility, not from any operational standard:
+       inside the monitored radius is high priority; closing faster than 2 m/s with under
+       45 s to the boundary is high priority; a level must hold for 3 s before the display
+       changes, so noise does not make the list reorder.</p>
+  </div>
+</div>
+
+<script id="operator-core">
+// Pure display logic: no DOM, no network. Extracted by tests/operator.test.cjs.
+const OP=(()=>{
+  const PRIORITY_RANK={'HIGH PRIORITY':0,'WATCH':1,'LOW PRIORITY':2};
+  const MIN_SCALE=0.008, MAX_SCALE=2.2;   // screen pixels per simulation metre
+
+  const clampScale=s=>Math.min(MAX_SCALE,Math.max(MIN_SCALE,s));
+
+  // One projection for the whole scene. Simulation y grows north, screen y
+  // grows downward, so y is inverted exactly here and nowhere else.
+  function project(camera,viewport){
+    const {cx,cy,scale}=camera, {w,h}=viewport;
+    return {
+      toScreen:(x,y)=>({px:(x-cx)*scale+w/2, py:h/2-(y-cy)*scale}),
+      toWorld:(px,py)=>({x:(px-w/2)/scale+cx, y:(h/2-py)/scale+cy})
+    };
+  }
+
+  // Fit a set of world points, leaving margin so nothing sits on the edge.
+  function fitCamera(points,viewport,pad){
+    if(!points||!points.length) return null;
+    const margin=typeof pad==='number'?pad:0.18;
+    const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const spanX=Math.max(maxX-minX,120), spanY=Math.max(maxY-minY,120);
+    const scale=clampScale(Math.min(
+      viewport.w/(spanX*(1+margin*2)),
+      viewport.h/(spanY*(1+margin*2))
+    ));
+    return {cx:(minX+maxX)/2, cy:(minY+maxY)/2, scale};
+  }
+
+  // Every position the scenario visits, plus the monitored area, sampled so a
+  // 450-frame timeline does not cost a full scan on every reframe.
+  function scenarioEnvelope(frames,site){
+    const points=[];
+    if(site){
+      const r=(site.radius_m||600)*1.25;
+      points.push({x:site.x-r,y:site.y-r},{x:site.x+r,y:site.y+r});
+    }
+    const list=frames||[];
+    const stride=Math.max(1,Math.floor(list.length/60));
+    for(let i=0;i<list.length;i+=stride){
+      for(const track of list[i].tracks) points.push({x:track.x,y:track.y});
+    }
+    return points;
+  }
+
+  // Focus keeps context: the site and the contact both stay in view, so zooming
+  // in never destroys the sense of where the contact is relative to the site.
+  function focusCamera(track,site,viewport){
+    if(!track) return null;
+    const points=[{x:track.x,y:track.y}];
+    if(site) points.push({x:site.x,y:site.y});
+    const fitted=fitCamera(points,viewport,0.55);
+    if(!fitted) return null;
+    // Bias toward the contact while keeping the site on screen.
+    return {
+      cx:track.x*0.62+fitted.cx*0.38,
+      cy:track.y*0.62+fitted.cy*0.38,
+      scale:clampScale(Math.min(fitted.scale*1.35,0.45))
+    };
+  }
+
+  // Exponential approach, frame-rate independent. Used for every camera move,
+  // so zoom, focus and follow all feel the same.
+  function stepCamera(camera,target,dt){
+    if(!target) return camera;
+    const k=1-Math.exp(-6*Math.max(0,dt));
+    return {
+      cx:camera.cx+(target.cx-camera.cx)*k,
+      cy:camera.cy+(target.cy-camera.cy)*k,
+      scale:clampScale(camera.scale+(target.scale-camera.scale)*k)
+    };
+  }
+
+  function zoomAt(camera,factor,px,py,viewport){
+    const before=project(camera,viewport).toWorld(px,py);
+    const scale=clampScale(camera.scale*factor);
+    const moved={...camera,scale};
+    const after=project(moved,viewport).toWorld(px,py);
+    return {cx:moved.cx+(before.x-after.x), cy:moved.cy+(before.y-after.y), scale};
+  }
+
+  // A readable round number for the scale bar.
+  function niceScale(scale,maxPixels){
+    const steps=[10,20,50,100,200,500,1000,2000,5000];
+    const limit=(maxPixels||120)/scale;
+    let chosen=steps[0];
+    for(const step of steps) if(step<=limit) chosen=step;
+    return {metres:chosen,pixels:chosen*scale};
+  }
+
+  // Priority first, then proximity. Ties broken by ID so the order is stable
+  // rather than depending on object iteration.
+  function sortTracks(tracks){
+    return [...(tracks||[])].sort((a,b)=>{
+      const pa=PRIORITY_RANK[a.priority]??9, pb=PRIORITY_RANK[b.priority]??9;
+      if(pa!==pb) return pa-pb;
+      if(a.range_m!==b.range_m) return a.range_m-b.range_m;
+      return a.id<b.id?-1:a.id>b.id?1:0;
+    });
+  }
+
+  // Selection is by ID and survives reordering. A selected contact that is no
+  // longer reported stays selected so the operator keeps its last known state,
+  // rather than the app silently jumping to a different contact.
+  function resolveSelection(selectedId,tracks){
+    if(!selectedId) return null;
+    return (tracks||[]).find(t=>t.id===selectedId)||null;
+  }
+
+  // Six labels do not need force-directed layout; nudging the later of any two
+  // that collide is enough to keep them all readable.
+  function declutter(labels,minGapY,minGapX){
+    const gapY=minGapY||18, gapX=minGapX||64;
+    const placed=[];
+    for(const label of [...labels].sort((a,b)=>a.py-b.py)){
+      let py=label.py;
+      for(const other of placed){
+        if(Math.abs(other.px-label.px)<gapX && Math.abs(other.py-py)<gapY){
+          py=other.py+gapY;
+        }
+      }
+      placed.push({...label,py});
+    }
+    return placed;
+  }
+
+  function priorityClass(priority){
+    return priority==='HIGH PRIORITY'?'p-high':priority==='WATCH'?'p-watch':'p-low';
+  }
+
+  // Playback cursor over precomputed frames. Bounded at both ends.
+  function createPlayback(frames){
+    const list=frames||[];
+    let index=0, playing=false;
+    return {
+      get total(){return list.length},
+      get index(){return index},
+      get playing(){return playing},
+      get done(){return list.length>0&&index>=list.length-1},
+      frame(){return list[Math.min(index,list.length-1)]||null},
+      play(){ if(list.length&&index<list.length-1) playing=true; return playing },
+      pause(){ playing=false; return playing },
+      step(n){
+        const by=Number.isFinite(n)&&n>=1?Math.floor(n):1;
+        index=Math.min(Math.max(0,list.length-1),index+by);
+        if(index>=list.length-1) playing=false;
+        return index;
+      },
+      seek(i){ index=Math.min(Math.max(0,list.length-1),Math.max(0,Math.floor(i))); return index },
+      reset(){ index=0; playing=false; return index }
+    };
+  }
+
+  return {project,fitCamera,scenarioEnvelope,focusCamera,stepCamera,zoomAt,niceScale,sortTracks,
+          resolveSelection,declutter,priorityClass,createPlayback,
+          PRIORITY_RANK,MIN_SCALE,MAX_SCALE};
+})();
+if(typeof module!=='undefined') module.exports=OP;
+</script>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;
+    if(text!=null)n.textContent=text;return n};
+  const NS='http://www.w3.org/2000/svg';
+  const svg=(tag,attrs)=>{const n=document.createElementNS(NS,tag);
+    for(const[k,v]of Object.entries(attrs||{}))n.setAttribute(k,String(v));return n};
+
+  const state={
+    data:null, playback:OP.createPlayback([]), camera:{cx:-900,cy:900,scale:0.15}, envelope:null,
+    target:null, selectedId:null, following:false, autoFrame:true, timer:null, lastRaf:0,
+    trail:[], trailId:null, viewport:{w:1000,h:600}, site:{x:0,y:0,radius_m:600,name:'SITE'}
+  };
+
+  const COLOUR={'HIGH PRIORITY':'#ff6b6b','WATCH':'#f0b429','LOW PRIORITY':'#4dd0c4'};
+  const colourOf=t=>COLOUR[t.priority]||'#4dd0c4';
+
+  /* ---------------- data ---------------- */
+  async function load(){
+    stop();
+    const name=$('scenario').value, count=Number($('count-seg').dataset.value||6);
+    $('contact-count').textContent='loading…';
+    try{
+      const url=`/api/preview/tracks?name=${encodeURIComponent(name)}&seed=42&count=${count}`;
+      const response=await fetch(url,{cache:'no-store'});
+      if(!response.ok) throw new Error('HTTP '+response.status);
+      const data=await response.json();
+      state.data=data;
+      state.site=data.site;
+      state.playback=OP.createPlayback(data.frames);
+      state.trail=[]; state.trailId=null; state.following=false;
+      // Frame the site and the whole approach corridor before anything plays,
+      // so PLAY begins with a useful picture rather than an empty canvas.
+      resizeViewport();
+      // Frame the envelope the scenario actually occupies: every track position
+      // across the whole run, plus the monitored area. A guessed radius either
+      // wastes half the canvas or lets contacts fly in from off-screen, and a
+      // camera that re-fits during playback is disorienting.
+      state.envelope=OP.scenarioEnvelope(data.frames,state.site);
+      state.camera=OP.fitCamera(state.envelope,state.viewport,0.1)||state.camera;
+      state.target=null;
+      $('ab-entities').textContent=data.configured_entities;
+      $('ab-obs').textContent=data.observation_count;
+      $('ab-meas').textContent=data.measurement_count;
+      render();
+    }catch(error){
+      $('contact-count').textContent='load failed';
+      console.error('scenario load failed',error);
+    }
+  }
+
+  /* ---------------- playback ---------------- */
+  function stop(){ if(state.timer){clearInterval(state.timer);state.timer=null}
+    state.playback.pause(); syncTransport() }
+
+  function start(){
+    if(!state.playback.total||state.playback.done) return;
+    state.playback.play();
+    if(state.timer) clearInterval(state.timer);
+    const hz=(state.data&&state.data.frame_hz)||5;
+    const speed=Number($('speed').value)||1;
+    state.timer=setInterval(()=>{
+      state.playback.step(1);
+      if(state.playback.done) stop();
+      render();
+    },Math.max(16,1000/(hz*speed)));
+    syncTransport();
+  }
+
+  function syncTransport(){
+    const p=state.playback;
+    $('play').disabled=p.playing||p.done||!p.total;
+    $('pause').disabled=!p.playing;
+    $('reset').disabled=!p.index;
+  }
+
+  /* ---------------- camera ---------------- */
+  function resizeViewport(){
+    const rect=$('stage').getBoundingClientRect();
+    state.viewport={w:Math.max(320,rect.width),h:Math.max(240,rect.height)};
+  }
+
+  // The protected area must stay wholly visible: frame its full extent, not just
+  // the site point, or the boundary circle spills off the edge of the map.
+  function allPoints(tracks){
+    const r=(state.site.radius_m||600);
+    const points=[{x:state.site.x-r,y:state.site.y-r},{x:state.site.x+r,y:state.site.y+r}];
+    for(const t of tracks) points.push({x:t.x,y:t.y});
+    return points;
+  }
+
+  function fitAll(){ const f=state.playback.frame();
+    state.following=false; state.autoFrame=true;
+    state.target=OP.fitCamera(allPoints(f?f.tracks:[]),state.viewport)||state.target; }
+
+  function overview(){
+    state.following=false; state.autoFrame=true;
+    state.target=OP.fitCamera(state.envelope||[{x:state.site.x,y:state.site.y}],
+      state.viewport,0.1);
+  }
+
+  function focusSelected(){
+    const frame=state.playback.frame();
+    const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
+    if(!track) return;
+    state.autoFrame=false;
+    state.target=OP.focusCamera(track,state.site,state.viewport);
+  }
+
+  function focusHighPriority(){
+    const frame=state.playback.frame();
+    const high=(frame?frame.tracks:[]).filter(t=>t.priority==='HIGH PRIORITY');
+    if(!high.length){ fitAll(); return }
+    state.following=false; state.autoFrame=false;
+    state.target=OP.fitCamera(allPoints(high),state.viewport,0.4);
+  }
+
+  // Auto-range: the tactical picture should fill the map, not sit in one corner.
+  // Retarget only when the ideal framing has drifted materially, so the camera
+  // reads as a slow deliberate pan rather than continuous creep.
+  function autoFrame(){
+    if(!state.autoFrame||state.following) return;
+    const frame=state.playback.frame();
+    if(!frame||!frame.tracks.length) return;
+    const want=OP.fitCamera(allPoints(frame.tracks),state.viewport,0.16);
+    if(!want) return;
+    const ref=state.target||state.camera;
+    const scaleDrift=Math.abs(want.scale-ref.scale)/Math.max(ref.scale,1e-6);
+    const span=Math.max(state.viewport.w,state.viewport.h)/Math.max(want.scale,1e-6);
+    const moveDrift=Math.hypot(want.cx-ref.cx,want.cy-ref.cy)/span;
+    if(scaleDrift>0.10||moveDrift>0.06) state.target=want;
+  }
+
+  function tickCamera(now){
+    const dt=state.lastRaf?Math.min(0.1,(now-state.lastRaf)/1000):0.016;
+    state.lastRaf=now;
+    autoFrame();
+    if(state.following){
+      const frame=state.playback.frame();
+      const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
+      if(track) state.target={cx:track.x,cy:track.y,
+        scale:Math.max(state.camera.scale,0.12)};
+    }
+    if(state.target){
+      state.camera=OP.stepCamera(state.camera,state.target,dt);
+      const close=Math.abs(state.camera.cx-state.target.cx)<1
+        &&Math.abs(state.camera.cy-state.target.cy)<1
+        &&Math.abs(state.camera.scale-state.target.scale)<0.0005;
+      if(close&&!state.following) state.target=null;
+      draw();
+    }
+    requestAnimationFrame(tickCamera);
+  }
+
+  /* ---------------- rendering ---------------- */
+  function render(){ draw(); renderList(); renderCard(); syncTransport(); renderClock() }
+
+  function renderClock(){
+    const frame=state.playback.frame();
+    const total=(state.data&&state.data.duration_s)||90;
+    const t=frame?frame.t:0;
+    $('clock').textContent=`T+${t.toFixed(1).padStart(4,'0')} / ${total.toFixed(1)} s`;
+    $('progress').style.width=`${Math.min(100,(t/total)*100)}%`;
+  }
+
+  function draw(){
+    const stage=$('stage');
+    resizeViewport();
+    const {w,h}=state.viewport;
+    stage.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    stage.replaceChildren();
+    const view=OP.project(state.camera,state.viewport);
+    const frame=state.playback.frame();
+    const tracks=frame?frame.tracks:[];
+
+    // -- monitored area
+    const site=view.toScreen(state.site.x,state.site.y);
+    const radiusPx=state.site.radius_m*state.camera.scale;
+    stage.append(svg('circle',{cx:site.px,cy:site.py,r:Math.max(4,radiusPx),
+      fill:'rgba(90,169,230,.06)',stroke:'#3d6f96','stroke-width':1.5,'stroke-dasharray':'7 6'}));
+    // A single outer range ring. One extra reference makes distance judgeable
+    // without turning the display into concentric decoration.
+    const outerPx=1500*state.camera.scale;
+    if(outerPx>40&&outerPx<Math.max(w,h)){
+      stage.append(svg('circle',{cx:site.px,cy:site.py,r:outerPx,fill:'none',
+        stroke:'#22394d','stroke-width':1,'stroke-dasharray':'2 8'}));
+      const ringLabel=svg('text',{x:site.px,y:site.py-outerPx-6,'text-anchor':'middle',
+        fill:'#4d6ywh','font-size':10.5});
+      ringLabel.setAttribute('fill','#4d6b85');
+      ringLabel.textContent='1.5 km';
+      stage.append(ringLabel);
+    }
+    // Below the circle: contacts approach from the north-west, so a caption
+    // above it would sit under the inbound traffic.
+    const boundaryLabel=svg('text',{x:site.px,y:site.py+Math.max(4,radiusPx)+18,
+      'text-anchor':'middle',fill:'#6f93b3','font-size':11.5,'letter-spacing':'.06em'});
+    boundaryLabel.textContent='MONITORED AREA · 600 m';
+    stage.append(boundaryLabel);
+
+    // -- site marker
+    const marker=svg('g',{});
+    marker.append(svg('path',{d:`M ${site.px-9} ${site.py} L ${site.px} ${site.py-9} L ${site.px+9} ${site.py} L ${site.px} ${site.py+9} Z`,
+      fill:'#8fd0ff',stroke:'#0c1117','stroke-width':1.5}));
+    const siteText=svg('text',{x:site.px,y:site.py+22,'text-anchor':'middle',
+      fill:'#8fd0ff','font-size':12,'font-weight':600,'letter-spacing':'.05em'});
+    siteText.textContent=state.site.name;
+    marker.append(siteText);
+    stage.append(marker);
+
+    // -- trail for the selected contact only
+    const selected=OP.resolveSelection(state.selectedId,tracks);
+    if(selected){
+      if(state.trailId!==selected.id){ state.trailId=selected.id; state.trail=[] }
+      const last=state.trail[state.trail.length-1];
+      if(!last||last[0]!==selected.x||last[1]!==selected.y){
+        state.trail.push([selected.x,selected.y]);
+        if(state.trail.length>120) state.trail.shift();
+      }
+      if(state.trail.length>1){
+        const points=state.trail.map(([x,y])=>{const p=view.toScreen(x,y);
+          return `${p.px.toFixed(1)},${p.py.toFixed(1)}`}).join(' ');
+        stage.append(svg('polyline',{points,fill:'none',stroke:'#5aa9e6',
+          'stroke-width':1.6,'stroke-opacity':.55}));
+      }
+    }
+
+    // -- contacts
+    const labels=[];
+    for(const track of tracks){
+      const p=view.toScreen(track.x,track.y);
+      const colour=colourOf(track);
+      const isSelected=track.id===state.selectedId;
+      const stale=track.status==='STALE', coasting=track.status==='COASTING';
+
+      const group=svg('g',{});
+      group.style.cursor='pointer';
+      group.addEventListener('click',ev=>{ev.stopPropagation();select(track.id)});
+
+      if(isSelected){
+        group.append(svg('circle',{cx:p.px,cy:p.py,r:19,fill:'none',
+          stroke:'#5aa9e6','stroke-width':1.6,'stroke-opacity':.9}));
+      }
+      // Heading-oriented chevron. Screen y is inverted, hence the negated angle.
+      const chevron=svg('path',{
+        d:'M -13,-10 L 17,0 L -13,10 L -5.5,0 Z',
+        transform:`translate(${p.px},${p.py}) rotate(${-track.heading})`,
+        fill:stale?'none':colour, stroke:colour,'stroke-width':stale?1.8:1,
+        'stroke-dasharray':coasting?'3 2':'none','fill-opacity':stale?0:.92
+      });
+      group.append(chevron);
+      group.append(svg('circle',{cx:p.px,cy:p.py,r:16,fill:'transparent'}));
+      stage.append(group);
+
+      labels.push({id:track.id,px:p.px+15,py:p.py-11,text:track.id,
+        priority:track.priority,colour,selected:isSelected,status:track.status});
+    }
+
+    for(const label of OP.declutter(labels,17,96)){
+      const text=svg('text',{x:label.px,y:label.py,fill:label.selected?'#e8eef5':label.colour,
+        'font-size':label.selected?13:12,'font-weight':label.selected?700:600,
+        'font-family':'ui-monospace,Menlo,monospace','paint-order':'stroke',
+        stroke:'#0c1117','stroke-width':3.2,'stroke-linejoin':'round'});
+      text.textContent=label.status==='STALE'?`${label.text} · LAST KNOWN`:label.text;
+      stage.append(text);
+    }
+
+    drawScale();
+    drawInset(tracks,view);
+  }
+
+  function drawScale(){
+    const nice=OP.niceScale(state.camera.scale,110);
+    $('scale-bar').style.width=`${Math.max(24,nice.pixels).toFixed(0)}px`;
+    $('scale-text').textContent=nice.metres>=1000?`${nice.metres/1000} km`:`${nice.metres} m`;
+  }
+
+  function drawInset(tracks,view){
+    // Shown only when zoomed in past the overview, so the operator can always
+    // see where the current view sits in the wider scene.
+    const zoomed=state.camera.scale>0.09;
+    $('inset').hidden=!zoomed;
+    if(!zoomed) return;
+    const box=$('inset-svg'); box.replaceChildren();
+    const world=OP.fitCamera(state.envelope||[{x:state.site.x,y:state.site.y}],{w:150,h:150},0.06);
+    if(!world) return;
+    const mini=OP.project(world,{w:150,h:150});
+    const s=mini.toScreen(state.site.x,state.site.y);
+    box.append(svg('circle',{cx:s.px,cy:s.py,r:Math.max(2,state.site.radius_m*world.scale),
+      fill:'none',stroke:'#3d6f96','stroke-width':1}));
+    for(const t of tracks){
+      const p=mini.toScreen(t.x,t.y);
+      box.append(svg('circle',{cx:p.px,cy:p.py,r:2.4,fill:colourOf(t)}));
+    }
+    // Current viewport footprint.
+    const tl=view.toWorld(0,0), br=view.toWorld(state.viewport.w,state.viewport.h);
+    const a=mini.toScreen(tl.x,tl.y), b=mini.toScreen(br.x,br.y);
+    box.append(svg('rect',{x:Math.min(a.px,b.px),y:Math.min(a.py,b.py),
+      width:Math.abs(b.px-a.px),height:Math.abs(b.py-a.py),
+      fill:'rgba(90,169,230,.10)',stroke:'#5aa9e6','stroke-width':1}));
+  }
+
+  /* ---------------- rail ---------------- */
+  function renderList(){
+    const frame=state.playback.frame();
+    const tracks=OP.sortTracks(frame?frame.tracks:[]);
+    $('contact-count').textContent=tracks.length?`${tracks.length} tracked`:'none yet';
+    $('ab-tracks').textContent=tracks.length;
+    const host=$('contacts'); host.replaceChildren();
+
+    if(!tracks.length){
+      const empty=el('div','card-empty','No contacts yet. Press Play.');
+      host.append(empty); return;
+    }
+    for(const track of tracks){
+      const row=el('div','contact');
+      row.setAttribute('role','option');
+      row.setAttribute('aria-selected',String(track.id===state.selectedId));
+      row.append(el('span','cid num',track.id));
+      const pill=el('span',`pill ${OP.priorityClass(track.priority)}`,track.priority);
+      row.append(pill);
+      row.append(el('span','rng num',`${formatRange(track.range_m)}`));
+      const why=el('div','why');
+      why.append(el('span',null,track.reason));
+      if(track.status!=='TRACKING'){
+        why.append(el('span',`status-chip${track.status==='STALE'?' warn':''}`,track.status));
+      }
+      row.append(why);
+      row.addEventListener('click',()=>select(track.id));
+      host.append(row);
+    }
+  }
+
+  const formatRange=m=>m>=1000?`${(m/1000).toFixed(2)} km`:`${Math.round(m)} m`;
+  const compass=deg=>['E','NE','N','NW','W','SW','S','SE'][Math.round(((deg%360)+360)%360/45)%8];
+
+  function renderCard(){
+    const host=$('card'); host.replaceChildren();
+    const frame=state.playback.frame();
+    const track=OP.resolveSelection(state.selectedId,frame?frame.tracks:[]);
+    if(!track){
+      host.append(el('div','card-empty',
+        state.selectedId?`${state.selectedId} is no longer reported.`
+                        :'Select a contact on the map or in the list.'));
+      return;
+    }
+    const top=el('div','card-top');
+    top.append(el('span','cid num',track.id));
+    top.append(el('span',`pill ${OP.priorityClass(track.priority)}`,track.priority));
+    if(track.status!=='TRACKING') top.append(el('span',`status-chip${track.status==='STALE'?' warn':''}`,track.status));
+    host.append(top);
+    host.append(el('p','card-why',track.reason));
+
+    const facts=el('div','facts');
+    const fact=(k,v,note)=>{const f=el('div','fact');f.append(el('div','k',k));
+      const value=el('div','v',v); if(note){const s=document.createElement('small');
+      s.textContent=' '+note; value.append(s)} f.append(value); facts.append(f)};
+    fact('SEPARATION',formatRange(track.range_m));
+    fact('SPEED',`${track.speed.toFixed(1)}`,'m/s');
+    fact('DIRECTION',`${Math.round(track.heading)}°`,compass(track.heading));
+    fact('ALTITUDE',track.altitude_m==null?'—':`${track.altitude_m}`,
+      track.altitude_m==null?'':'m (sim frame)');
+    fact('LAST UPDATE',`${track.age_s.toFixed(1)}`,'s ago');
+    fact('TRACK STATE',track.status);
+    host.append(facts);
+
+    const actions=el('div','card-actions');
+    const focusBtn=el('button',null,'Focus');
+    focusBtn.addEventListener('click',focusSelected);
+    const followBtn=el('button',state.following?'primary':null,
+      state.following?'Following':'Follow');
+    followBtn.addEventListener('click',()=>{
+      state.following=!state.following;
+      if(state.following) focusSelected(); else state.target=null;
+      renderCard();
+    });
+    actions.append(focusBtn,followBtn);
+    host.append(actions);
+
+    host.append(el('p','card-empty','No visual evidence attached.'));
+
+    const tech=document.createElement('details');
+    tech.className='tech';
+    const summary=document.createElement('summary');
+    summary.textContent='Technical details';
+    tech.append(summary);
+    const grid=el('div','tech-grid');
+    const add=(k,v)=>{grid.append(el('span','k',k),el('span',null,v))};
+    add('estimate x',`${track.x.toFixed(1)} m`);
+    add('estimate y',`${track.y.toFixed(1)} m`);
+    add('frame','LOCAL_SIM_METRES');
+    add('scenario time',`T+${(frame?frame.t:0).toFixed(1)} s`);
+    add('observations fed',String(frame?frame.obs:0));
+    add('modality',(state.data&&state.data.tracking_modality)||'RADAR');
+    add('filter','constant velocity, gated NN association');
+    tech.append(grid);
+    const caveat=el('p','card-why',
+      'Estimated from one simulated positional sensor. No classification, no fusion, no validated accuracy.');
+    caveat.style.marginTop='10px';
+    tech.append(caveat);
+    host.append(tech);
+  }
+
+  function select(id){
+    state.selectedId=id;
+    state.trailId=null; state.trail=[];
+    render();
+  }
+
+  /* ---------------- interaction ---------------- */
+  function bindStage(){
+    const stage=$('stage');
+    stage.addEventListener('wheel',ev=>{
+      ev.preventDefault();
+      const rect=stage.getBoundingClientRect();
+      const factor=Math.exp(-ev.deltaY*0.0016);
+      state.autoFrame=false; state.camera=OP.zoomAt(state.camera,factor,ev.clientX-rect.left,ev.clientY-rect.top,
+        state.viewport);
+      state.target=null; state.following=false;
+      draw(); drawScale();
+    },{passive:false});
+
+    let dragging=false,lastX=0,lastY=0;
+    stage.addEventListener('pointerdown',ev=>{
+      dragging=true;lastX=ev.clientX;lastY=ev.clientY;
+      stage.classList.add('dragging');stage.setPointerCapture(ev.pointerId);
+    });
+    stage.addEventListener('pointermove',ev=>{
+      if(!dragging) return;
+      const dx=(ev.clientX-lastX)/state.camera.scale, dy=(ev.clientY-lastY)/state.camera.scale;
+      lastX=ev.clientX;lastY=ev.clientY;
+      state.autoFrame=false;
+      state.camera={...state.camera,cx:state.camera.cx-dx,cy:state.camera.cy+dy};
+      // Manual panning takes over from Follow, predictably and immediately.
+      if(state.following){state.following=false;renderCard()}
+      state.target=null;
+      draw();
+    });
+    const endDrag=ev=>{dragging=false;stage.classList.remove('dragging');
+      if(ev&&ev.pointerId!=null&&stage.hasPointerCapture&&stage.hasPointerCapture(ev.pointerId))
+        stage.releasePointerCapture(ev.pointerId)};
+    stage.addEventListener('pointerup',endDrag);
+    stage.addEventListener('pointercancel',endDrag);
+    stage.addEventListener('pointerleave',endDrag);
+  }
+
+  function buildCountSeg(choices,current){
+    const seg=$('count-seg'); seg.replaceChildren(); seg.dataset.value=String(current);
+    for(const choice of choices){
+      const button=el('button',null,String(choice));
+      button.setAttribute('aria-pressed',String(choice===current));
+      button.addEventListener('click',()=>{
+        seg.dataset.value=String(choice);
+        for(const other of seg.children) other.setAttribute('aria-pressed',
+          String(Number(other.textContent)===choice));
+        state.selectedId=null;
+        load();
+      });
+      seg.append(button);
+    }
+  }
+
+  /* ---------------- viso ---------------- */
+  async function refreshViso(){
+    try{
+      const data=await (await fetch('/api/preview/viso/status',{cache:'no-store'})).json();
+      const connected=data.state==='VALID DELIVERY RECEIVED';
+      $('viso-dot').style.color=connected?'#4dd0c4':data.state==='ERROR'?'#ff6b6b':'#6b7c8c';
+      $('viso-pill').textContent=data.state;
+      $('viso-pill').className=`pill ${connected?'p-low':data.state==='ERROR'?'p-high':'p-watch'}`;
+      $('viso-note').textContent=data.note||'';
+      const kv=$('viso-kv'); kv.replaceChildren();
+      const add=(k,v)=>{const row=el('div','kvrow');row.append(el('span','k',k),
+        el('span','num',String(v)));kv.append(row)};
+      add('Endpoint',data.webhook_path);
+      add('Auth header',data.header_name);
+      add('Deliveries',data.delivery_count);
+      add('Mapped',data.mapped_count);
+      add('Unmapped',data.unmapped_count);
+      add('Last receipt',data.last_receipt_at||'—');
+      const setup=$('viso-setup'); setup.replaceChildren();
+      if(!data.configured){
+        setup.append(el('p',null,
+          'External ingestion is disabled because no webhook secret is set. The simulation is unaffected.'));
+        const code=document.createElement('code');
+        code.textContent=`DRONEWATCH_WEBHOOK_SECRET='<your-secret>' \\\n  .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8010`;
+        setup.append(code);
+        setup.append(el('p',null,
+          '127.0.0.1 is not reachable from the internet. Viso needs an authenticated HTTPS ingress you control, terminating on this path only.'));
+      }
+    }catch(error){ console.error('viso status failed',error) }
+  }
+
+  /* ---------------- init ---------------- */
+  function init(){
+    buildCountSeg([3,6,10],6);
+    bindStage();
+    $('play').addEventListener('click',start);
+    $('pause').addEventListener('click',()=>{stop();render()});
+    $('reset').addEventListener('click',()=>{
+      stop(); state.playback.reset(); state.trail=[]; state.trailId=null;
+      state.following=false; state.target=null; render();
+    });
+    $('speed').addEventListener('change',()=>{ if(state.playback.playing) start() });
+    $('scenario').addEventListener('change',()=>{state.selectedId=null;load()});
+    $('zoom-in').addEventListener('click',()=>{state.following=false;
+      state.target={...state.camera,scale:state.camera.scale*1.6}});
+    $('zoom-out').addEventListener('click',()=>{state.following=false;
+      state.target={...state.camera,scale:state.camera.scale/1.6}});
+    $('v-overview').addEventListener('click',overview);
+    $('v-high').addEventListener('click',focusHighPriority);
+    $('stage').addEventListener('click',()=>{});
+    $('open-connections').addEventListener('click',()=>{$('connections').hidden=false;refreshViso()});
+    for(const drawer of ['connections','about']){
+      $(drawer).addEventListener('click',ev=>{if(ev.target.id===drawer)$(drawer).hidden=true});
+    }
+    window.addEventListener('resize',()=>{resizeViewport();draw()});
+    requestAnimationFrame(tickCamera);
+    load();
+    refreshViso();
+    setInterval(refreshViso,8000);
+  }
+
+  init();
+})();
+</script>

@@ -113,6 +113,62 @@ URL is treated as sensitive and the process is stopped immediately afterward.
 Authentication, request limits, deduplication, and sanitized API projections are
 release gates in the roadmap.
 
+## V0.2 preview
+
+A browser preview that replays the synthetic multi-sensor scenarios from the M2
+generator. The V0.1 dashboard at `/` is unchanged.
+
+```bash
+.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Then open <http://127.0.0.1:8000/preview>. It loads `mixed_threat_decoy` seed 42
+by default; press PLAY. Everything shown is synthetic, generated from a fixed
+seed, and is labelled as such. No fusion, tracking or classification algorithm
+exists in this build, so the preview displays supplied observations only and
+draws no tracks.
+
+If port 8000 is occupied, pass any free port, for example `--port 8010`.
+
+### Connecting Viso Now
+
+External ingestion is disabled unless a secret is configured, while the
+synthetic preview keeps working either way.
+
+```bash
+DRONEWATCH_WEBHOOK_SECRET='<your-secret>' \
+  .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+| Variable | Purpose |
+| --- | --- |
+| `DRONEWATCH_WEBHOOK_SECRET` | Enables `POST /v2/webhook/viso`. Unset means external ingestion is off. |
+| `DRONEWATCH_WEBHOOK_HEADER` | Header carrying the secret. Default `X-DroneWatch-Token`. |
+| `DRONEWATCH_MAX_BODY_BYTES` | Streaming body ceiling. Default 1048576. |
+
+The secret may be sent either in that header or as `?token=...`, because Viso
+Now's supported authentication headers are not documented publicly and must be
+confirmed against your own account. Prefer the header; the URL token is redacted
+from the access log, but a header keeps it out of intermediate proxy logs too.
+
+`127.0.0.1` is not reachable from the internet. Reaching this endpoint from Viso
+requires an authenticated HTTPS ingress you control, terminating at
+`/v2/webhook/viso` only.
+
+The V0.1 `POST /webhook/viso` route keeps its original unauthenticated
+behaviour. Only the new `/v2` route is protected, and only a delivery through it
+can change the connection panel's state.
+
+## Documentation
+
+- [DATA_SOURCES.md](DATA_SOURCES.md) — sensor and data-source research.
+- [ROADMAP.md](ROADMAP.md) — V0.1 delivery roadmap.
+- [docs/V0.2_PANOPTES_ROADMAP.md](docs/V0.2_PANOPTES_ROADMAP.md) — V0.2 defeat-chain
+  simulation roadmap, milestones, and the required synthetic-data workstream.
+- [docs/V0.2_ARCHITECTURE.md](docs/V0.2_ARCHITECTURE.md) — proposed V0.2 architecture,
+  domain model, and the SAPIENT integration boundary.
+- [data/synthetic/README.md](data/synthetic/README.md) — synthetic dataset contract.
+
 ## Repository notes
 
 - `index.html` is intentionally frozen while the event and sensor contracts are

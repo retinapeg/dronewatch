@@ -1,0 +1,596 @@
+<title>DroneWatch Diagnostics</title>
+<style>
+:root{color-scheme:dark;--bg:#090f16;--panel:#101a24;--line:#273541;--ink:#eef3f4;--muted:#93a6b5;--mint:#9bd4c5;--amber:#efbd72;--red:#ff8178;--violet:#b39ddb;--blue:#7fb3d5;--tone:var(--mint);--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(ellipse at 45% 0%,#172635 0%,transparent 65%),var(--bg);color:var(--ink);font:14px "Avenir Next","Trebuchet MS",sans-serif}
+button,summary{cursor:pointer}
+button{font:600 11px var(--mono);letter-spacing:.035em;padding:9px 12px;color:var(--ink);border:1px solid #435564;border-radius:4px;background:#182632}
+button:hover:not(:disabled){background:#253a49;border-color:var(--mint)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:#1c3b34;border-color:var(--mint);color:var(--mint)}
+:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+a{color:var(--mint)}h1,h2,h3,p{margin:0}
+select,input{font:11px var(--mono);background:#0d151d;color:var(--ink);border:1px solid #435564;border-radius:4px;padding:8px 9px}
+.console{min-height:100dvh;max-width:2100px;margin:auto;padding:16px 22px 22px;display:flex;flex-direction:column;gap:12px}
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:13px}
+h1{font-size:21px;letter-spacing:.15em;font-weight:700}
+.subtitle{color:var(--muted);font-size:11px;letter-spacing:.07em;margin-top:3px}
+.eyebrow,.badge,.panel-heading,.metric-label{font-family:var(--mono);font-size:11px;letter-spacing:.085em}
+.eyebrow{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #526a65;border-radius:3px;color:var(--mint);white-space:nowrap;font-size:10px;font-weight:600}
+.badge.simulated{color:var(--amber);border-color:#8b683b;background:#2b251c}
+.badge.neutral{color:var(--muted);border-color:#384957}
+.dot{width:7px;height:7px;border-radius:100%;display:inline-block;background:currentColor;flex-shrink:0}
+.synthetic-banner{border:1px solid #8b683b;border-left:5px solid var(--amber);background:linear-gradient(100deg,#2b251c,#101923 80%);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.synthetic-banner strong{color:var(--amber);font:700 13px var(--mono);letter-spacing:.12em}
+.synthetic-banner p{color:var(--muted);font-size:11.5px;max-width:none}
+.clock{font:20px var(--mono);letter-spacing:.03em;color:var(--tone)}
+.clock small{color:var(--muted);font-size:10px;display:block;letter-spacing:.08em}
+.controls{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:12px 16px}
+.control{display:flex;flex-direction:column;gap:5px}
+.control label{font:10px var(--mono);color:var(--muted);letter-spacing:.09em}
+.transport{display:flex;gap:8px;margin-left:auto}
+.grid{display:grid;grid-template-columns:250px minmax(0,1fr) 320px;gap:12px;align-items:stretch}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:6px;display:flex;flex-direction:column;min-height:0}
+.panel-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.panel-heading{color:var(--ink);font-weight:600}
+.panel-body{padding:12px 14px;overflow:auto;flex:1;min-height:0}
+.legend-item{display:flex;align-items:center;gap:9px;padding:7px 6px;border-radius:4px;cursor:pointer;font:11px var(--mono);border:1px solid transparent}
+.legend-item:hover{background:#16222d}
+.legend-item[aria-pressed="false"]{opacity:.38}
+.legend-item .count{margin-left:auto;color:var(--muted);font-size:10px}
+.stage{position:relative;background:#0b1218;border-radius:4px;overflow:hidden;min-height:430px;flex:1}
+.stage svg{display:block;width:100%;height:100%}
+.frame-note{position:absolute;left:12px;bottom:10px;font:10px var(--mono);color:var(--muted);letter-spacing:.06em;background:#0b1218cc;padding:4px 8px;border-radius:3px;border:1px solid var(--line)}
+.stage-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:12px var(--mono);color:var(--muted);text-align:center;padding:20px}
+.metric-row{display:flex;gap:16px;flex-wrap:wrap;padding:9px 14px;border-top:1px solid var(--line)}
+.metric{display:flex;flex-direction:column;gap:2px}
+.metric-label{color:var(--muted);font-size:9.5px}
+.metric-value{font:14px var(--mono)}
+.timeline{height:132px}
+.timeline-rows{font:11px var(--mono);display:flex;flex-direction:column-reverse;justify-content:flex-end}
+.tl-row{display:grid;grid-template-columns:74px 88px minmax(90px,1fr) 96px 74px;gap:10px;padding:5px 6px;border-bottom:1px solid #1b2833;cursor:pointer;align-items:center}
+.tl-row:hover{background:#16222d}
+.tl-row[data-selected="true"]{background:#1c2f3b;box-shadow:inset 3px 0 0 var(--mint)}
+.tl-row .muted{color:var(--muted)}
+.kv{display:grid;grid-template-columns:118px minmax(0,1fr);gap:6px 10px;font:11px var(--mono);align-items:baseline}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;word-break:break-word}
+.dist{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+.dist-row{display:grid;grid-template-columns:74px minmax(0,1fr) 44px;gap:8px;align-items:center;font:10px var(--mono)}
+.bar{height:7px;background:#1b2833;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--tone)}
+.warn{color:var(--amber);font:10px var(--mono);letter-spacing:.05em}
+.section{border-top:1px solid var(--line);padding:11px 14px}
+.section h3{font:600 11px var(--mono);letter-spacing:.085em;margin-bottom:7px}
+.nonspatial{font:10.5px var(--mono);color:var(--muted);display:flex;flex-direction:column;gap:5px}
+.nonspatial div{display:flex;justify-content:space-between;gap:8px}
+code{font:10.5px var(--mono);background:#0d151d;border:1px solid var(--line);border-radius:3px;padding:2px 5px;display:inline-block;word-break:break-all}
+pre{margin:6px 0 0;font:10px var(--mono);background:#0d151d;border:1px solid var(--line);border-radius:4px;padding:9px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.state-pill{font:700 10px var(--mono);letter-spacing:.09em;padding:6px 9px;border-radius:3px;display:inline-block}
+.s-notconf{color:var(--muted);border:1px solid #384957}
+.s-wait{color:var(--blue);border:1px solid #3c5a72}
+.s-valid{color:var(--mint);border:1px solid #526a65}
+.s-unmapped{color:var(--amber);border:1px solid #8b683b}
+.s-error{color:var(--red);border:1px solid #7d4441}
+@media (max-width:1400px){.grid{grid-template-columns:220px minmax(0,1fr)}.side-right{grid-column:1/-1}}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<div class="console">
+  <header class="masthead">
+    <div class="brand">
+      <div>
+        <h1>DRONEWATCH DIAGNOSTICS</h1>
+        <div class="subtitle">RAW OBSERVATION REPLAY / RESEARCH VIEW &middot; <a href="/preview">&larr; BACK TO OPERATOR VIEW</a></div>
+      </div>
+    </div>
+    <div class="clock"><small>PLAYBACK CLOCK / SIMULATION TIME</small><span id="sim-clock">T+00.0 s</span></div>
+  </header>
+
+  <div class="synthetic-banner">
+    <div>
+      <strong>SYNTHETIC DATA — NOT A LIVE SENSOR FEED</strong>
+      <p>Generated by the DroneWatch M2 scenario generator from a fixed seed. No real sensors, no real aircraft, no measured performance. Sensor characteristics are invented simulation abstractions.</p>
+    </div>
+    <span class="badge simulated"><i class="dot"></i>SIMULATED</span>
+  </div>
+
+  <div class="controls">
+    <div class="control">
+      <label for="scenario">SCENARIO</label>
+      <select id="scenario"></select>
+    </div>
+    <div class="control">
+      <label for="seed">SEED</label>
+      <input id="seed" type="number" value="42" min="0" max="999999" style="width:92px">
+    </div>
+    <div class="control" id="count-control" hidden>
+      <label for="count">SWARM SIZE</label>
+      <input id="count" type="number" value="6" min="1" max="20" style="width:80px">
+    </div>
+    <div class="control">
+      <label for="speed">SPEED</label>
+      <select id="speed">
+        <option value="0.5">0.5&times;</option>
+        <option value="1" selected>1&times;</option>
+        <option value="2">2&times;</option>
+        <option value="5">5&times;</option>
+        <option value="20">20&times;</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>LOADED</label>
+      <span class="badge neutral" id="load-state">IDLE</span>
+    </div>
+    <div class="transport">
+      <button id="play" class="primary">PLAY</button>
+      <button id="pause" disabled>PAUSE</button>
+      <button id="step">STEP</button>
+      <button id="reset">RESET</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <aside class="panel">
+      <div class="panel-bar"><h2 class="panel-heading">SENSORS</h2><span class="eyebrow" id="modality-count">0</span></div>
+      <div class="panel-body">
+        <div id="legend"></div>
+        <div class="section" style="border:0;padding:11px 0 0">
+          <h3>NON-SPATIAL EVIDENCE</h3>
+          <div class="nonspatial" id="nonspatial"><div class="muted">None yet.</div></div>
+          <p class="warn" style="margin-top:8px">Observations without a supplied position are listed here. No position is invented for them.</p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div class="panel-bar">
+        <h2 class="panel-heading">SPATIAL OBSERVATIONS</h2>
+        <span class="eyebrow">LOCAL SIMULATION FRAME / METRES</span>
+      </div>
+      <div class="stage" id="stage">
+        <svg id="plot" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" aria-label="Synthetic observations in a local simulation frame"></svg>
+        <div class="stage-empty" id="stage-empty">Press PLAY to replay synthetic observations.</div>
+        <div class="frame-note">LOCAL SIMULATION FRAME &middot; METRES &middot; NOT LATITUDE/LONGITUDE &middot; NOT MEASURED RADAR RANGE</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric"><span class="metric-label">DELIVERED</span><span class="metric-value" id="m-delivered">0 / 0</span></div>
+        <div class="metric"><span class="metric-label">SPATIAL</span><span class="metric-value" id="m-spatial">0</span></div>
+        <div class="metric"><span class="metric-label">NON-SPATIAL</span><span class="metric-value" id="m-nonspatial">0</span></div>
+        <div class="metric"><span class="metric-label">SENSORS REPORTING</span><span class="metric-value" id="m-sensors">0</span></div>
+        <div class="metric"><span class="metric-label">TRANSPORT DELAY (LAST)</span><span class="metric-value" id="m-delay">&mdash;</span></div>
+        <div class="metric"><span class="metric-label">FUSED TRACKS</span><span class="metric-value" id="m-tracks">n/a</span></div>
+      </div>
+    </section>
+
+    <aside class="panel side-right">
+      <div class="panel-bar"><h2 class="panel-heading">OBSERVATION INSPECTOR</h2><span class="eyebrow" id="inspect-id">&mdash;</span></div>
+      <div class="panel-body" id="inspector">
+        <p class="eyebrow">Select an observation from the timeline or the display.</p>
+      </div>
+      <div class="section">
+        <h3>VISO NOW CONNECTION</h3>
+        <div id="viso-state"><span class="state-pill s-notconf">LOADING</span></div>
+        <dl class="kv" id="viso-kv" style="margin-top:9px"></dl>
+        <div id="viso-instructions"></div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="panel timeline">
+    <div class="panel-bar">
+      <h2 class="panel-heading">EVENT TIMELINE</h2>
+      <span class="eyebrow">DELIVERY ORDER / MOST RECENT LAST</span>
+    </div>
+    <div class="panel-body timeline-rows" id="timeline"></div>
+  </section>
+</div>
+
+<script id="preview-core">
+// Pure helpers. No DOM, no network. Extracted by tests/preview.test.cjs.
+const PV=(()=>{
+  const MODALITY_COLOUR={RADAR:'#9bd4c5',RF:'#b39ddb',EO:'#efbd72',IR:'#ff8178',ACOUSTIC:'#7fb3d5',VISUAL_FILE:'#93a6b5'};
+
+  // Replay in simulated delivery order. The tie-break on observation_id keeps
+  // playback identical every time, which matters because duplicates share an
+  // observation_id and delayed reports can share a received_at.
+  function order(list){
+    return [...(list||[])].sort((a,b)=>{
+      const ta=String(a.received_at||''), tb=String(b.received_at||'');
+      if(ta<tb) return -1; if(ta>tb) return 1;
+      const ia=String(a.observation_id||''), ib=String(b.observation_id||'');
+      return ia<ib?-1:ia>ib?1:0;
+    });
+  }
+
+  // A position is only plottable if it declares the local simulation frame.
+  // Anything lat/lon shaped is refused outright: those key names would imply a
+  // geographic claim the generator cannot support.
+  function frame(position){
+    if(!position||typeof position!=='object') return null;
+    if('latitude' in position||'longitude' in position||'altitude_m' in position) return null;
+    if(position.frame!=='LOCAL_SIM_METRES') return null;
+    const {x,y,z}=position;
+    if(!Number.isFinite(x)||!Number.isFinite(y)) return null;
+    return {x,y,z:Number.isFinite(z)?z:null};
+  }
+
+  // Robust extent. A handful of spurious observations sit far outside the
+  // activity, and letting them set the frame squashes everything real into a
+  // few pixels. Trimming to a central percentile band keeps the view readable
+  // without moving or hiding any point: outliers still plot, they just fall
+  // outside the framed area.
+  function quantile(sorted,q){
+    if(!sorted.length) return 0;
+    const pos=(sorted.length-1)*q, base=Math.floor(pos), rest=pos-base;
+    return sorted[base+1]!==undefined?sorted[base]+rest*(sorted[base+1]-sorted[base]):sorted[base];
+  }
+
+  function bounds(list,trim){
+    const points=(list||[]).map(o=>frame(o.position)).filter(Boolean);
+    if(!points.length) return null;
+    const q=typeof trim==='number'?trim:0.02;
+    const xs=points.map(p=>p.x).sort((a,b)=>a-b), ys=points.map(p=>p.y).sort((a,b)=>a-b);
+    let minX=quantile(xs,q),maxX=quantile(xs,1-q),minY=quantile(ys,q),maxY=quantile(ys,1-q);
+    if(maxX-minX<1){minX-=50;maxX+=50}
+    if(maxY-minY<1){minY-=50;maxY+=50}
+    const padX=(maxX-minX)*0.08, padY=(maxY-minY)*0.08;
+    return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
+  }
+
+  // Ticks for the metre grid, so the frame is readable as distance.
+  function ticks(box,count){
+    if(!box) return {x:[],y:[]};
+    const n=count||4, step=(a,b)=>Array.from({length:n+1},(_,i)=>a+((b-a)*i)/n);
+    return {x:step(box.minX,box.maxX),y:step(box.minY,box.maxY)};
+  }
+
+  function project(position,box,width,height){
+    const point=frame(position); if(!point||!box) return null;
+    const spanX=(box.maxX-box.minX)||1, spanY=(box.maxY-box.minY)||1;
+    return {
+      px:((point.x-box.minX)/spanX)*width,
+      // Screen y grows downward; simulation y grows upward.
+      py:height-((point.y-box.minY)/spanY)*height,
+      z:point.z
+    };
+  }
+
+  function splitBySpace(list){
+    const spatial=[],nonSpatial=[];
+    for(const item of (list||[])) (frame(item.position)?spatial:nonSpatial).push(item);
+    return {spatial,nonSpatial};
+  }
+
+  // Simulation time, never wall-clock age. Scenario timestamps are historical
+  // by design; comparing them with the browser clock would make a working
+  // playback look hours stale.
+  function simClock(seconds){
+    const value=Number.isFinite(seconds)?Math.max(0,seconds):0;
+    return `T+${value.toFixed(1).padStart(6,'0')} s`;
+  }
+
+  function colour(modality){return MODALITY_COLOUR[modality]||'#93a6b5'}
+
+  function modalityCounts(list){
+    const counts={};
+    for(const item of (list||[])) counts[item.modality]=(counts[item.modality]||0)+1;
+    return counts;
+  }
+
+  // Bounded playback cursor. Never runs past the end, never below zero, and
+  // stops itself on completion so a caller cannot leave a timer spinning.
+  function createPlayback(observations){
+    const list=observations||[];
+    let index=0, playing=false;
+    return {
+      get total(){return list.length},
+      get index(){return index},
+      get playing(){return playing},
+      get done(){return index>=list.length},
+      delivered(){return list.slice(0,index)},
+      latest(){return index>0?list[index-1]:null},
+      play(){ if(index<list.length){playing=true} return playing },
+      pause(){ playing=false; return playing },
+      step(n){
+        const by=Number.isFinite(n)&&n>=1?Math.floor(n):1;
+        index=Math.min(list.length,index+by);
+        if(index>=list.length) playing=false;
+        return index;
+      },
+      reset(){ index=0; playing=false; return index }
+    };
+  }
+
+  return {order,frame,bounds,ticks,project,splitBySpace,simClock,colour,modalityCounts,createPlayback,MODALITY_COLOUR};
+})();
+if(typeof module!=='undefined') module.exports=PV;
+</script>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const make=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n};
+  const svgEl=(tag,attrs)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,String(v));return n};
+
+  const W=1000,H=620;
+  let playback=PV.createPlayback([]), all=[], timer=null, box=null;
+  let disabled=new Set(), selectedId=null, meta=null;
+
+  function clearTimer(){ if(timer!==null){clearInterval(timer);timer=null} }
+
+  function setTransport(){
+    $('play').disabled=playback.playing||playback.done||!playback.total;
+    $('pause').disabled=!playback.playing;
+    $('step').disabled=playback.done||!playback.total;
+    $('reset').disabled=!playback.index;
+  }
+
+  function visible(){ return playback.delivered().filter(o=>!disabled.has(o.modality)) }
+
+  function renderLegend(){
+    const counts=PV.modalityCounts(all), host=$('legend');
+    host.replaceChildren();
+    const names=Object.keys(counts).sort();
+    $('modality-count').textContent=`${names.length} MODALITIES`;
+    for(const name of names){
+      const on=!disabled.has(name);
+      const row=make('div','', 'legend-item');
+      row.setAttribute('role','button'); row.setAttribute('aria-pressed',String(on));
+      row.tabIndex=0;
+      const swatch=make('i','','dot'); swatch.style.color=PV.colour(name); swatch.style.width='9px'; swatch.style.height='9px';
+      row.append(swatch, make('span',name), make('span',String(counts[name]),'count'));
+      const toggle=()=>{ disabled.has(name)?disabled.delete(name):disabled.add(name); renderLegend(); renderAll() };
+      row.addEventListener('click',toggle);
+      row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+      host.append(row);
+    }
+  }
+
+  function renderPlot(){
+    const svg=$('plot'); svg.replaceChildren();
+    const shown=visible();
+    const {spatial}=PV.splitBySpace(shown);
+    $('stage-empty').hidden=shown.length>0;
+
+    const grid=svgEl('g',{});
+    const marks=PV.ticks(box,4);
+    marks.x.forEach((value,i)=>{
+      const px=(i/(marks.x.length-1))*W;
+      grid.append(svgEl('line',{x1:px,y1:0,x2:px,y2:H,stroke:'#16222d','stroke-width':1}));
+      const label=svgEl('text',{x:Math.min(px+5,W-58),y:H-8,fill:'#5b6b78','font-size':11,'font-family':'monospace'});
+      label.textContent=`${Math.round(value)} m`;
+      grid.append(label);
+    });
+    marks.y.forEach((value,i)=>{
+      const py=H-(i/(marks.y.length-1))*H;
+      grid.append(svgEl('line',{x1:0,y1:py,x2:W,y2:py,stroke:'#16222d','stroke-width':1}));
+      const label=svgEl('text',{x:6,y:Math.max(13,py-5),fill:'#5b6b78','font-size':11,'font-family':'monospace'});
+      label.textContent=`${Math.round(value)} m`;
+      grid.append(label);
+    });
+    svg.append(grid);
+
+    if(!box||!spatial.length) return;
+    // Older observations fade. No lines are drawn between points: synthetic
+    // observations carry no track identity, so any trail would be invented.
+    const total=spatial.length;
+    spatial.forEach((item,i)=>{
+      const p=PV.project(item.position,box,W,H); if(!p) return;
+      const age=(total-i)/total;
+      const isLatest=i===total-1;
+      const isSelected=item.observation_id===selectedId;
+      const node=svgEl('circle',{
+        cx:p.px.toFixed(2),cy:p.py.toFixed(2),
+        r:isSelected?7:(isLatest?5.5:3),
+        fill:PV.colour(item.modality),
+        'fill-opacity':(isSelected?1:Math.max(0.12,1-age*0.85)).toFixed(3),
+        stroke:isSelected?'#eef3f4':'none','stroke-width':isSelected?1.5:0
+      });
+      node.style.cursor='pointer';
+      node.addEventListener('click',()=>{selectedId=item.observation_id;renderAll()});
+      svg.append(node);
+    });
+  }
+
+  function renderTimeline(){
+    const host=$('timeline'); host.replaceChildren();
+    const recent=visible().slice(-60);
+    for(const item of recent){
+      const row=make('div','','tl-row');
+      row.dataset.selected=String(item.observation_id===selectedId);
+      const swatch=make('span','','dot'); swatch.style.color=PV.colour(item.modality);
+      const mod=make('span'); mod.append(swatch,document.createTextNode(' '+item.modality));
+      row.append(
+        make('span',PV.simClock(item.sim_time_s)),
+        mod,
+        make('span',item.sensor_id,'muted'),
+        make('span',item.position?'SPATIAL':'NON-SPATIAL','muted'),
+        make('span',item.confidence==null?'—':`${Math.round(item.confidence*100)}%`,'muted')
+      );
+      row.addEventListener('click',()=>{selectedId=item.observation_id;renderAll()});
+      host.append(row);
+    }
+    if(!recent.length) host.append(make('div','No observations delivered yet.','muted'));
+  }
+
+  function renderNonSpatial(){
+    const host=$('nonspatial'); host.replaceChildren();
+    const {nonSpatial}=PV.splitBySpace(visible());
+    const recent=nonSpatial.slice(-12).reverse();
+    for(const item of recent){
+      const row=make('div');
+      row.append(make('span',item.modality), make('span',PV.simClock(item.sim_time_s)));
+      host.append(row);
+    }
+    if(!recent.length) host.append(make('div','None yet.','muted'));
+  }
+
+  function renderInspector(){
+    const host=$('inspector'); host.replaceChildren();
+    const item=visible().find(o=>o.observation_id===selectedId)||playback.latest();
+    if(!item){ host.append(make('p','Select an observation from the timeline or the display.','eyebrow')); $('inspect-id').textContent='—'; return }
+    $('inspect-id').textContent=item.observation_id;
+
+    const kv=make('dl','','kv');
+    const add=(k,v)=>{kv.append(make('dt',k),make('dd',v))};
+    add('MODALITY',item.modality);
+    add('SENSOR',item.sensor_id);
+    add('SIM TIME',PV.simClock(item.sim_time_s));
+    add('OBSERVED AT',item.observed_at);
+    add('RECEIVED AT (SIM)',item.received_at);
+    add('TRANSPORT DELAY',`${item.transport_delay_s} s`);
+    add('PLAYBACK AT',item.playback_at||'—');
+    const point=PV.frame(item.position);
+    add('POSITION',point?`x ${point.x.toFixed(1)} m, y ${point.y.toFixed(1)} m, z ${point.z==null?'—':point.z.toFixed(1)+' m'}`:'NOT SUPPLIED');
+    add('FRAME',point?'LOCAL_SIM_METRES':'—');
+    add('CONFIDENCE',item.confidence==null?'NOT SUPPLIED':`${Math.round(item.confidence*100)}%`);
+    host.append(kv);
+
+    host.append(make('p','CLASS EVIDENCE — SIMULATED / UNCALIBRATED','warn'));
+    const dist=make('div','','dist');
+    const entries=Object.entries(item.classification||{}).sort((a,b)=>b[1]-a[1]);
+    for(const [name,probability] of entries){
+      const row=make('div','','dist-row');
+      const bar=make('div','','bar'); const fill=make('i');
+      fill.style.width=`${Math.round(probability*100)}%`;
+      fill.style.background=name==='UNKNOWN'?'#5b6b78':PV.colour(item.modality);
+      bar.append(fill);
+      row.append(make('span',name),bar,make('span',probability.toFixed(2)));
+      dist.append(row);
+    }
+    host.append(dist);
+    host.append(make('p','Supplied by a synthetic sensor model. Not a classifier output and not a measured accuracy. No fusion or classification algorithm exists in this build.','eyebrow'));
+
+    if(item.signals&&item.signals.length){
+      host.append(make('p','RF SIGNAL FEATURES','warn'));
+      const pre=make('pre',JSON.stringify(item.signals,null,1));
+      host.append(pre);
+    }
+  }
+
+  function renderMetrics(){
+    const shown=playback.delivered();
+    const {spatial,nonSpatial}=PV.splitBySpace(shown);
+    $('m-delivered').textContent=`${playback.index} / ${playback.total}`;
+    $('m-spatial').textContent=String(spatial.length);
+    $('m-nonspatial').textContent=String(nonSpatial.length);
+    $('m-sensors').textContent=String(new Set(shown.map(o=>o.sensor_id)).size);
+    const last=playback.latest();
+    $('m-delay').textContent=last?`${last.transport_delay_s} s`:'—';
+    $('sim-clock').textContent=PV.simClock(last?last.sim_time_s:0);
+  }
+
+  function renderAll(){ renderPlot(); renderTimeline(); renderNonSpatial(); renderInspector(); renderMetrics(); setTransport() }
+
+  function advance(){
+    if(playback.done){ stop(); renderAll(); return }
+    playback.step(1);
+    const latest=playback.latest();
+    // Playback receipt is recorded separately from the scenario's own times.
+    if(latest&&!latest.playback_at) latest.playback_at=new Date().toISOString();
+    renderAll();
+  }
+
+  function stop(){ clearTimer(); playback.pause(); setTransport() }
+
+  function start(){
+    if(!playback.total||playback.done) return;
+    playback.play(); clearTimer();
+    const speed=Number($('speed').value)||1;
+    timer=setInterval(advance,Math.max(16,120/speed));
+    setTransport();
+  }
+
+  async function load(){
+    stop();
+    const name=$('scenario').value, seed=$('seed').value;
+    const isSwarm=name==='small_swarm';
+    $('count-control').hidden=!isSwarm;
+    $('load-state').textContent='LOADING';
+    const params=new URLSearchParams({name,seed});
+    if(isSwarm) params.set('count',$('count').value);
+    try{
+      const response=await fetch(`/api/preview/scenario?${params}`,{cache:'no-store'});
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data=await response.json();
+      meta=data;
+      all=PV.order(data.observations);
+      playback=PV.createPlayback(all);
+      selectedId=null;
+      $('load-state').textContent=`${data.observation_count} OBS`;
+      renderLegend(); 
+      box=PV.bounds(all);
+      renderAll();
+    }catch(error){
+      $('load-state').textContent='LOAD FAILED';
+      console.error('scenario load failed',error);
+    }
+  }
+
+  const VISO_CLASS={'NOT CONFIGURED':'s-notconf','WAITING FOR DELIVERY':'s-wait','VALID DELIVERY RECEIVED':'s-valid','UNMAPPED PAYLOAD':'s-unmapped','ERROR':'s-error'};
+
+  async function refreshViso(){
+    try{
+      const data=await (await fetch('/api/preview/viso/status',{cache:'no-store'})).json();
+      const pill=make('span',data.state,`state-pill ${VISO_CLASS[data.state]||'s-notconf'}`);
+      $('viso-state').replaceChildren(pill);
+
+      const kv=$('viso-kv'); kv.replaceChildren();
+      const add=(k,v)=>{kv.append(make('dt',k),make('dd',v))};
+      add('ENDPOINT',data.webhook_path);
+      add('AUTH HEADER',data.header_name);
+      add('DELIVERIES',String(data.delivery_count));
+      add('MAPPED',String(data.mapped_count));
+      add('UNMAPPED',String(data.unmapped_count));
+      add('LAST RECEIPT',data.last_receipt_at||'—');
+      add('LAST OUTCOME',data.last_outcome||'—');
+      if(data.last_reason) add('MAPPING NOTE',data.last_reason);
+      if(data.last_error) add('ERROR',data.last_error);
+
+      const host=$('viso-instructions'); host.replaceChildren();
+      if(!data.configured){
+        host.append(make('p','External ingestion is disabled because no webhook secret is set. The synthetic preview above is unaffected.','warn'));
+        host.append(make('p','Enable it by restarting with a secret:','eyebrow'));
+        host.append(make('code','DRONEWATCH_WEBHOOK_SECRET=... .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000'));
+      }else{
+        host.append(make('p','Point your Viso Now webhook at this path over an authenticated HTTPS ingress you control. 127.0.0.1 is not reachable from the internet.','eyebrow'));
+      }
+      host.append(make('p',data.note,'warn'));
+      if(data.quarantine&&data.quarantine.length){
+        host.append(make('p','QUARANTINED DELIVERIES (SHAPE ONLY)','warn'));
+        host.append(make('pre',JSON.stringify(data.quarantine,null,1)));
+      }
+    }catch(error){ console.error('viso status failed',error) }
+  }
+
+  async function init(){
+    try{
+      const data=await (await fetch('/api/preview/scenarios',{cache:'no-store'})).json();
+      const select=$('scenario');
+      for(const name of data.featured) select.append(new Option(name,name));
+      const others=data.all.filter(n=>!data.featured.includes(n));
+      for(const name of others) select.append(new Option(`${name} (other)`,name));
+      select.value=data.default.scenario;
+      $('seed').value=data.default.seed;
+    }catch(error){ console.error('scenario list failed',error) }
+
+    $('play').addEventListener('click',start);
+    $('pause').addEventListener('click',()=>{stop();renderAll()});
+    $('step').addEventListener('click',()=>{stop();advance()});
+    $('reset').addEventListener('click',()=>{stop();playback.reset();selectedId=null;renderAll()});
+    $('scenario').addEventListener('change',load);
+    $('seed').addEventListener('change',load);
+    $('count').addEventListener('change',load);
+    $('speed').addEventListener('change',()=>{ if(playback.playing) start() });
+
+    await load();
+    await refreshViso();
+    setInterval(refreshViso,5000);
+  }
+
+  init();
+})();
+</script>
