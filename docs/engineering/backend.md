@@ -92,3 +92,25 @@ A further supervisor regression covers migrated records whose old `received_at` 
 Independent full-suite result after the manager/Claude response: **61 passed**, one dependency deprecation warning, **1.18s**. No tests were skipped in this supervisor run. Python compilation and `git diff --check` passed. The official CLI's corresponding sandbox result was 60 passed/1 deselected solely for the local socket bind restriction.
 
 The supervisor's final object-association challenge found two further cases: a root-level restricted-zone alert alongside multiple `labels`, and alternate `detections` records using `class`/`score`. Both initially inherited a THREAT for one canonical target despite ambiguous association. A small projection fix now keeps the reported alert in evidence but makes single-target status UNKNOWN and confidence/position null for these multi-object containers. The two regression cases failed before the fix; the full Python suite then passed **63 tests**, with the same single dependency warning.
+
+## Bounded canonical projection (Claude H1 follow-up)
+
+The manager requested a final transport/identity challenge. Accepted 200,000-character metadata reproduced a frontend-breaking identity and large canonical responses:
+
+| Field containing 200,000 characters | Before: response bytes | After: response bytes |
+|---|---:|---:|
+| `target_id` | 200,727 | 855 |
+| `source` | 200,763 | 891 |
+| `label` | 200,795 | 930 |
+
+The original 200,000-character target ID exceeded the frontend's 256-character contract. Canonical `target_id`, `event_id` and `source` now have a 128-byte UTF-8 bound. Ordinary short identities remain unchanged. Long values and values containing control characters use a readable prefix plus a full SHA-256 digest scoped by field. The generated marker is reserved: a short incoming value equal to a generated identifier is encoded separately, preventing that deterministic alias. Evidence strings are at most 160 UTF-8 bytes; the legacy raw payload API remains unchanged.
+
+Executable checks cover different long values with identical prefixes, source versus target versus event digest domains, a short value attempting to impersonate a generated long identifier, stable repeated projection, and Unicode byte bounds. These are collision-resistant identifiers using full SHA-256; no claim of mathematical collision impossibility is made.
+
+`GET /api/targets` now also has a **262,144-byte JSON response budget**, counting UTF-8 and JSON escaping. It includes `truncated: true` when the newest observation window cannot fit. An adversarial 200-record sample with metadata dominated by quotes/backslashes returned **184 targets in 261,746 bytes**, with the truncation flag set. The frontend handles this as a limited observation window rather than a connection error.
+
+A pre-existing 300-level raw JSON record was inserted directly into a temporary SQLite database to bypass modern ingestion checks. The canonical API already handled it successfully (HTTP 200, 650 bytes); a regression now protects that behavior.
+
+The same bounded follow-up restored the legacy exact `track_id` alias alongside `tracking_id`/`target_id`. Repeated deliveries coalesce within the same source, two cameras retain separate records, and conflicting aliases fall back to event identity.
+
+Before this follow-up: **10 failed, 1 passed** in `tests/test_projection_bounds.py`. Afterward: **11 passed** focused, and **74 passed** in the full Python suite, one dependency deprecation warning, **1.74s**. Compilation and `git diff --check` passed. These changes were authored by the Codex supervisor in response to Claude's H1 finding and the manager's concrete probes; they are separate from the two official CLI implementation runs.

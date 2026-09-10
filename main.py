@@ -26,6 +26,7 @@ LOGGER = logging.getLogger("dronewatch")
 MAX_WEBHOOK_BYTES = 256 * 1024
 MAX_JSON_DEPTH = 32
 TARGET_QUERY_LIMIT = 200
+MAX_TARGET_RESPONSE_BYTES = 256 * 1024
 
 
 @asynccontextmanager
@@ -490,11 +491,23 @@ def api_events(limit: int = 20) -> Dict[str, Any]:
 @app.get("/api/targets")
 def api_targets() -> Dict[str, Any]:
     events = _query_events(limit=TARGET_QUERY_LIMIT)
-    return {
-        "schema_version": 1,
-        "targets": targets_from_events(events),
-        "received_at": utcnow(),
-    }
+    targets = targets_from_events(events)
+    response = {"schema_version": 1, "targets": [], "received_at": utcnow()}
+
+    def encoded_size(value: Any) -> int:
+        return len(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8"))
+
+    # Reserve the partial-window flag before adding records. Count actual JSON
+    # bytes (including escaping), not Python string length or raw payload size.
+    remaining = MAX_TARGET_RESPONSE_BYTES - encoded_size({**response, "truncated": True})
+    for target in targets:
+        size = encoded_size(target) + bool(response["targets"])
+        if size > remaining:
+            response["truncated"] = True
+            break
+        response["targets"].append(target)
+        remaining -= size
+    return response
 
 
 def _reject_non_finite(value: str) -> None:
