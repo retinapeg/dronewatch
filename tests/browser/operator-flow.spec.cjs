@@ -13,8 +13,16 @@ test('five target demo can be inspected, focused, paused and reset by touch', as
   await activate(page.getByRole('button', { name: 'Pause scenario', exact: true }), isMobile);
   await activate(page.getByRole('button', { name: 'Select target DW-03', exact: true }), isMobile);
   await expect(page.getByTestId('target-detail')).toContainText('DW-03');
+  const distanceFromCentre = () => page.evaluate(() => {
+    const radar = document.querySelector('[data-testid="radar"]').getBoundingClientRect();
+    const marker = document.querySelector('#marker-layer [aria-pressed="true"]').getBoundingClientRect();
+    return Math.hypot((marker.x + marker.width / 2) - (radar.x + radar.width / 2), (marker.y + marker.height / 2) - (radar.y + radar.height / 2));
+  });
+  const distanceBefore = await distanceFromCentre();
   await activate(page.getByRole('button', { name: 'Focus selected target', exact: true }), isMobile);
   await expect(page.getByRole('button', { name: 'Show all targets', exact: true })).toBeVisible();
+  expect(await distanceFromCentre()).toBeLessThan(distanceBefore);
+  await expect(page.locator('#world-layer')).toHaveAttribute('transform', /scale\(1\.7\)/);
   await expectNoOverflow(page);
   await page.screenshot({ path: testInfo.outputPath('selected-focus.png'), fullPage: true });
   await activate(page.getByRole('button', { name: 'Show all targets', exact: true }), isMobile);
@@ -90,4 +98,20 @@ test('page reload keeps the demo usable with external internet unavailable', asy
   await expect(page.getByTestId('target-detail')).toContainText('DW-02');
   expect(external, 'The local demo should not request external dependencies').toEqual([]);
   expect(runtime).toEqual([]);
+});
+
+test('highest priority target route is visible beyond its touch marker', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Pause scenario', exact: true }).click();
+  await page.getByRole('button', { name: 'Reset scenario', exact: true }).click();
+  const route = await page.evaluate(() => {
+    const marker = document.querySelector('#marker-layer [aria-pressed="true"]').getBoundingClientRect();
+    const path = document.querySelector('#path-layer polyline');
+    const point = path.getPointAtLength(path.getTotalLength());
+    const endpoint = new DOMPoint(point.x, point.y).matrixTransform(path.getScreenCTM());
+    return { length: path.getTotalLength() * Math.hypot(path.getScreenCTM().a, path.getScreenCTM().b), endpointOutsideMarker: endpoint.x < marker.left || endpoint.x > marker.right || endpoint.y < marker.top || endpoint.y > marker.bottom };
+  });
+  expect(route.length).toBeGreaterThan(30);
+  expect(route.endpointOutsideMarker, 'Selected-target styling must not hide the complete future path').toBe(true);
+  await expect(page.locator('.radar-key')).toContainText(/scripted|scenario/i);
 });

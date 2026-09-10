@@ -6,7 +6,7 @@ const sensor = (overrides = {}) => ({
   status: 'POSSIBLE THREAT', confidence: .71,
   position: { x: .25, y: .4, coordinate_system: 'normalized_frame' },
   velocity: null, heading: null, source: 'QA mocked Viso camera',
-  updated_at: new Date().toISOString(), evidence: ['Provider reported an approaching observation.'],
+  updated_at: new Date().toISOString(), timestamp_basis: 'reported_event_time', evidence: ['Provider reported an approaching observation.'],
   alternative_interpretation: 'An approaching course does not establish intent.',
   uncertainty: 'No calibrated range or geographical position.', status_basis: 'reported_event', ...overrides,
 });
@@ -79,4 +79,32 @@ test('delayed sensor response cannot overwrite a return to synthetic mode', asyn
   await page.waitForTimeout(500);
   await expect(page.getByTestId('target-list').getByRole('button', { name: /^Select target/ })).toHaveCount(5);
   await expect(page.getByTestId('target-list')).not.toContainText('camera-track-7');
+});
+
+test('sensor mode deep link and reload never show synthetic fallback targets', async ({ page }) => {
+  await page.route('**/api/targets', route => route.fulfill({ json: envelope([sensor()]) }));
+  await page.goto('/?mode=sensor');
+  await expect(page.getByRole('button', { name: 'Sensor mode', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('target-list').getByRole('button', { name: /^Select target/ })).toHaveCount(1);
+  await expect(page.getByTestId('target-list')).toContainText('camera-track-7');
+  await expect(page.getByTestId('radar')).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Sensor mode', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('target-list')).toContainText('camera-track-7');
+  await expect(page.getByTestId('target-detail')).not.toContainText('DW-01');
+});
+
+test('sensor details keep keyboard focus and expanded evidence across polling', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'One desktop check covers detail-node focus persistence.');
+  let responses = 0;
+  await page.route('**/api/targets', route => { responses++; return route.fulfill({ json: envelope([sensor()]) }); });
+  await page.goto('/?mode=sensor');
+  const summary = page.getByText('Source & interpretation', { exact: true });
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(summary).toBeFocused();
+  await expect.poll(() => responses, { timeout: 10_000 }).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(200);
+  await expect(summary).toBeFocused();
+  await expect(page.getByTestId('target-detail').getByText('QA mocked Viso camera', { exact: false })).toBeVisible();
 });
