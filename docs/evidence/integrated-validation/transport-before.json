@@ -1,0 +1,233 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.8.1/bin/node",
+      "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/node_modules/.bin/playwright",
+      "test",
+      "operator-flow",
+      "--project=android-393",
+      "--grep",
+      "five target demo"
+    ],
+    "configFile": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/playwright.config.cjs",
+    "rootDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "android-360",
+        "name": "android-360",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "android-393",
+        "name": "android-393",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "android-412",
+        "name": "android-412",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "android-landscape",
+        "name": "android-landscape",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "docs/evidence/integrated-validation/transport-before.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "operator-flow.spec.cjs",
+      "file": "operator-flow.spec.cjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "five target demo can be inspected, focused, paused and reset by touch",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 737,
+                  "error": {
+                    "message": "Error: Playback labels must not split words across lines\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Resume\",\u001b[39m\n\u001b[31m+   \"Reset\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Playback labels must not split words across lines\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Resume\",\u001b[39m\n\u001b[31m+   \"Reset\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/operator-flow.spec.cjs:18:77",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/operator-flow.spec.cjs",
+                      "column": 77,
+                      "line": 18
+                    },
+                    "snippet": "  16 |     return range.getClientRects().length > 1;\n  17 |   }).map(e => e.textContent));\n> 18 |   expect(brokenLabels, 'Playback labels must not split words across lines').toEqual([]);\n     |                                                                             ^\n  19 |   await activate(page.getByRole('button', { name: 'Select target DW-03', exact: true }), isMobile);\n  20 |   await expect(page.getByTestId('target-detail')).toContainText('DW-03');\n  21 |   const distanceFromCentre = () => page.evaluate(() => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/operator-flow.spec.cjs",
+                        "column": 77,
+                        "line": 18
+                      },
+                      "message": "Error: Playback labels must not split words across lines\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 4\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Resume\",\u001b[39m\n\u001b[31m+   \"Reset\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  16 |     return range.getClientRects().length > 1;\n  17 |   }).map(e => e.textContent));\n> 18 |   expect(brokenLabels, 'Playback labels must not split words across lines').toEqual([]);\n     |                                                                             ^\n  19 |   await activate(page.getByRole('button', { name: 'Select target DW-03', exact: true }), isMobile);\n  20 |   await expect(page.getByTestId('target-detail')).toContainText('DW-03');\n  21 |   const distanceFromCentre = () => page.evaluate(() => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/operator-flow.spec.cjs:18:77"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:31:39.118Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/operator-flow-five-target--ccaae-d-paused-and-reset-by-touch-android-393/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/operator-flow-five-target--ccaae-d-paused-and-reset-by-touch-android-393/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/operator-flow-five-target--ccaae-d-paused-and-reset-by-touch-android-393/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/operator-flow.spec.cjs",
+                    "column": 77,
+                    "line": 18
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "563279225774d1de0328-da4d7a3c9b3b8128bc63",
+          "file": "operator-flow.spec.cjs",
+          "line": 9,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-10T10:31:38.816Z",
+    "duration": 1413.924,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

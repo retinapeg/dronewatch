@@ -1,0 +1,488 @@
+{
+  "capturedAt": "2026-09-10T10:25:35.136Z",
+  "baseURL": "http://127.0.0.1:8770",
+  "candidate": "7083a12",
+  "method": "Desktop Chromium; Android touch and viewport emulation. Reduced-motion screenshots at paused scenario time 00:00. Empty sensor response is a QA mock.",
+  "results": [
+    {
+      "viewport": "android-360",
+      "measurements": [
+        {
+          "state": "default-five",
+          "viewportWidth": 360,
+          "documentWidth": 360,
+          "documentHeight": 2343,
+          "radar": {
+            "x": 12,
+            "y": 505.1875,
+            "width": 336,
+            "height": 336
+          },
+          "smallestControlWidth": 50,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-01",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "selected-focus",
+          "viewportWidth": 360,
+          "documentWidth": 360,
+          "documentHeight": 2343,
+          "radar": {
+            "x": 12,
+            "y": 505.1875,
+            "width": 336,
+            "height": 336
+          },
+          "smallestControlWidth": 50,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "3-targets",
+          "viewportWidth": 360,
+          "documentWidth": 360,
+          "documentHeight": 2203,
+          "radar": {
+            "x": 12,
+            "y": 505.1875,
+            "width": 336,
+            "height": 336
+          },
+          "smallestControlWidth": 50,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 3,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "10-targets",
+          "viewportWidth": 360,
+          "documentWidth": 360,
+          "documentHeight": 2693,
+          "radar": {
+            "x": 12,
+            "y": 505.1875,
+            "width": 336,
+            "height": 336
+          },
+          "smallestControlWidth": 50,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 10,
+          "selectedTarget": "DW-10",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "empty-sensor",
+          "viewportWidth": 360,
+          "documentWidth": 360,
+          "documentHeight": 1555,
+          "radar": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "smallestControlWidth": 92.625,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 0,
+          "selectedTarget": null,
+          "scenarioTime": "00:00"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": "android-393",
+      "measurements": [
+        {
+          "state": "default-five",
+          "viewportWidth": 393,
+          "documentWidth": 393,
+          "documentHeight": 2363,
+          "radar": {
+            "x": 17,
+            "y": 512.5,
+            "width": 359,
+            "height": 359
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-01",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "selected-focus",
+          "viewportWidth": 393,
+          "documentWidth": 393,
+          "documentHeight": 2363,
+          "radar": {
+            "x": 17,
+            "y": 512.5,
+            "width": 359,
+            "height": 359
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "3-targets",
+          "viewportWidth": 393,
+          "documentWidth": 393,
+          "documentHeight": 2223,
+          "radar": {
+            "x": 17,
+            "y": 512.5,
+            "width": 359,
+            "height": 359
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 3,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "10-targets",
+          "viewportWidth": 393,
+          "documentWidth": 393,
+          "documentHeight": 2713,
+          "radar": {
+            "x": 17,
+            "y": 512.5,
+            "width": 359,
+            "height": 359
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 10,
+          "selectedTarget": "DW-10",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "empty-sensor",
+          "viewportWidth": 393,
+          "documentWidth": 393,
+          "documentHeight": 1532,
+          "radar": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "smallestControlWidth": 100.25,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 0,
+          "selectedTarget": null,
+          "scenarioTime": "00:00"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": "android-412",
+      "measurements": [
+        {
+          "state": "default-five",
+          "viewportWidth": 412,
+          "documentWidth": 412,
+          "documentHeight": 2366,
+          "radar": {
+            "x": 17,
+            "y": 496.5,
+            "width": 378,
+            "height": 378
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-01",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "selected-focus",
+          "viewportWidth": 412,
+          "documentWidth": 412,
+          "documentHeight": 2366,
+          "radar": {
+            "x": 17,
+            "y": 496.5,
+            "width": 378,
+            "height": 378
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "3-targets",
+          "viewportWidth": 412,
+          "documentWidth": 412,
+          "documentHeight": 2226,
+          "radar": {
+            "x": 17,
+            "y": 496.5,
+            "width": 378,
+            "height": 378
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 3,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "10-targets",
+          "viewportWidth": 412,
+          "documentWidth": 412,
+          "documentHeight": 2716,
+          "radar": {
+            "x": 17,
+            "y": 496.5,
+            "width": 378,
+            "height": 378
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 10,
+          "selectedTarget": "DW-10",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "empty-sensor",
+          "viewportWidth": 412,
+          "documentWidth": 412,
+          "documentHeight": 1513,
+          "radar": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "smallestControlWidth": 100.25,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 0,
+          "selectedTarget": null,
+          "scenarioTime": "00:00"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": "android-landscape",
+      "measurements": [
+        {
+          "state": "default-five",
+          "viewportWidth": 873,
+          "documentWidth": 873,
+          "documentHeight": 1527,
+          "radar": {
+            "x": 129.5,
+            "y": 369.1875,
+            "width": 300,
+            "height": 300
+          },
+          "smallestControlWidth": 44,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-01",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "selected-focus",
+          "viewportWidth": 873,
+          "documentWidth": 873,
+          "documentHeight": 1509,
+          "radar": {
+            "x": 129.5,
+            "y": 369.1875,
+            "width": 300,
+            "height": 300
+          },
+          "smallestControlWidth": 44,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "3-targets",
+          "viewportWidth": 873,
+          "documentWidth": 873,
+          "documentHeight": 1375,
+          "radar": {
+            "x": 129.5,
+            "y": 369.1875,
+            "width": 300,
+            "height": 300
+          },
+          "smallestControlWidth": 44,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 3,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "10-targets",
+          "viewportWidth": 873,
+          "documentWidth": 873,
+          "documentHeight": 1844,
+          "radar": {
+            "x": 129.5,
+            "y": 369.1875,
+            "width": 300,
+            "height": 300
+          },
+          "smallestControlWidth": 44,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 10,
+          "selectedTarget": "DW-10",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "empty-sensor",
+          "viewportWidth": 873,
+          "documentWidth": 873,
+          "documentHeight": 1112,
+          "radar": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "smallestControlWidth": 99.5625,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 0,
+          "selectedTarget": null,
+          "scenarioTime": "00:00"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "viewport": "desktop",
+      "measurements": [
+        {
+          "state": "default-five",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "documentHeight": 1497,
+          "radar": {
+            "x": 297.5,
+            "y": 371.1875,
+            "width": 475,
+            "height": 475
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-01",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "selected-focus",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "documentHeight": 1497,
+          "radar": {
+            "x": 297.5,
+            "y": 371.1875,
+            "width": 475,
+            "height": 475
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 5,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "3-targets",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "documentHeight": 1363,
+          "radar": {
+            "x": 297.5,
+            "y": 371.1875,
+            "width": 475,
+            "height": 475
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 3,
+          "selectedTarget": "DW-03",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "10-targets",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "documentHeight": 1832,
+          "radar": {
+            "x": 297.5,
+            "y": 371.1875,
+            "width": 475,
+            "height": 475
+          },
+          "smallestControlWidth": 54,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 10,
+          "selectedTarget": "DW-10",
+          "scenarioTime": "00:00"
+        },
+        {
+          "state": "empty-sensor",
+          "viewportWidth": 1440,
+          "documentWidth": 1440,
+          "documentHeight": 1114,
+          "radar": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          },
+          "smallestControlWidth": 99.5625,
+          "smallestControlHeight": 44,
+          "smallControls": [],
+          "targetCount": 0,
+          "selectedTarget": null,
+          "scenarioTime": "00:00"
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
