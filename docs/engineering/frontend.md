@@ -25,7 +25,7 @@
 - Manager and QA independently showed that the initial 15-second prediction was hidden below the selected button. Replaced it with the full remaining authored route, explicitly labelled "Scripted route to 01:30", and rotated arrows to match actual schematic movement. No extrapolated physical trajectory is claimed.
 - Manager showed fixture array order disagreed with the priority label. The producer now sorts by priority; unit coverage verifies the order.
 - QA reproduced loss of keyboard focus on the expanded sensor interpretation summary during polling. Detail recreation now restores the focused control only when the same source-scoped target remains selected.
-- Manager requested laptop usability. At 1440×900, the radar is 375×375 and playback controls occupy y=807–871; they fit the initial viewport. Selected detail sits alongside the air picture; the target register follows as a full-width row. Mobile remains a normal single scrolling document.
+- Manager requested laptop usability. At 1440×900, the radar is 375×375 and playback controls occupy y=807–871; they fit the initial viewport. Selected detail sits alongside the air picture, first in the side rail; the target register follows below it. Mobile remains a normal single scrolling document.
 
 ## Evidence and remaining validation
 
