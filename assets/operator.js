@@ -9,7 +9,8 @@
   const color = status => ({ THREAT: '#ef9687', 'POSSIBLE THREAT': '#d7bd80', TRACKED: '#bed2c4', UNKNOWN: '#a2b6c6' }[status] || '#a2b6c6');
   const glyph = status => status === 'UNKNOWN' ? '◇' : '⌃';
   const sourceLabel = kind => ({ SENSOR_EVENT: 'Sensor event', SYNTHETIC_EVENT: 'SYNTHETIC EVENT', WEBHOOK_EVENT: 'Unverified webhook', TEST_EVENT: 'TEST EVENT' }[kind] || 'Unverified source');
-  const targetKey = target => `${target.source_kind}:${target.source}:${target.target_id}`;
+  const targetKey = target => JSON.stringify([target.source_kind, target.source, target.target_id]);
+  const shortID = (value, limit = 28) => value.length > limit ? `${value.slice(0, limit - 7)}…${value.slice(-6)}` : value;
   const confidenceText = target => typeof target.confidence === 'number' && Number.isFinite(target.confidence) ? `${Math.round(target.confidence * 100)}%` : 'Unavailable';
   const formatTime = seconds => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(Math.floor(seconds) % 60).padStart(2, '0')}`;
   const formatDate = value => { const parsed = Date.parse(value); return Number.isFinite(parsed) ? new Date(parsed).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Timestamp unverified'; };
@@ -219,10 +220,10 @@
     put('detail-subtitle', demo ? 'Scenario-authored observation' : 'Source-reported observation');
     put('attention-eyebrow', demo ? 'REVIEW FIRST' : 'LATEST OBSERVATION');
     const first = tracks[0];
-    put('attention-title', demo ? 'DW-01 · Approaching the protected area' : first ? `${first.target_id} · ${first.status.toLowerCase()}` : 'Awaiting sensor observations');
+    put('attention-title', demo ? 'DW-01 · Approaching the protected area' : first ? `${shortID(first.target_id)} · ${first.status.toLowerCase()}` : 'Awaiting sensor observations');
     put('attention-description', demo ? 'Highest priority in this scripted scenario' : 'Reported event status does not establish intent');
     $('inspect-priority').disabled = !first;
-    $('inspect-priority').replaceChildren(document.createTextNode(`Inspect ${first ? first.target_id : 'target'} `), el('span', '↗'));
+    $('inspect-priority').replaceChildren(document.createTextNode(`Inspect ${first ? shortID(first.target_id, 18) : 'target'} `), el('span', '↗'));
     if (demo) put('footer-status', 'DEMO RUNS LOCALLY · NO EXTERNAL SERVICES');
     renderRoster(); renderDetail(); renderFocusControl(); drawRadar(); renderPlayback(); renderActivity(true); renderSensorStatus();
   }

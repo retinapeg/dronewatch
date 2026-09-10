@@ -70,6 +70,11 @@ test('independent cameras with the same target ID remain distinct; within-source
   assert.equal(result.length, 2);
   assert.deepEqual(result.map(item => item.source), ['camera-a', 'camera-b']);
 });
+test('colon-bearing sources and target IDs cannot alias different identity tuples', () => {
+  const result = normalizeSensorPayload(payload([record({ source: 'camera:west', target_id: 'track1' }), record({ source: 'camera', target_id: 'west:track1' })]));
+  assert.equal(result.length, 2);
+});
+
 test('synthetic and reported source identity never coalesce', () => {
   const result = normalizeSensorPayload(payload([record(), record({ source_kind: 'SYNTHETIC_EVENT' })]));
   assert.equal(result.length, 2);

@@ -34,3 +34,10 @@
 - Initial corrected screenshots manually inspected at `/tmp/dronewatch-frontend-360.png` and `/tmp/dronewatch-frontend-1440.png`; independent QA retains tracked screenshots and reports under `docs/evidence` in the integration checkout.
 - Final browser results, Claude critique, integration SHA and release outcome belong to the manager's release report; this file does not substitute for the final gate.
 - Android coverage is browser touch/mobile emulation. It does not claim execution on a physical Android handset.
+
+## Independent source hardening follow-up
+
+- Reproduced a distinct-identity collision: `WEBHOOK_EVENT / camera:west / track1` and `WEBHOOK_EVENT / camera / west:track1` normalized from two records to one. Replaced delimiter concatenation with JSON-encoded identity tuples in both normalization and selection, with a regression test.
+- Reproduced valid 256-character target ID expanding a 360px mobile document to 1714px. Bounded the overview/action ID presentation and enabled attention-copy wrapping while preserving the complete ID in target detail. The same browser probe after the fix reports viewport=360, document=360 and detail ID length=256.
+- The hostile optional-field probe included an object-valued uncertainty, object-valued alternative interpretation, object evidence and an HTML-looking evidence string. It produced no page errors and zero unexpected image nodes; objects use safe fallback and evidence remains text.
+- Scenario unit suite now has 14 passing tests (24 together with the 10 unchanged historical helper tests).

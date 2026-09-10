@@ -57,7 +57,7 @@
     if (payload.targets.some(record => !isSensorRecord(record))) throw new Error('Malformed sensor record');
     const seen = new Set();
     return payload.targets.filter(record => {
-      const key = `${record.source_kind}:${typeof record.source === 'string' ? record.source : 'Unspecified source'}:${record.target_id}`;
+      const key = JSON.stringify([record.source_kind, typeof record.source === 'string' ? record.source : 'Unspecified source', record.target_id]);
       if (seen.has(key)) return false;
       seen.add(key); return true;
     }).map(record => ({ ...record, source: typeof record.source === 'string' ? record.source : 'Unspecified source', evidence: Array.isArray(record.evidence) ? record.evidence.filter(item => typeof item === 'string').slice(0, 20) : [], position: record.position && finite(record.position.x) && finite(record.position.y) && record.position.x >= 0 && record.position.x <= 1 && record.position.y >= 0 && record.position.y <= 1 && record.position.coordinate_system === 'normalized_frame' ? record.position : null }));
