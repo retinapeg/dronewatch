@@ -60,7 +60,7 @@ The official Codex CLI independently authored the initial ingestion/canonical pr
 
 The installed official Claude Code 2.1.267 ran non-interactively in `claude/android-review`, using the existing authenticated subscription. Its completed run lasted 872.93 seconds, exited 0 and produced `2f62e63`. The model reported by that run was `claude-fable-5-1`.
 
-The [completed Claude audit](docs/engineering/claude-baseline.md) ranked concrete problems including false positive negated states, key-token hijacking, deeply nested legacy input, large responses, inaccurate source provenance, freshness semantics, polling selection churn and mobile/video failures. It added executable attack probes. Its final baseline attack run had four passes, one helper skip and twenty strict expected failures; these are historical defect evidence, **not** current passing release tests.
+The [completed Claude audit](docs/engineering/claude-baseline.md) ranked concrete problems including false positive negated states, key-token hijacking, deeply nested legacy input, large responses, inaccurate source provenance, freshness semantics, polling selection churn and mobile/video failures. It added executable attack probes. Its final baseline attack run had four passes, one skip because /api/targets did not yet exist, and twenty strict expected failures; these are historical defect evidence, **not** current passing release tests.
 
 Claude's second job started on candidate `7083a12`, performed setup and tests, then returned the subscription limit. The runner recorded exit 1 and `model_completed: false`; it did not deliver a completed candidate verdict or patch. Reset was reported for 12:30 London. No paid API fallback was provisioned. The app has a one-run thread follow-up scheduled at 12:35 London to review the latest candidate and fix only demonstrated regressions.
 
@@ -110,7 +110,7 @@ POST /webhook/viso and GET /api/events are preserved. GET /api/targets excludes 
 
 Synthetic classifications and confidence are authored fixtures. Unauthenticated Viso-shaped payloads remain WEBHOOK_EVENT; SENSOR_EVENT is reserved for a future verified producer. Camera-frame positions are not drawn as geographic radar measurements.
 
-Malformed UTF-8/JSON, nonfinite values, excessive depth and bodies over 256 KiB are rejected without writes. Exact recognized keys precede fuzzy interpretation. Canonical identities are bounded to 128 UTF-8 bytes with deterministic digest protection; evidence strings to 160 bytes; the entire canonical JSON response to 262,144 bytes, including escaping. A truncation indicator is displayed as a limited window.
+Malformed UTF-8/JSON, nonfinite values, excessive depth and bodies over 256 KiB are rejected without writes. Normalized exact-key matching replaces token/substring matching. Canonical identities are bounded to 128 UTF-8 bytes with deterministic digest protection; evidence strings to 160 bytes; the entire canonical JSON response to 262,144 bytes, including escaping. A truncation indicator is displayed as a limited window.
 
 ## 11. Tests added
 
@@ -236,7 +236,7 @@ Integration milestones, with original engineering commits retained in their bran
 
 ## 19. PR and integration status
 
-The candidate is being prepared on agent/integration for a draft PR against main. The actual PR URL, pushed SHA and remote CI receipt will be recorded here after publication. Local test evidence above is complete; it must not be mistaken for a remote CI result. Main remains the baseline.
+Draft [PR #1](https://github.com/retinapeg/dronewatch/pull/1) is open from agent/integration to main. The pushed candidate SHA was verified as `56d92d57d0a7d89d1d8dceb9dd3b6a7493f47132`, and [GitHub CI run 34467860351](https://github.com/retinapeg/dronewatch/actions/runs/34467860351) **completed successfully** on that exact head: dependency audit, Python, Node, Android/desktop browser suite and compilation all passed. [The remote receipt](docs/evidence/final/remote-ci.json) records the head SHA and every job step. This report/receipt update is a documentation-only descendant; the tested application is unchanged. Main remains `31a32e1764572837ff43691b50aa3a15bc458714`; no merge, force push or public deployment occurred.
 
 ## 20. Exact demo launch command
 

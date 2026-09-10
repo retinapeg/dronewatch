@@ -44,7 +44,7 @@ Deliver the local deterministic 3–10 target operator demo and preserve the eve
 - Detailed prompts/transcripts remain outside tracked source in sibling .agent-runs/.
 
 ## Next actions
-1. Verify pushed integration SHA, draft PR and remote CI receipt; record actual results in the report.
+1. Draft PR #1 is open: https://github.com/retinapeg/dronewatch/pull/1. GitHub CI 34467860351 passed on pushed 56d92d5. Final report/receipt commits are documentation-only descendants; inspect latest PR CI before any further integration. Main remains unchanged.
 2. Scheduled Claude follow-up: inspect latest Git state, create a clean isolated review worktree, read prior findings/resolutions, run a bounded final-candidate attack with existing subscription auth only.
 3. If Claude demonstrates a new defect, reproduce it and assign an isolated fix, rerun affected and full acceptance checks, update the existing PR. Never merge main automatically.
 4. If no defects remain, record the verdict and pause the follow-up; do not generate an endless speculative work queue.

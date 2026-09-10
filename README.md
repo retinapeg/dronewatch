@@ -155,4 +155,6 @@ The optional `demo_feed.py` and `start-drive-copy.command` media-copy workflow r
 
 ## Engineering workflow
 
+[DRONEWATCH_AUTONOMOUS_ENGINEERING_REPORT.md](DRONEWATCH_AUTONOMOUS_ENGINEERING_REPORT.md) contains the tested release candidate, before/after mobile evidence, Claude/Codex review decisions, exact test results and remaining limits.
+
 [AGENT_BOARD.md](AGENT_BOARD.md) records the current mission, branches, findings and integration decisions. [docs/engineering/WORKFLOW.md](docs/engineering/WORKFLOW.md) documents the working official Claude Code/Codex CLI runner, isolation and adversarial review process. The repository has no software licence; public visibility does not establish third-party reuse rights.
