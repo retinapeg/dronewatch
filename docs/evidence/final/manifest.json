@@ -1,0 +1,28 @@
+{
+  "tested_commit": "bd12deae27cb2c160a26a04f8c905f628208f7fd",
+  "application_commit": "1ae4335309c45f990efc63c8a9e7bf4e6aa0e062",
+  "baseline": "31a32e1764572837ff43691b50aa3a15bc458714",
+  "captured_at": "2026-09-10T10:41:05.530235+00:00",
+  "command": "./scripts/test.sh",
+  "exit_code": 0,
+  "python": {
+    "passed": 78,
+    "skipped": 0,
+    "warnings": 1,
+    "duration_seconds": 3.68
+  },
+  "node": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "startTime": "2026-09-10T10:38:16.446Z",
+    "duration": 58836.779,
+    "expected": 128,
+    "skipped": 12,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "scope": "Local Chromium Android viewport/touch emulation and desktop, not physical Android; no real Viso connectivity verified."
+}

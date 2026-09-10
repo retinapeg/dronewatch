@@ -11,10 +11,11 @@ Requires Python 3.11+ and a modern Chromium-based browser. Node.js 24+ is needed
 ```bash
 git clone https://github.com/retinapeg/dronewatch.git
 cd dronewatch
+git switch agent/integration
 ./scripts/demo.sh
 ```
 
-Open <http://127.0.0.1:8000>. The launcher creates a local `.venv` and installs Python dependencies if needed. **Internet is needed for first dependency installation; subsequent demo runs work without internet.** Ctrl+C stops the server.
+The reviewed candidate is on `agent/integration`; `main` retains the original baseline until a deliberate merge. Open <http://127.0.0.1:8000>. The launcher creates a local `.venv` and installs Python dependencies if needed. **Internet is needed for first dependency installation; subsequent demo runs work without internet.** Ctrl+C stops the server.
 
 If port 8000 is occupied:
 

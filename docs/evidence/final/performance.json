@@ -1,0 +1,83 @@
+{
+  "capturedAt": "2026-09-10T10:39:58.377Z",
+  "baseURL": "http://127.0.0.1:8770",
+  "method": "Desktop Chromium with optional touch/viewport and 4x CPU throttling. TaskDuration is browser task time, not a phone CPU or battery measurement. Interaction timing includes automation/scroll overhead. Heap changes over six seconds do not establish absence of a memory leak.",
+  "results": [
+    {
+      "name": "android-360-throttled",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "chromiumCPUThrottleRate": 4,
+      "targetCount": 10,
+      "sampleSeconds": 6.009656000009272,
+      "taskSeconds": 0.11824900000000005,
+      "scriptSeconds": 0.021514000000000005,
+      "layoutSeconds": 0.017404000000000003,
+      "domElementsBefore": 318,
+      "domElementsAfter": 328,
+      "heapBytesBefore": 2791592,
+      "heapBytesAfter": 2402100,
+      "longTaskCountIncludingLoad": 1,
+      "longestTaskMilliseconds": 88,
+      "interactionTimes": [
+        {
+          "id": "DW-02",
+          "milliseconds": 121
+        },
+        {
+          "id": "DW-05",
+          "milliseconds": 408
+        },
+        {
+          "id": "DW-10",
+          "milliseconds": 1452
+        },
+        {
+          "id": "DW-01",
+          "milliseconds": 932
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "chromiumCPUThrottleRate": 1,
+      "targetCount": 10,
+      "sampleSeconds": 6.00802599999588,
+      "taskSeconds": 0.109236,
+      "scriptSeconds": 0.020768000000000002,
+      "layoutSeconds": 0.014694000000000006,
+      "domElementsBefore": 318,
+      "domElementsAfter": 318,
+      "heapBytesBefore": 2768572,
+      "heapBytesAfter": 2367616,
+      "longTaskCountIncludingLoad": 0,
+      "longestTaskMilliseconds": 0,
+      "interactionTimes": [
+        {
+          "id": "DW-02",
+          "milliseconds": 18
+        },
+        {
+          "id": "DW-05",
+          "milliseconds": 41
+        },
+        {
+          "id": "DW-10",
+          "milliseconds": 38
+        },
+        {
+          "id": "DW-01",
+          "milliseconds": 33
+        }
+      ],
+      "pageErrors": []
+    }
+  ]
+}

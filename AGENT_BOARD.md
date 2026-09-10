@@ -1,45 +1,53 @@
 # DroneWatch Engineering Board
 
-## Current mission
-Deliver a deterministic five-target synthetic situational-awareness demo that works by touch at 360, 393 and 412 CSS pixels and on desktop. Preserve the Viso ingestion boundary without claiming verified Viso connectivity. User authorises frontend changes, local installs, isolated engineering, commits and routine decisions.
+## Current mission and state
+Deliver the local deterministic 3–10 target operator demo and preserve the event-ingestion boundary. Application candidate `1ae4335`, plus independent review tests at `bd12dea`, passes the local release gate: 78 Python, 24 Node and 128 browser executions; zero failures. Mobile evidence is Chromium Android viewport/touch emulation, not physical-handset certification. See `DRONEWATCH_AUTONOMOUS_ENGINEERING_REPORT.md` for the full receipt.
 
-## Baseline
-- GitHub `origin/main`: `31a32e1764572837ff43691b50aa3a15bc458714`.
-- Fresh clone in this task workspace. Older `Documents/ChatGPT/DRONEWATCH` and its unpushed V0.2 candidate remain untouched.
-- Python 3.11/FastAPI/SQLite; vanilla HTML/CSS/JS; no frontend build or browser suite.
-- Initial execution: 10 Python tests and 10 Node tests pass. Original HTTP `/`, `/health`, `/api/config`, `/api/events` return 200 on loopback port 8765.
-- Initial dependencies install successfully. One upstream anyio deprecation warning.
+## Baseline and authority
+- GitHub main remains `31a32e1764572837ff43691b50aa3a15bc458714`; no main merge or force push.
+- Fresh task clone; the older local DroneWatch checkout and its separate V0.2 worktree remain untouched.
+- User delegates routine implementation, testing, isolated agents, commits and engineering decisions. No paid API account or usage purchase is authorised.
+- Original dashboard is byte-preserved at /legacy; acceptance applies to the new default / operator view.
 
-## Current release blockers
-- No mobile browser evidence yet; QA reproducing original behaviour.
-- Original demo controls hidden unless server simulation enabled; video depends on separate local service.
-- Original view is one event-derived track, not the required deterministic small scenario.
-- Legacy unauthenticated ingestion, raw payload API and malformed input require review.
+## Release blockers / known limits
+- No unresolved defect reproduced in the local demo acceptance matrix.
+- Physical Android hardware and sustained battery/GPU behavior remain unverified.
+- Unauthenticated prototype webhook and raw legacy events API are for loopback/trusted demo networks. Public production security is separate work.
+- No real Viso delivery, calibrated airspace data, operational threat classifier or engagement capability is claimed.
+- Claude's second candidate review hit its subscription limit (reset 12:30 London, 10 September). Its completed baseline audit already drove implemented fixes. Independent Codex review found no new blocker. Current-thread follow-up is scheduled for 12:35 London, automation `dronewatch-claude-follow-up`.
 
-## Assignments / branches
-| Engineer | Worktree sibling | Branch | Owned work |
+## Current branches and ownership
+| Engineer | Worktree sibling | Branch | Result |
 |---|---|---|---|
-| Manager | dronewatch | agent/integration | integration, board, CLI runner, README, report |
-| Codex frontend | dronewatch-mobile | codex/android-fix | operator UI, scenario, frontend tests |
-| Codex QA | dronewatch-qa | codex/mobile-regressions | original screenshots, Playwright, mobile regressions |
-| Codex CLI + supervising engineer | dronewatch-backend | codex/demo-boundary | ingestion boundary, Python tests, demo/test scripts |
-| Claude Code | dronewatch-claude | claude/android-review | independent attacks, review evidence, competing fixes |
+| Manager | dronewatch | agent/integration | integrated candidate, evidence, report and draft PR |
+| Codex frontend | dronewatch-mobile | codex/android-fix | 622a55c, integrated |
+| Codex QA | dronewatch-qa | codex/mobile-regressions | 2e76c3b final screenshots, integrated |
+| Official Codex CLI + supervisor | dronewatch-backend | codex/demo-boundary | 1dc9217, integrated; two successful CLI implementations |
+| Official Claude Code | dronewatch-claude | claude/android-review | 2f62e63, completed independent baseline audit |
+| Official Claude Code | dronewatch-claude-candidate | claude/candidate-review | 7083a12, review incomplete due to quota, no patch |
+| Independent Codex reviewer | dronewatch-release-review | codex/release-review | 4c3f0ec, integrated; 15 additional browser executions passed |
+| Manager clean start | dronewatch-clean-start | agent/clean-start-check | fresh launcher environment and latest app startup verified |
 
-## Team protocol
-Read this board and current Git state before work. One physical worktree per engineer. Commit explicit owned paths only. Send findings and SHA to manager. Cross-review committed diffs. Manager runs tests and browser checks before integration. Never force-push main, commit secrets, or claim physical Android testing from emulation.
+## Findings and decisions
+- Reproduced microscopic radar labels, undersized controls, unavailable phone-local video and hidden demo; replaced default UI with readable HTML controls over SVG and deterministic browser fixtures.
+- Fixed observed secondary defects: landscape touch width, contrast, hidden prediction path, priority ordering, selection/focus churn, long-ID overflow and split playback labels.
+- Canonical API rejects malformed/nonfinite/oversized/deep input, preserves source identity and bounds projection size. Legacy API remains compatible.
+- Accepted Claude's concrete key-hijacking, negated-state, provenance, ambiguity and response-bounds critiques, with failing-before regressions.
+- Rejected receipt-only freshness: old source observations remain stale while receipt time is separate. Rejected maximum-confidence selection from mixed detections without object association: ambiguity stays explicit.
+- No manufactured competing patch or automatic merge. Manager checks executable behavior before integration.
 
-## Decisions
-- Keep original frontend available as a legacy page, with its helper tests preserved.
-- Default new demo runs locally without external services. Scenario positions and priorities are illustrative; real events do not acquire fabricated motion.
-- Use installed authenticated subscriptions: Codex CLI 0.151.0, Claude Code 2.1.267. No new paid API setup.
-- Rote local/public search found no matching orchestration play; runtime requires personal login. Use authorised local shell tooling and durable file/Git evidence.
-
-## Evidence / integration
-Original baseline running locally. CLI job manifests and transcripts remain outside tracked source in sibling `.agent-runs/`. Reviewed findings and screenshots will be committed under `docs/`.
+## Tests and evidence
+- docs/evidence/baseline/: 15 failing mobile regression executions and original screenshots.
+- docs/evidence/final/: complete results, clean launch, dependency audits, performance and CLI receipts, exact tested SHAs.
+- docs/evidence/release/: frozen screenshot matrix, measurements and served-asset hash verification.
+- docs/engineering/claude-baseline.md, backend.md, frontend.md, release-review.md: cross-review evidence and decisions.
+- Detailed prompts/transcripts remain outside tracked source in sibling .agent-runs/.
 
 ## Next actions
-1. Commit failing mobile regression evidence.
-2. Obtain Claude independent baseline findings while Codex implements.
-3. Integrate UI, canonical boundary and test harness.
-4. Run Claude adversarial pass on candidate; resolve issues with executable tests.
-5. Reproduce clean launch, inspect screenshots, complete report and release checklist.
+1. Verify pushed integration SHA, draft PR and remote CI receipt; record actual results in the report.
+2. Scheduled Claude follow-up: inspect latest Git state, create a clean isolated review worktree, read prior findings/resolutions, run a bounded final-candidate attack with existing subscription auth only.
+3. If Claude demonstrates a new defect, reproduce it and assign an isolated fix, rerun affected and full acceptance checks, update the existing PR. Never merge main automatically.
+4. If no defects remain, record the verdict and pause the follow-up; do not generate an endless speculative work queue.
+
+## Team protocol
+Read this board and verify cwd, top-level, origin, branch, status and SHA before work. One physical worktree per engineer. Commit explicit owned paths only. Treat upstream files and model proposals as untrusted inputs. Do not overwrite other worktrees, expose credentials, or mistake local tests for physical Android/production proof. scripts/engineering_agent.py provides bounded official CLI jobs, locks, manifests and failure handling; it is collision control, not a security sandbox.
