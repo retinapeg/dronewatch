@@ -1,9 +1,43 @@
 from __future__ import annotations
 
+import hashlib
 import math
 import re
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
+
+
+MAX_IDENTITY_BYTES = 128
+MAX_EVIDENCE_BYTES = 160
+HASH_MARKER = "~sha256:"
+
+
+def _display_text(value: Any) -> str:
+    # Control characters have no useful role in an operator identifier/label.
+    return "".join(char if char.isprintable() else " " for char in str(value))
+
+
+def _utf8_prefix(value: str, maximum: int) -> str:
+    return value.encode("utf-8")[:maximum].decode("utf-8", errors="ignore")
+
+
+def _bounded_identity(value: Any, field: str) -> str:
+    raw = str(value)
+    visible = _display_text(raw)
+    if visible == raw and HASH_MARKER not in raw and len(raw.encode("utf-8")) <= MAX_IDENTITY_BYTES:
+        return raw
+    # Preserve the full digest, scope it by field, and reserve its marker so a
+    # short user-supplied value cannot impersonate a generated identifier.
+    digest = hashlib.sha256((field + "\0" + raw).encode("utf-8", errors="surrogatepass")).hexdigest()
+    suffix = HASH_MARKER + digest
+    return _utf8_prefix(visible, MAX_IDENTITY_BYTES - len(suffix)) + suffix
+
+
+def _bounded_evidence(value: Any) -> str:
+    visible = _display_text(value)
+    if len(visible.encode("utf-8")) <= MAX_EVIDENCE_BYTES:
+        return visible
+    return _utf8_prefix(visible, MAX_EVIDENCE_BYTES - 3) + "..."
 
 
 STATUS_BY_EVENT_STATE = {
@@ -37,7 +71,7 @@ def _matching_values(payload: Any, keys: Iterable[str]) -> List[Any]:
 
 def _explicit_target_id(event: Dict[str, Any]) -> str:
     candidates = []
-    for value in _matching_values(event.get("raw_payload"), ("tracking_id", "target_id")):
+    for value in _matching_values(event.get("raw_payload"), ("tracking_id", "track_id", "target_id")):
         if isinstance(value, (str, int, float)) and not isinstance(value, bool):
             text = str(value).strip()
             if text and text not in candidates:
@@ -128,19 +162,19 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
         uncertainty = "Multiple reported objects are ambiguous; no single classification, confidence, or position is selected."
 
     return {
-        "target_id": _explicit_target_id(event),
-        "event_id": event["event_id"],
+        "target_id": _bounded_identity(_explicit_target_id(event), "target_id"),
+        "event_id": _bounded_identity(event["event_id"], "event_id"),
         "source_kind": source_kind,
         "status": status,
         "confidence": confidence,
         "position": None if ambiguous_objects else _explicit_position(raw_payload),
         "velocity": None,
         "heading": None,
-        "source": source,
+        "source": _bounded_identity(source, "source"),
         "updated_at": reported_time,
         "timestamp_basis": "reported_event_time" if reported_time else "receipt_time_only",
         "last_received_at": event.get("ingested_at") or "",
-        "evidence": evidence,
+        "evidence": [_bounded_evidence(item) for item in evidence],
         "alternative_interpretation": alternative,
         "uncertainty": uncertainty,
         "status_basis": status_basis,
