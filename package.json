@@ -1,0 +1,14 @@
+{
+  "name": "dronewatch-browser-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "playwright test",
+    "test:mobile": "playwright test --project=android-360 --project=android-393 --project=android-412 --project=android-landscape",
+    "test:baseline": "node scripts/capture-mobile-baseline.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}
