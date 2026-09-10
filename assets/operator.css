@@ -17,3 +17,5 @@ button{min-width:44px}.panel-index{color:#91a0a8}.radar-north{font-size:10px}.ra
 
 /* Selected context stays beside the radar without changing the document structure. */
 @media(min-width:761px){.detail-panel{order:-1}.detail-panel .panel-header{min-height:76px}.detail-body{padding:17px 19px}.detail-identity{margin-bottom:14px}.detail-fields{gap:11px 14px}.reason{margin:15px 0 14px}.interpretation{margin-top:14px}.detail-action{margin-top:14px}}
+
+.attention-copy{overflow-wrap:anywhere}.quiet-button{white-space:normal;overflow-wrap:anywhere}
