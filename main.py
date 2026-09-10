@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 import json
 import logging
+import math
 import os
 import re
 import sqlite3
@@ -13,12 +14,19 @@ from typing import Any, Dict, Iterable, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from target_schema import targets_from_events
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")
 SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "0") not in {"0", "false", "off", "no"}
 LOGGER = logging.getLogger("dronewatch")
+MAX_WEBHOOK_BYTES = 256 * 1024
+MAX_JSON_DEPTH = 32
+TARGET_QUERY_LIMIT = 200
+MAX_TARGET_RESPONSE_BYTES = 256 * 1024
 
 
 @asynccontextmanager
@@ -27,7 +35,15 @@ async def lifespan(_: FastAPI):
     yield
 
 
+class OptionalStaticFiles(StaticFiles):
+    async def check_config(self) -> None:
+        if self.directory and not Path(self.directory).exists():
+            return
+        await super().check_config()
+
+
 app = FastAPI(title="DroneWatch", lifespan=lifespan)
+app.mount("/assets", OptionalStaticFiles(directory=BASE_DIR / "assets", check_dir=False), name="assets")
 
 KNOWN_STATES = {"DETECTED", "APPROACHING", "RESTRICTED_ZONE", "EXITED", "UNKNOWN"}
 KNOWN_SEVERITY = {"INFO", "WARNING", "HIGH"}
@@ -54,44 +70,40 @@ def ensure_db() -> None:
                 source TEXT,
                 media_url TEXT,
                 raw_payload TEXT NOT NULL,
-                is_simulated INTEGER NOT NULL DEFAULT 0
+                is_simulated INTEGER NOT NULL DEFAULT 0,
+                ingested_at TEXT
             )
             """
         )
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(incidents)")}
+        if "ingested_at" not in columns:
+            conn.execute("ALTER TABLE incidents ADD COLUMN ingested_at TEXT")
 
 
 def walk_nodes(value: Any) -> Iterable[Any]:
-    yield value
-    if isinstance(value, dict):
-        for item in value.values():
-            yield from walk_nodes(item)
-    elif isinstance(value, (list, tuple)):
-        for item in value:
-            yield from walk_nodes(item)
+    pending = [value]
+    while pending:
+        node = pending.pop()
+        yield node
+        if isinstance(node, dict):
+            pending.extend(node.values())
+        elif isinstance(node, (list, tuple)):
+            pending.extend(node)
 
 
 def find_first(payload: Any, candidate_keys: Iterable[str]) -> Any:
     def compact(value: str) -> str:
         return re.sub(r"[^a-z0-9]+", "", value.lower())
 
-    normalized_candidates = {compact(candidate) for candidate in candidate_keys}
-    lower_candidates = {candidate.lower() for candidate in candidate_keys}
-    for node in walk_nodes(payload):
-        if not isinstance(node, dict):
-            continue
-        for key, value in node.items():
-            if not isinstance(key, str):
-                continue
-            key_compact = compact(key)
-            key_tokens = {part for part in re.split(r"[^a-z0-9]+", key.lower()) if part}
-            token_compact = {compact(token) for token in key_tokens}
-            if key_compact in normalized_candidates or key.lower() in lower_candidates:
-                if value is None:
+    nodes = [node for node in walk_nodes(payload) if isinstance(node, dict)]
+    # Candidate order expresses semantic specificity (for example event_id
+    # before generic id); payload key order must not change normalization.
+    for candidate in candidate_keys:
+        normalized_candidate = compact(candidate)
+        for node in nodes:
+            for key, value in node.items():
+                if not isinstance(key, str) or compact(key) != normalized_candidate:
                     continue
-                if isinstance(value, str) and value.strip() == "":
-                    continue
-                return value
-            if token_compact & normalized_candidates:
                 if value is None:
                     continue
                 if isinstance(value, str) and value.strip() == "":
@@ -115,11 +127,15 @@ def coerce_float(value: Any) -> Optional[float]:
             value = float(value)
         else:
             value = float(str(value))
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
 
+    if not math.isfinite(value):
+        return None
     if value > 1 and value <= 100:
         value = value / 100
+    if not 0 <= value <= 1:
+        return None
     return round(value, 4)
 
 
@@ -150,13 +166,13 @@ def coerce_str(value: Any) -> Optional[str]:
     return str(value)
 
 
-def parse_timestamp(value: Any) -> str:
-    if value is None:
-        return utcnow()
+def parse_timestamp(value: Any) -> Optional[str]:
+    if value is None or isinstance(value, bool):
+        return None
     if isinstance(value, str):
         text = value.strip()
         if not text:
-            return utcnow()
+            return None
         if text.endswith("Z"):
             try:
                 parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
@@ -171,23 +187,37 @@ def parse_timestamp(value: Any) -> str:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             return parsed.isoformat()
         except ValueError:
-            return utcnow()
+            return None
     if isinstance(value, (int, float)):
-        text = float(value)
-        if text > 1_000_000_000_000:  # millis
-            text = text / 1000
         try:
+            text = float(value)
+            if not math.isfinite(text):
+                return None
+            if text > 1_000_000_000_000:  # millis
+                text = text / 1000
             return datetime.fromtimestamp(text, tz=timezone.utc).isoformat()
         except (OSError, OverflowError, ValueError):
-            return utcnow()
-    return utcnow()
+            return None
+    return None
 
 
 def _extract_detection_type(payload: Any) -> Optional[str]:
+    label_values = [
+        value for node in walk_nodes(payload) if isinstance(node, dict)
+        for key, value in node.items() if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) == "label"
+    ]
+    if len(label_values) > 1:
+        return None
     return coerce_str(find_first(payload, ["label", "object", "detection", "detected", "type", "class", "category"]))
 
 
 def _extract_confidence(payload: Any) -> Optional[float]:
+    confidence_values = [
+        value for node in walk_nodes(payload) if isinstance(node, dict)
+        for key, value in node.items() if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) == "confidence"
+    ]
+    if len(confidence_values) > 1:
+        return None
     return coerce_float(find_first(payload, ["confidence", "score", "probability", "prob" ]))
 
 
@@ -196,18 +226,51 @@ def _extract_media_url(payload: Any) -> Optional[str]:
 
 
 def _extract_received(payload: Any) -> str:
-    candidate = find_first(payload, ["timestamp", "event_time", "eventtime", "received_at", "receivedat", "created_at", "createdat", "time", "ts"])
-    return parse_timestamp(candidate)
+    keys = {re.sub(r"[^a-z0-9]+", "", key) for key in (
+        "timestamp", "event_time", "received_at", "created_at", "time", "ts"
+    )}
+    candidates = []
+    for node in walk_nodes(payload):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) in keys:
+                    candidates.append(value)
+    parsed = [parse_timestamp(value) for value in candidates]
+    valid = {value for value in parsed if value is not None}
+    # Conflicting, duplicated, or partly malformed timestamp claims are not a
+    # reliable capture time. A single repeated normalized value is acceptable.
+    if candidates and len(valid) == 1 and all(value is not None for value in parsed):
+        return valid.pop()
+    return ""
 
 
-def _normalize_state(raw_state: Optional[str], detection_type: Optional[str], drone_detected: bool) -> str:
+def _is_negated_observation(value: Optional[str]) -> bool:
+    if not value:
+        return False
+    normalized = re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
+    tokens = normalized.split("_")
+    return normalized == "undetected" or "cleared" in tokens or any(
+        token in {"no", "not", "false", "negative", "absent"} for token in tokens
+    )
+
+
+def _normalize_state(
+    raw_state: Optional[str],
+    detection_type: Optional[str],
+    drone_detected: bool,
+    explicit_drone_detected: Optional[bool] = None,
+) -> str:
     normalized = (raw_state or "").strip().lower()
     if normalized:
         normalized = re.sub(r"\s+", "_", normalized)
-    if "restricted" in normalized:
-        return "RESTRICTED_ZONE"
+    if _is_negated_observation(raw_state) or _is_negated_observation(detection_type):
+        return "UNKNOWN"
     if "exit" in normalized or "leave" in normalized or "left" in normalized:
         return "EXITED"
+    if explicit_drone_detected is False:
+        return "UNKNOWN"
+    if "restricted" in normalized:
+        return "RESTRICTED_ZONE"
     if "approach" in normalized or "approaching" in normalized:
         return "APPROACHING"
     if "detect" in normalized or "drone" in normalized:
@@ -232,8 +295,8 @@ def _normalize_severity(state: str, confidence: Optional[float], drone_detected:
     return "INFO"
 
 
-def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated: bool = False) -> Dict[str, Any]:
-    raw_payload = payload if isinstance(payload, dict) else {"value": payload}
+def _normalize_incident(payload: Any, source_default: str, simulated: bool = False) -> Dict[str, Any]:
+    raw_payload = payload
 
     event_id = coerce_str(
         find_first(
@@ -252,7 +315,7 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
     )
 
     if explicit_drone_detected is None:
-        if detection_type and "drone" in detection_type.lower():
+        if detection_type and "drone" in detection_type.lower() and not _is_negated_observation(detection_type):
             drone_detected = True
         else:
             drone_detected = False
@@ -265,7 +328,9 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
             ["state", "status", "zone_state", "event-state", "event_type", "incident_type", "condition"],
         )
     )
-    state = _normalize_state(state_raw, detection_type, drone_detected)
+    if _is_negated_observation(state_raw):
+        drone_detected = False
+    state = _normalize_state(state_raw, detection_type, drone_detected, explicit_drone_detected)
     if state not in KNOWN_STATES:
         state = "UNKNOWN"
 
@@ -275,6 +340,7 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
         severity = "INFO"
 
     received_at = _extract_received(raw_payload)
+    ingested_at = utcnow()
     source = coerce_str(find_first(raw_payload, ["source", "camera", "station"]))
     if source is None:
         source = "SIMULATED" if simulated else source_default
@@ -282,6 +348,7 @@ def _normalize_incident(payload: Dict[str, Any], source_default: str, simulated:
     return {
         "event_id": event_id,
         "received_at": received_at,
+        "ingested_at": ingested_at,
         "detection_type": detection_type,
         "drone_detected": bool(drone_detected),
         "confidence": confidence,
@@ -309,8 +376,9 @@ def _write_incident(incident: Dict[str, Any]) -> None:
                 source,
                 media_url,
                 raw_payload,
-                is_simulated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_simulated,
+                ingested_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 incident["event_id"],
@@ -324,6 +392,7 @@ def _write_incident(incident: Dict[str, Any]) -> None:
                 incident.get("media_url"),
                 json.dumps(incident["raw_payload"], ensure_ascii=False),
                 int(bool(incident["is_simulated"])),
+                incident["ingested_at"],
             ),
         )
         conn.commit()
@@ -343,6 +412,7 @@ def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
         "media_url": row["media_url"],
         "raw_payload": json.loads(row["raw_payload"]),
         "is_simulated": bool(row["is_simulated"]),
+        "ingested_at": row["ingested_at"],
     }
 
 
@@ -372,6 +442,14 @@ class SimulatePayload(BaseModel):
 @app.get("/")
 def root() -> FileResponse:
     return FileResponse(BASE_DIR / "index.html")
+
+
+@app.get("/legacy")
+def legacy() -> FileResponse:
+    legacy_path = BASE_DIR / "legacy.html"
+    if not legacy_path.is_file():
+        raise HTTPException(status_code=404, detail="Legacy interface unavailable")
+    return FileResponse(legacy_path)
 
 
 @app.get("/health")
@@ -410,18 +488,90 @@ def api_events(limit: int = 20) -> Dict[str, Any]:
     }
 
 
+@app.get("/api/targets")
+def api_targets() -> Dict[str, Any]:
+    events = _query_events(limit=TARGET_QUERY_LIMIT)
+    targets = targets_from_events(events)
+    response = {"schema_version": 1, "targets": [], "received_at": utcnow()}
+
+    def encoded_size(value: Any) -> int:
+        return len(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8"))
+
+    # Reserve the partial-window flag before adding records. Count actual JSON
+    # bytes (including escaping), not Python string length or raw payload size.
+    remaining = MAX_TARGET_RESPONSE_BYTES - encoded_size({**response, "truncated": True})
+    for target in targets:
+        size = encoded_size(target) + bool(response["targets"])
+        if size > remaining:
+            response["truncated"] = True
+            break
+        response["targets"].append(target)
+        remaining -= size
+    return response
+
+
+def _reject_non_finite(value: str) -> None:
+    raise ValueError(f"Non-finite JSON number: {value}")
+
+
+def _parse_finite_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError("Non-finite JSON number")
+    return number
+
+
+def _validate_json_depth(payload: Any) -> None:
+    pending = [(payload, 1)]
+    while pending:
+        node, depth = pending.pop()
+        if isinstance(node, str):
+            # json.loads permits escaped lone surrogates, but SQLite's UTF-8
+            # encoder cannot store them. Valid surrogate pairs decode to one
+            # non-BMP scalar and pass this check.
+            if any(0xD800 <= ord(char) <= 0xDFFF for char in node):
+                raise ValueError("JSON contains an invalid Unicode scalar")
+        if isinstance(node, (dict, list)):
+            if depth > MAX_JSON_DEPTH:
+                raise ValueError("JSON nesting depth exceeded")
+            children = (*node.keys(), *node.values()) if isinstance(node, dict) else node
+            pending.extend((child, depth + 1) for child in children)
+
+
+async def _read_bounded_body(request: Request) -> bytes:
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > MAX_WEBHOOK_BYTES:
+                raise HTTPException(status_code=413, detail="Webhook payload exceeds 256 KiB")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid Content-Length")
+
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_WEBHOOK_BYTES:
+            raise HTTPException(status_code=413, detail="Webhook payload exceeds 256 KiB")
+        body.extend(chunk)
+    return bytes(body)
+
+
 @app.post("/webhook/viso")
 async def viso_webhook(request: Request):
-    body_bytes = await request.body()
+    body_bytes = await _read_bounded_body(request)
     try:
         if not body_bytes:
             payload = {}
         else:
-            payload = json.loads(body_bytes.decode("utf-8"))
-    except json.JSONDecodeError:
-        payload = {"raw_body": body_bytes.decode("utf-8", errors="replace"), "_payload_decode_failed": True}
+            payload = json.loads(
+                body_bytes.decode("utf-8"),
+                parse_constant=_reject_non_finite,
+                parse_float=_parse_finite_float,
+            )
+        _validate_json_depth(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="Webhook body must be valid, finite JSON") from exc
 
-    incident = _normalize_incident(payload if isinstance(payload, dict) else {"value": payload}, "VISO", simulated=False)
+    incident = _normalize_incident(payload, "VISO", simulated=False)
     _write_incident(incident)
     LOGGER.info(
         "Webhook event stored event_id=%s state=%s simulated=%s",

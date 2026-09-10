@@ -39,7 +39,15 @@ jobs:
         run: python -m pytest -q
 
       - name: Run dashboard tests
-        run: node --test tests/dashboard.test.cjs
+        run: npm ci && npm test
+
+      - name: Install Chromium for browser regression tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Test Android touch layouts and desktop
+        env:
+          DRONEWATCH_PYTHON: python
+        run: npm run test:browser
 
       - name: Compile Python modules
-        run: python -m compileall -q main.py demo_feed.py
+        run: python -m compileall -q main.py demo_feed.py target_schema.py

@@ -1,0 +1,27 @@
+{
+  "jobs": [
+    {
+      "engine": "claude",
+      "branch": "claude/final-candidate-review",
+      "base_sha": "f9c59adb92efd8ce4c088c508bf9e973cfddc62a",
+      "started_at": "20260910T113640Z",
+      "exit_code": 0,
+      "model_completed": true,
+      "elapsed_seconds": 188.2,
+      "final_sha": "5503f350b1645ac99f56bfc735e5a4c9f5f88f49"
+    },
+    {
+      "engine": "claude",
+      "branch": "claude/final-candidate-review",
+      "base_sha": "5503f350b1645ac99f56bfc735e5a4c9f5f88f49",
+      "started_at": "20260910T114054Z",
+      "exit_code": 1,
+      "model_completed": false,
+      "elapsed_seconds": 3.0,
+      "final_sha": "5503f350b1645ac99f56bfc735e5a4c9f5f88f49"
+    }
+  ],
+  "resolved_model": "claude-haiku-4-5-20251001",
+  "manager_acceptance": "Initial additional review not accepted as touch/edge-case proof; corrective job blocked by expired OAuth login. No completed accepted final Claude verdict.",
+  "current_authentication": "CLI auth status loggedIn false after corrective job; needs claude auth login --claudeai"
+}

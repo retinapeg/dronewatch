@@ -1,0 +1,1271 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.8.1/bin/node",
+      "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/node_modules/.bin/playwright",
+      "test",
+      "mobile-regressions",
+      "--project=android-360",
+      "--project=android-393",
+      "--project=android-412",
+      "--project=android-landscape",
+      "--project=desktop"
+    ],
+    "configFile": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/playwright.config.cjs",
+    "rootDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "android-360",
+        "name": "android-360",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "android-393",
+        "name": "android-393",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "android-412",
+        "name": "android-412",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "android-landscape",
+        "name": "android-landscape",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "docs/evidence/baseline/regression-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 4,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "mobile-regressions.spec.cjs",
+      "file": "mobile-regressions.spec.cjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "initial view stays inside viewport and radar remains useful",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 834,
+                  "error": {
+                    "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.7180000000000004,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.0420000000000003,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.732,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.7180000000000004,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.0420000000000003,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.732,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 124,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 124,
+                        "line": 19
+                      },
+                      "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.394,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.7180000000000004,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.0420000000000003,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.732,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:02.631Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-360/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-360/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-360/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 124,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-1c9bce61095fc3c942e0",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "visible controls provide touch sized hit targets",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 1301,
+                  "error": {
+                    "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 304,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 304,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 304,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:02.605Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-360/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-360/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-360/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-e3d6e85b072761a0ccdc",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "normal load has no runtime, console or failed resource errors",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "failed",
+                  "duration": 1292,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 18,
+                      "line": 39
+                    },
+                    "snippet": "  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 18,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:02.572Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-360/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-360/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-360/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 18,
+                    "line": 39
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-949ea7c8ffe8fe91b41c",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 32,
+          "column": 1
+        },
+        {
+          "title": "initial view stays inside viewport and radar remains useful",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "failed",
+                  "duration": 841,
+                  "error": {
+                    "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.0809999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.339,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.194,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.0809999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.339,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.194,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 124,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 124,
+                        "line": 19
+                      },
+                      "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.823,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.0809999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.339,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.194,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:02.620Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-393/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-393/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-393/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 124,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-36a819b4178316873e60",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "visible controls provide touch sized hit targets",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 930,
+                  "error": {
+                    "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 337,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 337,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 337,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:04.432Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-393/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-393/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-393/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-e55e8f15a9783fe18b6a",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "normal load has no runtime, console or failed resource errors",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 3,
+                  "status": "failed",
+                  "duration": 945,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 18,
+                      "line": 39
+                    },
+                    "snippet": "  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 18,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:04.432Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-393/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-393/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-393/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 18,
+                    "line": 39
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-6f40449445b083460005",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 32,
+          "column": 1
+        },
+        {
+          "title": "initial view stays inside viewport and radar remains useful",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 427,
+                  "error": {
+                    "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.29,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.5100000000000002,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.46,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.29,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.5100000000000002,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.46,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 124,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 124,
+                        "line": 19
+                      },
+                      "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.07,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.29,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.5100000000000002,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.46,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:05.042Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-412/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-412/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-412/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 124,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-5c5096048fa71c5a5a44",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "visible controls provide touch sized hit targets",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 2,
+                  "status": "failed",
+                  "duration": 872,
+                  "error": {
+                    "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 356,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 356,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 12\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 356,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:05.036Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-412/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-412/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-412/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-ecf99a95428981ad3d2e",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "normal load has no runtime, console or failed resource errors",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 1073,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 18,
+                      "line": 39
+                    },
+                    "snippet": "  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 18,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:05.921Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-412/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-412/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-412/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 18,
+                    "line": 39
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-422604be497c1d20bbab",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 32,
+          "column": 1
+        },
+        {
+          "title": "initial view stays inside viewport and radar remains useful",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 3,
+                  "status": "failed",
+                  "duration": 444,
+                  "error": {
+                    "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.8865384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.9980769230769226,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 6.219230769230769,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.8865384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.9980769230769226,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 6.219230769230769,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 124,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 124,
+                        "line": 19
+                      },
+                      "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 30\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"N\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"E\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"S\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 5.7749999999999995,\u001b[39m\n\u001b[31m+     \"text\": \"W\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 4.8865384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 3.9980769230769226,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 6.219230769230769,\u001b[39m\n\u001b[31m+     \"text\": \"NO CURRENT CONTACT\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:05.920Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-landscape/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-landscape/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-android-landscape/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 124,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-5375510d1d627e00c889",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "visible controls provide touch sized hit targets",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 1114,
+                  "error": {
+                    "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 270,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 270,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 270,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:05.924Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-landscape/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-landscape/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-android-landscape/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-b46a136d17318f5bd075",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "normal load has no runtime, console or failed resource errors",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 2,
+                  "status": "failed",
+                  "duration": 865,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 18,
+                      "line": 39
+                    },
+                    "snippet": "  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 18,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:06.680Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-landscape/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-landscape/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-android-landscape/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 18,
+                    "line": 39
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-c95728e5a11a50b85b33",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 32,
+          "column": 1
+        },
+        {
+          "title": "initial view stays inside viewport and radar remains useful",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 3,
+                  "status": "failed",
+                  "duration": 470,
+                  "error": {
+                    "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 10\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 9.032692307692308,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 7.390384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 10\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 9.032692307692308,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 7.390384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 124,
+                      "line": 19
+                    },
+                    "snippet": "  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 124,
+                        "line": 19
+                      },
+                      "message": "Error: No visible radar label should shrink below 10 screen pixels\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 10\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 9.032692307692308,\u001b[39m\n\u001b[31m+     \"text\": \"RESTRICTED ZONE\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"renderedPixels\": 7.390384615384615,\u001b[39m\n\u001b[31m+     \"text\": \"SCHEMATIC BOUNDARY\",\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  17 |   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.\n  18 |   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);\n> 19 |   expect(labels.filter(label => label.renderedPixels < 10), 'No visible radar label should shrink below 10 screen pixels').toEqual([]);\n     |                                                                                                                            ^\n  20 | });\n  21 |\n  22 | test('visible controls provide touch sized hit targets', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:19:124"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:06.874Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-initial-2d485-rt-and-radar-remains-useful-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 124,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-37196014165ba577da9f",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "visible controls provide touch sized hit targets",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 928,
+                  "error": {
+                    "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 314,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 314,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 74,
+                      "line": 29
+                    },
+                    "snippet": "  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 74,
+                        "line": 29
+                      },
+                      "message": "Error: Important controls need at least 44px touch hit areas\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 17\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"FULL SCREEN\",\u001b[39m\n\u001b[31m+     \"width\": 102.859375,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 26,\u001b[39m\n\u001b[31m+     \"label\": \"VISO EVENT EVIDENCE / NO MEDIA\",\u001b[39m\n\u001b[31m+     \"width\": 314,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+   Object {\u001b[39m\n\u001b[31m+     \"height\": 33,\u001b[39m\n\u001b[31m+     \"label\": \"PLAY / RETRY DEMO FEED\",\u001b[39m\n\u001b[31m+     \"width\": 179.703125,\u001b[39m\n\u001b[31m+   },\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  27 |     return { label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 80), width: r.width, height: r.height };\n  28 |   }).filter(e => e.width < 43.5 || e.height < 43.5));\n> 29 |   expect(small, 'Important controls need at least 44px touch hit areas').toEqual([]);\n     |                                                                          ^\n  30 | });\n  31 |\n  32 | test('normal load has no runtime, console or failed resource errors', async ({ page }) => {\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:29:74"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:07.635Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-visible-4fd09-ide-touch-sized-hit-targets-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 74,
+                    "line": 29
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-6e25ec1cd7ec09fc8d63",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 22,
+          "column": 1
+        },
+        {
+          "title": "normal load has no runtime, console or failed resource errors",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 14,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 900,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18",
+                    "location": {
+                      "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                      "column": 18,
+                      "line": 39
+                    },
+                    "snippet": "  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                        "column": 18,
+                        "line": 39
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: net::ERR_CONNECTION_REFUSED\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  37 |   await page.goto('/');\n  38 |   await page.waitForLoadState('networkidle');\n> 39 |   expect(errors).toEqual([]);\n     |                  ^\n  40 |   expect(requests, 'Demo resources must be available from the serving app').toEqual([]);\n  41 | });\n  42 |\n    at /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs:39:18"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:09:07.675Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/test-results/mobile-regressions-normal--5a119-e-or-failed-resource-errors-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-qa/tests/browser/mobile-regressions.spec.cjs",
+                    "column": 18,
+                    "line": 39
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "54121d6b5272df724776-c34cce9bbf7ebb55d745",
+          "file": "mobile-regressions.spec.cjs",
+          "line": 32,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-10T10:09:01.910Z",
+    "duration": 6899.6179999999995,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 15,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "candidate": "bd12deae27cb2c160a26a04f8c905f628208f7fd",
+  "method": "Clean isolated worktree. First ./scripts/demo.sh created its own .venv and installed requirements successfully at b777af2. Fast-forwarded to bd12dea and restarted the same launcher. No frontend dependency/build step required.",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 8405
+    },
+    {
+      "path": "/health",
+      "status": 200,
+      "bytes": 64
+    },
+    {
+      "path": "/assets/operator.js",
+      "status": 200,
+      "bytes": 25001
+    },
+    {
+      "path": "/assets/scenario.js",
+      "status": 200,
+      "bytes": 7098
+    },
+    {
+      "path": "/api/targets",
+      "status": 200,
+      "bytes": 82
+    },
+    {
+      "path": "/?mode=sensor",
+      "status": 200,
+      "bytes": 8405
+    }
+  ]
+}

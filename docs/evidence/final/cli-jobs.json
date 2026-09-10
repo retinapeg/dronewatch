@@ -1,0 +1,27 @@
+{
+  "claude_jobs": [
+    {
+      "engine": "claude",
+      "branch": "claude/candidate-review",
+      "base_sha": "7083a1298357095bddf5d7892bf6524863b12121",
+      "started_at": "20260910T102323Z",
+      "timeout_seconds": 1800,
+      "exit_code": 1,
+      "elapsed_seconds": 379.28,
+      "final_sha": "7083a1298357095bddf5d7892bf6524863b12121",
+      "model_completed": false
+    },
+    {
+      "engine": "claude",
+      "branch": "claude/android-review",
+      "base_sha": "31a32e1764572837ff43691b50aa3a15bc458714",
+      "started_at": "20260910T100732Z",
+      "timeout_seconds": 1200,
+      "exit_code": 0,
+      "elapsed_seconds": 872.93,
+      "final_sha": "2f62e63d194e4ac7eb8bc0bd26571c6063e1f775"
+    }
+  ],
+  "codex_evidence": "docs/engineering/backend.md and local sibling .agent-runs/codex-backend/events-retry.jsonl, events-provenance.jsonl",
+  "claude_followup": "Scheduled 2026-09-10 12:35 Europe/London through current-thread heartbeat dronewatch-claude-follow-up; no paid API setup."
+}

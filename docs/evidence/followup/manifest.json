@@ -1,0 +1,22 @@
+{
+  "tested_commit": "c57034ee84fc108a8989a5b0dc8334eddbb26f36",
+  "application_unchanged_since": "1ae4335309c45f990efc63c8a9e7bf4e6aa0e062",
+  "command": "./scripts/test.sh",
+  "exit_code": 0,
+  "python_passed": 79,
+  "node_passed": 24,
+  "browser": {
+    "startTime": "2026-09-10T11:44:54.025Z",
+    "duration": 61258.521,
+    "expected": 128,
+    "skipped": 12,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "additional_probes": {
+    "actual_backend_restart": "PASS",
+    "source_age_transition": "PASS",
+    "actual_browser_visibility_and_return_touch": "PASS"
+  },
+  "captured_at": "2026-09-10T11:46:21.658339+00:00"
+}

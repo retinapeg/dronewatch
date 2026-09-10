@@ -1,0 +1,2380 @@
+{
+  "capturedAt": "2026-09-10T10:06:45.183Z",
+  "baseURL": "http://127.0.0.1:8011",
+  "description": "Desktop Chromium with Android viewport/user-agent/touch emulation; not a physical Android device.",
+  "results": [
+    {
+      "name": "android-360",
+      "initial": {
+        "viewport": {
+          "width": 360,
+          "height": 800,
+          "documentWidth": 360,
+          "documentHeight": 1656
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 1130.140625,
+            "width": 304,
+            "height": 25,
+            "right": 332,
+            "bottom": 1155.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 89.90625,
+            "y": 1214.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 270.078125,
+            "bottom": 1247.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": 492.75,
+          "width": 338,
+          "height": 283,
+          "right": 349,
+          "bottom": 775.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.0420000000000003
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 4.732
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          }
+        ],
+        "demoControlsHidden": true,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "controls": {
+        "viewport": {
+          "width": 360,
+          "height": 800,
+          "documentWidth": 360,
+          "documentHeight": 1665
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 265.140625,
+            "width": 304,
+            "height": 25,
+            "right": 332,
+            "bottom": 290.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 89.90625,
+            "y": 349.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 270.078125,
+            "bottom": 382.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 246.9375,
+            "y": 765.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 350,
+            "bottom": 785.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 29,
+            "y": 511,
+            "width": 145.140625,
+            "height": 33,
+            "right": 174.140625,
+            "bottom": 544,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "button",
+            "x": 29,
+            "y": 606,
+            "width": 82.0625,
+            "height": 33,
+            "right": 111.0625,
+            "bottom": 639,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 119.0625,
+            "y": 606,
+            "width": 131.125,
+            "height": 33,
+            "right": 250.1875,
+            "bottom": 639,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 258.1875,
+            "y": 606,
+            "width": 68.046875,
+            "height": 33,
+            "right": 326.234375,
+            "bottom": 639,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 42,
+            "y": 683,
+            "width": 209,
+            "height": 18,
+            "right": 251,
+            "bottom": 701,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": -372.25,
+          "width": 338,
+          "height": 283,
+          "right": 349,
+          "bottom": -89.25
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.0420000000000003
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 4.732
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "scenario": {
+        "viewport": {
+          "width": 360,
+          "height": 800,
+          "documentWidth": 360,
+          "documentHeight": 1710
+        },
+        "overflow": [
+          {
+            "selector": "button.",
+            "x": 275.9375,
+            "y": 1506.75,
+            "width": 96.078125,
+            "height": 46,
+            "right": 372.015625,
+            "bottom": 1552.75,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "label.file-button",
+            "x": 275.9375,
+            "y": 1606.75,
+            "width": 235,
+            "height": 59,
+            "right": 510.9375,
+            "bottom": 1665.75,
+            "text": "SELECT DEMO SOURCE VIDEO"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 288.9375,
+            "y": 1637.75,
+            "width": 209,
+            "height": 18,
+            "right": 497.9375,
+            "bottom": 1655.75,
+            "text": ""
+          }
+        ],
+        "smallControls": [
+          {
+            "selector": "#return-live",
+            "x": 36,
+            "y": -49.25,
+            "width": 132.125,
+            "height": 25,
+            "right": 168.125,
+            "bottom": -24.25,
+            "text": "RETURN TO SENSOR"
+          },
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 896.140625,
+            "width": 304,
+            "height": 25,
+            "right": 332,
+            "bottom": 921.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 89.90625,
+            "y": 980.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 270.078125,
+            "bottom": 1013.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 1113.75,
+            "width": 338,
+            "height": 43,
+            "right": 349,
+            "bottom": 1156.75,
+            "text": "10:06:23DEMOUAV detectedSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 1162.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 1189.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 1157.75,
+            "width": 338,
+            "height": 43,
+            "right": 349,
+            "bottom": 1200.75,
+            "text": "10:06:20DEMOAirspace clearSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 1206.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 1233.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 246.9375,
+            "y": 1396.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 350,
+            "bottom": 1416.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "button",
+            "x": 275.9375,
+            "y": 1465.75,
+            "width": 82.0625,
+            "height": 33,
+            "right": 358,
+            "bottom": 1498.75,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 275.9375,
+            "y": 1560.75,
+            "width": 68.046875,
+            "height": 33,
+            "right": 343.984375,
+            "bottom": 1593.75,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 288.9375,
+            "y": 1637.75,
+            "width": 209,
+            "height": 18,
+            "right": 497.9375,
+            "bottom": 1655.75,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": 258.75,
+          "width": 338,
+          "height": 283,
+          "right": 349,
+          "bottom": 541.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.394
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.0420000000000003
+          },
+          {
+            "text": "SIM-001",
+            "cssFont": "15px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "DETECTED / SIM",
+            "cssFont": "11px",
+            "renderedFont": 3.7180000000000004
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "errors": [
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "android-393",
+      "initial": {
+        "viewport": {
+          "width": 393,
+          "height": 873,
+          "documentWidth": 393,
+          "documentHeight": 1630
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 1104.140625,
+            "width": 337,
+            "height": 25,
+            "right": 365,
+            "bottom": 1129.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 106.40625,
+            "y": 1188.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 286.578125,
+            "bottom": 1221.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": 466.75,
+          "width": 371,
+          "height": 283,
+          "right": 382,
+          "bottom": 749.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.339
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 5.194
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.5649999999999995
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          }
+        ],
+        "demoControlsHidden": true,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "controls": {
+        "viewport": {
+          "width": 393,
+          "height": 873,
+          "documentWidth": 393,
+          "documentHeight": 1639
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 338.140625,
+            "width": 337,
+            "height": 25,
+            "right": 365,
+            "bottom": 363.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 106.40625,
+            "y": 422.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 286.578125,
+            "bottom": 455.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 279.9375,
+            "y": 838.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 383,
+            "bottom": 858.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 29,
+            "y": 584,
+            "width": 145.140625,
+            "height": 33,
+            "right": 174.140625,
+            "bottom": 617,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "button",
+            "x": 29,
+            "y": 679,
+            "width": 82.0625,
+            "height": 33,
+            "right": 111.0625,
+            "bottom": 712,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 119.0625,
+            "y": 679,
+            "width": 131.125,
+            "height": 33,
+            "right": 250.1875,
+            "bottom": 712,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 258.1875,
+            "y": 679,
+            "width": 68.046875,
+            "height": 33,
+            "right": 326.234375,
+            "bottom": 712,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 42,
+            "y": 756,
+            "width": 209,
+            "height": 18,
+            "right": 251,
+            "bottom": 774,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": -299.25,
+          "width": 371,
+          "height": 283,
+          "right": 382,
+          "bottom": -16.25
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.339
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 5.194
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.5649999999999995
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "scenario": {
+        "viewport": {
+          "width": 393,
+          "height": 873,
+          "documentWidth": 393,
+          "documentHeight": 1700
+        },
+        "overflow": [
+          {
+            "selector": "button.",
+            "x": 308.9375,
+            "y": 1484.359375,
+            "width": 96.078125,
+            "height": 46,
+            "right": 405.015625,
+            "bottom": 1530.359375,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "label.file-button",
+            "x": 308.9375,
+            "y": 1584.359375,
+            "width": 235,
+            "height": 59,
+            "right": 543.9375,
+            "bottom": 1643.359375,
+            "text": "SELECT DEMO SOURCE VIDEO"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 321.9375,
+            "y": 1615.359375,
+            "width": 209,
+            "height": 18,
+            "right": 530.9375,
+            "bottom": 1633.359375,
+            "text": ""
+          }
+        ],
+        "smallControls": [
+          {
+            "selector": "#return-live",
+            "x": 36,
+            "y": -3.25,
+            "width": 132.125,
+            "height": 25,
+            "right": 168.125,
+            "bottom": 21.75,
+            "text": "RETURN TO SENSOR"
+          },
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 932.140625,
+            "width": 337,
+            "height": 25,
+            "right": 365,
+            "bottom": 957.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 106.40625,
+            "y": 1016.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 286.578125,
+            "bottom": 1049.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 1149.75,
+            "width": 371,
+            "height": 43,
+            "right": 382,
+            "bottom": 1192.75,
+            "text": "10:06:29DEMOUAV detectedSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 1198.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 1225.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 1193.75,
+            "width": 371,
+            "height": 43,
+            "right": 382,
+            "bottom": 1236.75,
+            "text": "10:06:25DEMOAirspace clearSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 1242.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 1269.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 279.9375,
+            "y": 1432.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 383,
+            "bottom": 1452.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "button",
+            "x": 308.9375,
+            "y": 1443.359375,
+            "width": 82.0625,
+            "height": 33,
+            "right": 391,
+            "bottom": 1476.359375,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 308.9375,
+            "y": 1538.359375,
+            "width": 68.046875,
+            "height": 33,
+            "right": 376.984375,
+            "bottom": 1571.359375,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 321.9375,
+            "y": 1615.359375,
+            "width": 209,
+            "height": 18,
+            "right": 530.9375,
+            "bottom": 1633.359375,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": 294.75,
+          "width": 371,
+          "height": 283,
+          "right": 382,
+          "bottom": 577.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 4.823
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.339
+          },
+          {
+            "text": "SIM-001",
+            "cssFont": "15px",
+            "renderedFont": 5.5649999999999995
+          },
+          {
+            "text": "DETECTED / SIM",
+            "cssFont": "11px",
+            "renderedFont": 4.0809999999999995
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "errors": [
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "android-412",
+      "initial": {
+        "viewport": {
+          "width": 412,
+          "height": 915,
+          "documentWidth": 412,
+          "documentHeight": 1627
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 1101.140625,
+            "width": 356,
+            "height": 25,
+            "right": 384,
+            "bottom": 1126.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 115.90625,
+            "y": 1185.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 296.078125,
+            "bottom": 1218.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": 463.75,
+          "width": 390,
+          "height": 283,
+          "right": 401,
+          "bottom": 746.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.5100000000000002
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 5.46
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.8500000000000005
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          }
+        ],
+        "demoControlsHidden": true,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "controls": {
+        "viewport": {
+          "width": 412,
+          "height": 915,
+          "documentWidth": 412,
+          "documentHeight": 1636
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 380.140625,
+            "width": 356,
+            "height": 25,
+            "right": 384,
+            "bottom": 405.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 115.90625,
+            "y": 464.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 296.078125,
+            "bottom": 497.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 298.9375,
+            "y": 880.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 402,
+            "bottom": 900.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 29,
+            "y": 626,
+            "width": 145.140625,
+            "height": 33,
+            "right": 174.140625,
+            "bottom": 659,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "button",
+            "x": 29,
+            "y": 721,
+            "width": 82.0625,
+            "height": 33,
+            "right": 111.0625,
+            "bottom": 754,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 119.0625,
+            "y": 721,
+            "width": 131.125,
+            "height": 33,
+            "right": 250.1875,
+            "bottom": 754,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 258.1875,
+            "y": 721,
+            "width": 68.046875,
+            "height": 33,
+            "right": 326.234375,
+            "bottom": 754,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 42,
+            "y": 798,
+            "width": 209,
+            "height": 18,
+            "right": 251,
+            "bottom": 816,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": -257.25,
+          "width": 390,
+          "height": 283,
+          "right": 401,
+          "bottom": 25.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.5100000000000002
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 5.46
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 5.8500000000000005
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "scenario": {
+        "viewport": {
+          "width": 412,
+          "height": 915,
+          "documentWidth": 412,
+          "documentHeight": 1697
+        },
+        "overflow": [
+          {
+            "selector": "button.",
+            "x": 327.9375,
+            "y": 1155.75,
+            "width": 96.078125,
+            "height": 46,
+            "right": 424.015625,
+            "bottom": 1201.75,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "label.file-button",
+            "x": 327.9375,
+            "y": 1255.75,
+            "width": 235,
+            "height": 59,
+            "right": 562.9375,
+            "bottom": 1314.75,
+            "text": "SELECT DEMO SOURCE VIDEO"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 340.9375,
+            "y": 1286.75,
+            "width": 209,
+            "height": 18,
+            "right": 549.9375,
+            "bottom": 1304.75,
+            "text": ""
+          }
+        ],
+        "smallControls": [
+          {
+            "selector": "#return-live",
+            "x": 36,
+            "y": -298.25,
+            "width": 132.125,
+            "height": 25,
+            "right": 168.125,
+            "bottom": -273.25,
+            "text": "RETURN TO SENSOR"
+          },
+          {
+            "selector": "summary",
+            "x": 28,
+            "y": 637.140625,
+            "width": 356,
+            "height": 25,
+            "right": 384,
+            "bottom": 662.140625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 115.90625,
+            "y": 721.75,
+            "width": 180.171875,
+            "height": 33,
+            "right": 296.078125,
+            "bottom": 754.75,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 854.75,
+            "width": 390,
+            "height": 43,
+            "right": 401,
+            "bottom": 897.75,
+            "text": "10:06:34DEMOUAV detectedSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 903.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 930.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 11,
+            "y": 898.75,
+            "width": 390,
+            "height": 43,
+            "right": 401,
+            "bottom": 941.75,
+            "text": "10:06:31DEMOAirspace clearSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 28,
+            "y": 947.75,
+            "width": 167.171875,
+            "height": 27,
+            "right": 195.171875,
+            "bottom": 974.75,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 298.9375,
+            "y": 1137.75,
+            "width": 103.0625,
+            "height": 20,
+            "right": 402,
+            "bottom": 1157.75,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "button",
+            "x": 327.9375,
+            "y": 1114.75,
+            "width": 82.0625,
+            "height": 33,
+            "right": 410,
+            "bottom": 1147.75,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 327.9375,
+            "y": 1209.75,
+            "width": 68.046875,
+            "height": 33,
+            "right": 395.984375,
+            "bottom": 1242.75,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 340.9375,
+            "y": 1286.75,
+            "width": 209,
+            "height": 18,
+            "right": 549.9375,
+            "bottom": 1304.75,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 11,
+          "y": -0.25,
+          "width": 390,
+          "height": 283,
+          "right": 401,
+          "bottom": 282.75
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.07
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.5100000000000002
+          },
+          {
+            "text": "SIM-001",
+            "cssFont": "15px",
+            "renderedFont": 5.8500000000000005
+          },
+          {
+            "text": "DETECTED / SIM",
+            "cssFont": "11px",
+            "renderedFont": 4.29
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "errors": [
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "android-landscape",
+      "initial": {
+        "viewport": {
+          "width": 873,
+          "height": 393,
+          "documentWidth": 873,
+          "documentHeight": 680
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 757.90625,
+            "y": 15.5,
+            "width": 103.09375,
+            "height": 33,
+            "right": 861,
+            "bottom": 48.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "summary",
+            "x": 576,
+            "y": 498.390625,
+            "width": 270,
+            "height": 25,
+            "right": 846,
+            "bottom": 523.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 620.90625,
+            "y": 480.1875,
+            "width": 180.171875,
+            "height": 33,
+            "right": 801.078125,
+            "bottom": 513.1875,
+            "text": "PLAY / RETRY DEMO FEED"
+          }
+        ],
+        "radar": {
+          "x": 13,
+          "y": 256,
+          "width": 535,
+          "height": 231,
+          "right": 548,
+          "bottom": 487
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.9980769230769226
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 6.219230769230769
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 6.663461538461538
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          }
+        ],
+        "demoControlsHidden": true,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "controls": {
+        "viewport": {
+          "width": 873,
+          "height": 393,
+          "documentWidth": 873,
+          "documentHeight": 680
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 757.90625,
+            "y": -270.5,
+            "width": 103.09375,
+            "height": 33,
+            "right": 861,
+            "bottom": -237.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "summary",
+            "x": 576,
+            "y": 212.390625,
+            "width": 270,
+            "height": 25,
+            "right": 846,
+            "bottom": 237.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 620.90625,
+            "y": 194.1875,
+            "width": 180.171875,
+            "height": 33,
+            "right": 801.078125,
+            "bottom": 227.1875,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 757.9375,
+            "y": 360,
+            "width": 103.0625,
+            "height": 20,
+            "right": 861,
+            "bottom": 380,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 460,
+            "y": 101,
+            "width": 145.140625,
+            "height": 33,
+            "right": 605.140625,
+            "bottom": 134,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "button",
+            "x": 460,
+            "y": 196,
+            "width": 82.0625,
+            "height": 33,
+            "right": 542.0625,
+            "bottom": 229,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 550.0625,
+            "y": 196,
+            "width": 131.125,
+            "height": 33,
+            "right": 681.1875,
+            "bottom": 229,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 689.1875,
+            "y": 196,
+            "width": 68.046875,
+            "height": 33,
+            "right": 757.234375,
+            "bottom": 229,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 473,
+            "y": 273,
+            "width": 209,
+            "height": 18,
+            "right": 682,
+            "bottom": 291,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 13,
+          "y": -30,
+          "width": 535,
+          "height": 231,
+          "right": 548,
+          "bottom": 201
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.9980769230769226
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 6.219230769230769
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 6.663461538461538
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "scenario": {
+        "viewport": {
+          "width": 873,
+          "height": 393,
+          "documentWidth": 873,
+          "documentHeight": 680
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 757.90625,
+            "y": -271.5,
+            "width": 103.09375,
+            "height": 33,
+            "right": 861,
+            "bottom": -238.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "#return-live",
+            "x": 709.875,
+            "y": -171.5,
+            "width": 132.125,
+            "height": 25,
+            "right": 842,
+            "bottom": -146.5,
+            "text": "RETURN TO SENSOR"
+          },
+          {
+            "selector": "summary",
+            "x": 576,
+            "y": 211.390625,
+            "width": 270,
+            "height": 25,
+            "right": 846,
+            "bottom": 236.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 620.90625,
+            "y": 193.1875,
+            "width": 180.171875,
+            "height": 33,
+            "right": 801.078125,
+            "bottom": 226.1875,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 13,
+            "y": 280,
+            "width": 847,
+            "height": 43,
+            "right": 860,
+            "bottom": 323,
+            "text": "10:06:39DEMOUAV detectedSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 30,
+            "y": 329,
+            "width": 167.171875,
+            "height": 27,
+            "right": 197.171875,
+            "bottom": 356,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 13,
+            "y": 324,
+            "width": 847,
+            "height": 43,
+            "right": 860,
+            "bottom": 367,
+            "text": "10:06:36DEMOAirspace clearSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 30,
+            "y": 373,
+            "width": 167.171875,
+            "height": 27,
+            "right": 197.171875,
+            "bottom": 400,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 757.9375,
+            "y": 359,
+            "width": 103.0625,
+            "height": 20,
+            "right": 861,
+            "bottom": 379,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 460,
+            "y": 100,
+            "width": 145.140625,
+            "height": 33,
+            "right": 605.140625,
+            "bottom": 133,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "#stop-demo",
+            "x": 613.140625,
+            "y": 100,
+            "width": 187.1875,
+            "height": 33,
+            "right": 800.328125,
+            "bottom": 133,
+            "text": "STOP / RETURN TO SENSOR"
+          },
+          {
+            "selector": "button",
+            "x": 460,
+            "y": 195,
+            "width": 82.0625,
+            "height": 33,
+            "right": 542.0625,
+            "bottom": 228,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 550.0625,
+            "y": 195,
+            "width": 131.125,
+            "height": 33,
+            "right": 681.1875,
+            "bottom": 228,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 689.1875,
+            "y": 195,
+            "width": 68.046875,
+            "height": 33,
+            "right": 757.234375,
+            "bottom": 228,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 473,
+            "y": 272,
+            "width": 209,
+            "height": 18,
+            "right": 682,
+            "bottom": 290,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 13,
+          "y": -31,
+          "width": 535,
+          "height": 231,
+          "right": 548,
+          "bottom": 200
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 5.7749999999999995
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 3.9980769230769226
+          },
+          {
+            "text": "SIM-001",
+            "cssFont": "15px",
+            "renderedFont": 6.663461538461538
+          },
+          {
+            "text": "DETECTED / SIM",
+            "cssFont": "11px",
+            "renderedFont": 4.8865384615384615
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "errors": [
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    },
+    {
+      "name": "desktop",
+      "initial": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "documentHeight": 1000
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 1313.140625,
+            "y": 24.5,
+            "width": 102.859375,
+            "height": 33,
+            "right": 1416,
+            "bottom": 57.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "summary",
+            "x": 1084,
+            "y": 563.390625,
+            "width": 314,
+            "height": 26,
+            "right": 1398,
+            "bottom": 589.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 1151.140625,
+            "y": 682.203125,
+            "width": 179.703125,
+            "height": 33,
+            "right": 1330.84375,
+            "bottom": 715.203125,
+            "text": "PLAY / RETRY DEMO FEED"
+          }
+        ],
+        "radar": {
+          "x": 25,
+          "y": 299,
+          "width": 1028,
+          "height": 427,
+          "right": 1053,
+          "bottom": 726
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 7.390384615384615
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 11.496153846153845
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 12.317307692307692
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          }
+        ],
+        "demoControlsHidden": true,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "controls": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "documentHeight": 1000
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 1313.140625,
+            "y": 24.5,
+            "width": 102.859375,
+            "height": 33,
+            "right": 1416,
+            "bottom": 57.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "summary",
+            "x": 1084,
+            "y": 563.390625,
+            "width": 314,
+            "height": 26,
+            "right": 1398,
+            "bottom": 589.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 1151.140625,
+            "y": 682.203125,
+            "width": 179.703125,
+            "height": 33,
+            "right": 1330.84375,
+            "bottom": 715.203125,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 1313.234375,
+            "y": 965.5,
+            "width": 102.765625,
+            "height": 21,
+            "right": 1416,
+            "bottom": 986.5,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 1015,
+            "y": 707.5,
+            "width": 144.765625,
+            "height": 33,
+            "right": 1159.765625,
+            "bottom": 740.5,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "button",
+            "x": 1015,
+            "y": 802.5,
+            "width": 81.890625,
+            "height": 33,
+            "right": 1096.890625,
+            "bottom": 835.5,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 1104.890625,
+            "y": 802.5,
+            "width": 130.796875,
+            "height": 33,
+            "right": 1235.6875,
+            "bottom": 835.5,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 1243.6875,
+            "y": 802.5,
+            "width": 67.921875,
+            "height": 33,
+            "right": 1311.609375,
+            "bottom": 835.5,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 1028,
+            "y": 879.5,
+            "width": 209,
+            "height": 18,
+            "right": 1237,
+            "bottom": 897.5,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 25,
+          "y": 299,
+          "width": 1028,
+          "height": 427,
+          "right": 1053,
+          "bottom": 726
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 7.390384615384615
+          },
+          {
+            "text": "NO CURRENT CONTACT",
+            "cssFont": "14px",
+            "renderedFont": 11.496153846153845
+          },
+          {
+            "text": "—",
+            "cssFont": "15px",
+            "renderedFont": 12.317307692307692
+          },
+          {
+            "text": "UNKNOWN",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "scenario": {
+        "viewport": {
+          "width": 1440,
+          "height": 1000,
+          "documentWidth": 1440,
+          "documentHeight": 1000
+        },
+        "overflow": [],
+        "smallControls": [
+          {
+            "selector": "#fullscreen",
+            "x": 1313.140625,
+            "y": 24.5,
+            "width": 102.859375,
+            "height": 33,
+            "right": 1416,
+            "bottom": 57.5,
+            "text": "FULL SCREEN"
+          },
+          {
+            "selector": "#return-live",
+            "x": 1261.21875,
+            "y": 129.5,
+            "width": 131.78125,
+            "height": 25,
+            "right": 1393,
+            "bottom": 154.5,
+            "text": "RETURN TO SENSOR"
+          },
+          {
+            "selector": "summary",
+            "x": 1084,
+            "y": 563.390625,
+            "width": 314,
+            "height": 26,
+            "right": 1398,
+            "bottom": 589.390625,
+            "text": "VISO EVENT EVIDENCE / NO MEDIA"
+          },
+          {
+            "selector": "#retry-feed",
+            "x": 1151.140625,
+            "y": 682.203125,
+            "width": 179.703125,
+            "height": 33,
+            "right": 1330.84375,
+            "bottom": 715.203125,
+            "text": "PLAY / RETRY DEMO FEED"
+          },
+          {
+            "selector": "summary",
+            "x": 25,
+            "y": 816,
+            "width": 1390,
+            "height": 43,
+            "right": 1415,
+            "bottom": 859,
+            "text": "10:06:44DEMOUAV detectedSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 204,
+            "y": 865,
+            "width": 166.71875,
+            "height": 27,
+            "right": 370.71875,
+            "bottom": 892,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 25,
+            "y": 860,
+            "width": 1390,
+            "height": 43,
+            "right": 1415,
+            "bottom": 903,
+            "text": "10:06:41DEMOAirspace clearSIMULATED / LOCALLOCAL ONLY+"
+          },
+          {
+            "selector": "button",
+            "x": 204,
+            "y": 909,
+            "width": 166.71875,
+            "height": 27,
+            "right": 370.71875,
+            "bottom": 936,
+            "text": "SHOW THIS OBSERVATION"
+          },
+          {
+            "selector": "summary",
+            "x": 1313.234375,
+            "y": 965.5,
+            "width": 102.765625,
+            "height": 21,
+            "right": 1416,
+            "bottom": 986.5,
+            "text": "DEMO CONTROLS +"
+          },
+          {
+            "selector": "#run-demo",
+            "x": 1015,
+            "y": 707.5,
+            "width": 144.765625,
+            "height": 33,
+            "right": 1159.765625,
+            "bottom": 740.5,
+            "text": "RUN DEMO SCENARIO"
+          },
+          {
+            "selector": "#stop-demo",
+            "x": 1167.765625,
+            "y": 707.5,
+            "width": 186.6875,
+            "height": 33,
+            "right": 1354.453125,
+            "bottom": 740.5,
+            "text": "STOP / RETURN TO SENSOR"
+          },
+          {
+            "selector": "button",
+            "x": 1015,
+            "y": 802.5,
+            "width": 81.890625,
+            "height": 33,
+            "right": 1096.890625,
+            "bottom": 835.5,
+            "text": "DETECTED"
+          },
+          {
+            "selector": "button",
+            "x": 1104.890625,
+            "y": 802.5,
+            "width": 130.796875,
+            "height": 33,
+            "right": 1235.6875,
+            "bottom": 835.5,
+            "text": "RESTRICTED ZONE"
+          },
+          {
+            "selector": "button",
+            "x": 1243.6875,
+            "y": 802.5,
+            "width": 67.921875,
+            "height": 33,
+            "right": 1311.609375,
+            "bottom": 835.5,
+            "text": "EXITED"
+          },
+          {
+            "selector": "#demo-video",
+            "x": 1028,
+            "y": 879.5,
+            "width": 209,
+            "height": 18,
+            "right": 1237,
+            "bottom": 897.5,
+            "text": ""
+          }
+        ],
+        "radar": {
+          "x": 25,
+          "y": 299,
+          "width": 1028,
+          "height": 427,
+          "right": 1053,
+          "bottom": 726
+        },
+        "labels": [
+          {
+            "text": "N",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "E",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "S",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "W",
+            "cssFont": "13px",
+            "renderedFont": 10.674999999999999
+          },
+          {
+            "text": "RESTRICTED ZONE",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          },
+          {
+            "text": "SCHEMATIC BOUNDARY",
+            "cssFont": "9px",
+            "renderedFont": 7.390384615384615
+          },
+          {
+            "text": "SIM-001",
+            "cssFont": "15px",
+            "renderedFont": 12.317307692307692
+          },
+          {
+            "text": "DETECTED / SIM",
+            "cssFont": "11px",
+            "renderedFont": 9.032692307692308
+          }
+        ],
+        "demoControlsHidden": false,
+        "videoURL": "http://127.0.0.1:8001/mq9-reaper.mp4"
+      },
+      "errors": [
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "kind": "console",
+          "message": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+        }
+      ],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        },
+        {
+          "url": "http://127.0.0.1:8001/mq9-reaper.mp4",
+          "error": "net::ERR_CONNECTION_REFUSED"
+        }
+      ]
+    }
+  ]
+}
