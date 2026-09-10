@@ -10,9 +10,9 @@ test('initial view stays inside viewport and radar remains useful', async ({ pag
   expect(bounds.width).toBeGreaterThanOrEqual(Math.min(300, size.width - 24));
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(size.width + 1);
-  const labels = await radar.locator('text').evaluateAll(elements => elements.filter(e => e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })).map(e => {
-    const matrix = e.getScreenCTM();
-    return { text: e.textContent, renderedPixels: parseFloat(getComputedStyle(e).fontSize) * Math.hypot(matrix.a, matrix.b) };
+  const labels = await radar.locator('text, .marker-label, .zone-label strong, .zone-label > span, .radar-north, .radar-corner, .radar-corner > span, .radar-key > span').evaluateAll(elements => elements.filter(e => e.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })).map(e => {
+    const matrix = typeof e.getScreenCTM === 'function' ? e.getScreenCTM() : null;
+    return { text: e.textContent, renderedPixels: parseFloat(getComputedStyle(e).fontSize) * (matrix ? Math.hypot(matrix.a, matrix.b) : 1) };
   }));
   // SVG CSS font-size alone is misleading: viewBox scaling caused 3–6px text.
   expect(labels.length, 'Radar should expose readable reference labels').toBeGreaterThan(0);
