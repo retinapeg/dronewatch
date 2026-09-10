@@ -323,3 +323,71 @@ def test_bearing_backup_constrains_cross_range_only():
     assert minor_bearing < 0.9 * minor_plain, "the axis across the line of sight tightens"
     assert major_bearing > 0.9 * minor_plain, "range stays unobservable"
     assert all(t["fresh"] == "S" for t in fb), "a bearing does not refresh positional information"
+
+
+# --- stochastic containment for a lost contact -------------------------------------
+
+def test_monte_carlo_agrees_with_the_closed_form():
+    """The SDE is linear-Gaussian, so the sampled ensemble must reproduce the
+    analytic containment radius. This is the check that the simulation is
+    right, not merely plausible."""
+    from dronewatch.tracks import uncertainty as U
+    for tau in (5.0, 20.0, 40.0):
+        v = U.validate(w=4.0, tau=tau, n_paths=3000, seed=3)
+        assert 0.96 <= v["ratio"] <= 1.04, v
+        assert 0.93 <= v["empirical_containment"] <= 0.97, v
+
+
+def test_containment_radius_is_the_major_axis():
+    from dronewatch.tracks import uncertainty as U
+    r = U.containment_radius([[400.0, 0.0], [0.0, 100.0]], 0.95)
+    assert abs(r - math.sqrt(5.9914645471 * 400.0)) < 1e-6, "must use the larger axis"
+
+
+def test_containment_grows_monotonically_after_loss():
+    from dronewatch.tracks import uncertainty as U
+    x0 = [0.0, 0.0, 20.0, 0.0]
+    p0 = [[100.0, 0, 0, 0], [0, 100.0, 0, 0], [0, 0, 64.0, 0], [0, 0, 0, 64.0]]
+    last = -1.0
+    for tau in (0, 1, 2, 5, 10, 20, 40):
+        _, cov = U.analytic_state(x0, p0, tau, 4.0)
+        r = U.containment_radius([[cov[0][0], cov[0][1]], [cov[1][0], cov[1][1]]])
+        assert r > last
+        last = r
+
+
+def test_cue_feasibility_fails_closed_as_uncertainty_grows():
+    """A track that is cueable at loss must become un-cueable, and the reason
+    must say so. The negative result is the point of the assessment."""
+    from dronewatch.tracks import uncertainty as U
+    x0 = [0.0, 0.0, 22.0, -8.0]
+    p0 = [[100, 0, 20, 0], [0, 100, 0, 20], [20, 0, 64, 0], [0, 20, 0, 64]]
+    _, c0 = U.analytic_state(x0, p0, 0.0, 4.0)
+    a0 = U.cue_feasibility(c0, 1200.0, 0.0, growth_probe=(x0, p0, 4.0))
+    assert a0.feasible and a0.seconds_until_infeasible is not None
+    _, c5 = U.analytic_state(x0, p0, 5.0, 4.0)
+    a5 = U.cue_feasibility(c5, 1200.0, 5.0)
+    assert not a5.feasible and "exceeds" in a5.reason  # the Python object keeps the sentence
+    assert a5.excess > 1.0
+
+
+def test_speed_bound_rejects_implausible_paths_and_reports_it():
+    from dronewatch.tracks import uncertainty as U
+    x0 = [0.0, 0.0, 40.0, 0.0]
+    p0 = [[25.0, 0, 0, 0], [0, 25.0, 0, 0], [0, 0, 100.0, 0], [0, 0, 0, 100.0]]
+    ens = U.sample_paths(x0, p0, 20.0, 4.0, n_paths=200, steps=16, seed=5, max_speed_m_s=45.0)
+    assert ens.rejected > 0, "starting at 40 m/s with a 45 m/s bound, some draws must be refused"
+    assert ens.n_paths == 200
+    assert all(len(p) == 17 for p in ens.paths)
+
+
+def test_projection_carries_velocity_containment_and_cue():
+    tl = run_mode("radar:40-55")
+    f = tl["frames"][int(50 * 5)]
+    for tr in f["tracks"]:
+        assert "vel" in tr and len(tr["vel"]) == 2
+        assert tr["r95"] > 0
+        assert tr["cue"] in ("ok", "range", "unc")
+        assert tr["fresh"] == "S" and tr["cue"] != "ok", "a stale track must not be cueable"
+    before = tl["frames"][int(38 * 5)]["tracks"]
+    assert all(t["r95"] < f["tracks"][0]["r95"] for t in before), "containment grows through the blackout"

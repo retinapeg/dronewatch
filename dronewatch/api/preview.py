@@ -43,6 +43,7 @@ from ..synthetic.generator import (
 )
 from ..synthetic.scenarios import SCENARIO_NAMES
 from ..tracks.frames import build_timeline
+from ..tracks import uncertainty as _unc
 from ..tracks.site import MonitoredSite
 
 router = APIRouter()
@@ -373,6 +374,69 @@ async def protected_viso_webhook(request: Request) -> Dict[str, Any]:
     incident = v1._normalize_incident(payload, "VISO", simulated=False)
     v1._write_incident(incident)
     return {"status": "ok", "outcome": delivery.outcome.value}
+
+
+@router.get("/api/preview/paths")
+def get_paths(
+    name: str = Query("operator_demo"),
+    seed: int = Query(42, ge=0, le=999_999),
+    count: int = Query(6, ge=MIN_CONTACTS, le=MAX_CONTACTS),
+    duration_s: float = Query(OPERATOR_DEMO_DURATION_S, gt=0, le=MAX_DURATION_S),
+    mode: str = Query("normal"),
+    track: str = Query(...),
+    t: float = Query(..., ge=0),
+    paths: int = Query(160, ge=8, le=600),
+    horizon_s: float = Query(20.0, gt=0, le=120),
+    max_speed: float = Query(45.0, gt=0, le=200),
+) -> Dict[str, Any]:
+    """Monte Carlo realisations of where a contact may be, from its last
+    accepted state.
+
+    Runs the tracker's own Itô SDE (nearly-constant velocity, white
+    acceleration) forward from the estimate at frame time `t`, with the
+    initial state drawn from the filter's posterior. The analytic 95% radius
+    is returned beside the empirical one so the two can be compared on screen.
+    """
+    timeline = get_tracks(name=name, seed=seed, count=count, duration_s=duration_s, mode=mode)
+    frames = timeline["frames"]
+    idx = min(len(frames) - 1, max(0, int(round(t * timeline["frame_hz"]))))
+    frame = frames[idx]
+    snap = next((s for s in frame["tracks"] if s["id"] == track), None)
+    if snap is None:
+        raise HTTPException(status_code=404, detail=f"{track} is not reported at t={frame['t']}")
+
+    # Reconstruct the 4x4 covariance from what the projection carries: the
+    # position block, plus velocity variance grown from the positional age.
+    c = snap["cov"]
+    age = snap["age_s"]
+    w = timeline["estimator"]["process_noise_w_m2_s3"]
+    v_var = 30.0 ** 2 * 0.05 + w * max(age, 0.0)   # a conservative velocity prior
+    x0 = [snap.get("est", [snap["x"], snap["y"]])[0], snap.get("est", [snap["x"], snap["y"]])[1],
+          snap["vel"][0], snap["vel"][1]]
+    p0 = [[c[0], c[1], 0.0, 0.0], [c[1], c[2], 0.0, 0.0],
+          [0.0, 0.0, v_var, 0.0], [0.0, 0.0, 0.0, v_var]]
+
+    ens = _unc.sample_paths(x0, p0, horizon_s, w, n_paths=paths, steps=16,
+                            seed=seed * 7919 + idx, max_speed_m_s=max_speed)
+    # A second, unbounded ensemble purely to report agreement with the closed form.
+    check = _unc.sample_paths(x0, p0, horizon_s, w, n_paths=1500, steps=16, seed=seed + 1)
+    return {
+        "track": track, "t": frame["t"], "status": snap["status"], "fresh": snap["fresh"],
+        "age_s": age, "horizon_s": horizon_s, "process_noise_w": w,
+        "origin": [round(x0[0], 1), round(x0[1], 1)],
+        "vel": snap["vel"],
+        "times": ens.times,
+        "paths": [[[round(x, 1), round(y, 1)] for x, y in path] for path in ens.paths],
+        "n_paths": ens.n_paths, "rejected_by_speed_bound": ens.rejected,
+        "analytic_r95_now_m": snap["r95"],
+        "analytic_r95_at_horizon_m": ens.analytic_radius_m,
+        "empirical_r95_at_horizon_m": check.empirical_radius_m,
+        "empirical_containment": check.empirical_containment,
+        "model": "Ito SDE: dp = v dt, dv = dW, W = w I; Euler-Maruyama, exact for this linear model",
+        "cue": snap["cue"],
+        "cue_window_s": snap.get("cue_window_s"),
+        "synthetic": True,
+    }
 
 
 @router.get("/api/preview/viso/status")

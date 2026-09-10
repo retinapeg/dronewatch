@@ -78,6 +78,21 @@ select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid 
 .row .mv{font:11px var(--mono);letter-spacing:.06em;color:var(--ink-faint);text-align:right}
 .row .id .st{font-weight:400;font-size:10px;color:var(--ink-faint);margin-left:6px;letter-spacing:.06em}
 .p-high{color:var(--high)}.p-watch{color:var(--watch)}.p-low{color:var(--low)}
+.p-lost{color:#ff3b3b}
+@keyframes lostpulse{0%,100%{opacity:.55}50%{opacity:1}}
+.lost-glow{filter:drop-shadow(0 0 6px #ff2a2a) drop-shadow(0 0 14px #ff2a2a88);animation:lostpulse 1.6s ease-in-out infinite}
+.row.lost{border-left-color:#ff3b3b;background:#2a0f12}
+.row .fr.s{color:#ff3b3b;font-weight:700}
+.badge.p-lost{background:#3a0f12;border-color:#7a1f24;color:#ff6b6b}
+.cue{border:1px solid var(--line-2);border-radius:6px;padding:9px 11px;margin:10px 0 4px;font:11.5px/1.5 var(--mono)}
+.cue .h{font-weight:700;letter-spacing:.1em;font-size:10px;color:var(--ink-faint);margin-bottom:4px}
+.cue.no{border-color:#7a1f24;background:#2a0f12}
+.cue.no .v{color:#ff5d5d;font-weight:700}
+.cue.ok{border-color:#1f5a34;background:#0f2a18}
+.cue.ok .v{color:#4ad27a;font-weight:700}
+.cue .d{color:var(--ink-dim);margin-top:3px}
+.mc-note{font:10.5px var(--mono);color:var(--ink-faint);margin-top:6px;line-height:1.5}
+.summary .lost{color:#ff3b3b;font-weight:700}
 .card{flex:1 1 auto;min-height:0;overflow-y:auto;border-top:1px solid var(--line-2);padding:12px 14px 14px}
 .card .empty{color:var(--ink-faint);font-size:13px;padding:18px 0;text-align:center}
 .card .top{display:flex;align-items:center;gap:10px;padding:0;border:0;background:none;height:auto}
@@ -137,7 +152,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 <div class="app">
   <header class="top">
     <div class="brand"><span class="mark"></span>DroneWatch</div>
-    <span class="sim">SIMULATION — NOT LIVE</span>
+    <span class="sim">SIMULATION — NOT LIVE · C-UAS TRACK PICTURE</span>
     <select id="scenario" aria-label="Scenario">
       <option value="operator_demo">Incoming group</option>
       <option value="operator_demo_signal_loss">Incoming group + contact loss</option>
@@ -400,7 +415,8 @@ if(typeof module!=='undefined') module.exports=OP;
     camera:{cx:0,cy:900,scale:0.2}, target:null, viewport:{w:1200,h:800},
     mode:'operator',            // operator | focus | follow | manual
     selectedId:null, timer:null, lastRaf:0, lastFrame:-1,
-    count:6, scenario:'operator_demo', seed:42, mode:'normal', drag:null,
+    count:6, scenario:'operator_demo', seed:42, lossMode:'normal', drag:null,
+    mc:null, mcKey:null,
   };
   window.OPSTATE=state;
 
@@ -410,7 +426,7 @@ if(typeof module!=='undefined') module.exports=OP;
     state.playback=OP.createPlayback([]); state.lastFrame=-1;
     $('contact-count').textContent='loading…';
     $('rows').innerHTML=''; renderCard();
-    const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}&mode=${encodeURIComponent(state.mode)}`;
+    const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}&mode=${encodeURIComponent(state.lossMode)}`;
     let data;
     try{ const r=await fetch(url); if(!r.ok) throw new Error(r.status); data=await r.json(); }
     catch(e){ $('contact-count').textContent='load failed'; return; }
@@ -419,7 +435,7 @@ if(typeof module!=='undefined') module.exports=OP;
     if(Array.isArray(data.modes)){
       const sel=$('mode'); sel.replaceChildren();
       for(const m of data.modes){const o=document.createElement('option');o.value=m.id;o.textContent=m.label;sel.append(o)}
-      sel.value=data.mode||state.mode;
+      sel.value=data.mode||state.lossMode;
     }
     resizeViewport();
     state.mode='operator'; state.target=null;
@@ -437,10 +453,12 @@ if(typeof module!=='undefined') module.exports=OP;
     if(!state.playback.play()) return;
     const hz=state.data.frame_hz||5, speed=parseFloat($('speed').value)||1;
     clearInterval(state.timer);
+    let tick=0;
     state.timer=setInterval(()=>{
       state.playback.step(1);
       if(!state.playback.playing) stop();
       render();
+      if(++tick%5===0) loadPathsIfLost();   // once a second at 5 Hz
     },1000/(hz*speed));
     syncTransport();
   }
@@ -563,10 +581,37 @@ if(typeof module!=='undefined') module.exports=OP;
       if(isSel&&focus){
         stage.append(svg('line',{x1:p.px,y1:p.py,x2:s.px,y2:s.py,stroke:'#ffffff','stroke-opacity':0.28,'stroke-width':1,'stroke-dasharray':'3 5'}));
       }
-      // Uncertainty from the backend covariance: the 95% ellipse around the
-      // predicted state. Drawn for the selected track always, and for any
-      // track whose positional information is no longer fresh.
       const lost=t.fresh==='P'||t.fresh==='S';
+      // LOST CONTACT: a glowing red containment circle of radius R95 around
+      // the predicted position — the search area, from the filter covariance.
+      if(lost&&t.r95){
+        const ec=t.est?P.toScreen(t.est[0],t.est[1]):p;
+        const rr=Math.max(6,t.r95*sc);
+        const g=svg('g',{class:'lost-glow'});
+        g.append(svg('circle',{cx:ec.px,cy:ec.py,r:rr,fill:'#ff2a2a',
+          'fill-opacity':isSel?0.10:0.06,stroke:'#ff3b3b','stroke-width':isSel?2:1.4,
+          'stroke-dasharray':t.fresh==='S'?'6 4':'none'}));
+        stage.append(g);
+        if(rr>26){
+          const rl=svg('text',{x:ec.px,y:ec.py-rr-6,'text-anchor':'middle',fill:'#ff6b6b',
+            'font-size':10,'font-family':'var(--mono)','letter-spacing':'.08em'});
+          rl.textContent=`R95 ${t.r95>=1000?(t.r95/1000).toFixed(1)+' km':t.r95+' m'}`;
+          stage.append(rl);
+        }
+        // Monte Carlo fan for the selected lost contact: sampled realisations
+        // of the Ito process from the last accepted state.
+        if(isSel&&state.mc&&state.mc.track===t.id){
+          for(const path of state.mc.paths){
+            const d=path.map((q,i)=>{const z=P.toScreen(q[0],q[1]);return `${i?'L':'M'} ${z.px.toFixed(1)} ${z.py.toFixed(1)}`}).join(' ');
+            stage.append(svg('path',{d,fill:'none',stroke:'#ff5d5d','stroke-opacity':0.22,'stroke-width':1}));
+          }
+          // endpoints: where the target may be at the horizon
+          for(const path of state.mc.paths){
+            const z=P.toScreen(path[path.length-1][0],path[path.length-1][1]);
+            stage.append(svg('circle',{cx:z.px,cy:z.py,r:1.6,fill:'#ff8a8a','fill-opacity':0.6}));
+          }
+        }
+      }
       if(t.ell&&(isSel||lost)){
         const ec=t.est?P.toScreen(t.est[0],t.est[1]):p;
         const rx=Math.max(2,t.ell[0]*sc), ry=Math.max(2,t.ell[1]*sc);
@@ -639,7 +684,7 @@ if(typeof module!=='undefined') module.exports=OP;
       <div class="row"><span><i class="k" style="background:var(--high)"></i>HIGH</span><span>${n.h}</span></div>
       <div class="row"><span><i class="k" style="background:var(--watch)"></i>WATCH</span><span>${n.w}</span></div>
       <div class="row"><span><i class="k" style="background:var(--low)"></i>LOW</span><span>${n.l}</span></div>
-      ${lost?`<div class="row" style="margin-top:4px"><span>PREDICTED / STALE</span><span>${lost}</span></div>`:''}${srcHtml}`;
+      ${lost?`<div class="row" style="margin-top:4px"><span class="lost">TRACK LOST</span><span class="lost">${lost}</span></div>`:''}${srcHtml}`;
   }
 
   function renderRows(){
@@ -649,9 +694,9 @@ if(typeof module!=='undefined') module.exports=OP;
     for(const t of tracks){
       const c=OP.closingSpeed(t,state.site);
       const mv=t.status==='STALE'?'LAST KNOWN':c>2?'CLOSING':c<-2?'OPENING':'HOLDING';
-      const el=document.createElement('div'); el.className='row'; el.setAttribute('role','button');
+      const el=document.createElement('div'); el.className='row'+(t.fresh==='S'?' lost':''); el.setAttribute('role','button');
       el.setAttribute('aria-selected',String(t.id===state.selectedId));
-      const fr=t.fresh==='P'?`<span class="fr p">PREDICTED ${t.age_s.toFixed(0)}s</span>`:t.fresh==='S'?`<span class="fr s">LAST KNOWN ${t.age_s.toFixed(0)}s</span>`:'';
+      const fr=t.fresh==='P'?`<span class="fr p">COASTING ${t.age_s.toFixed(0)}s</span>`:t.fresh==='S'?`<span class="fr s">LOST ${t.age_s.toFixed(0)}s</span>`:'';
       el.innerHTML=`<div class="id">${t.id}${fr}</div>
         <div class="pr ${OP.priorityClass(t.priority)}">${SHORT[t.priority]||t.priority}</div>
         <div class="rg">${fmtRange(t.range_m)}</div><div class="mv">${mv}</div>`;
@@ -673,13 +718,26 @@ if(typeof module!=='undefined') module.exports=OP;
         <div class="f"><div class="k">CLOSING SPEED</div><div class="v">${c>=0?'+':''}${c.toFixed(1)}<small>m/s</small></div></div>
         <div class="f"><div class="k">HEADING</div><div class="v">${String(compass(t.heading)).padStart(3,'0')}°<small>${t.speed.toFixed(0)} m/s</small></div></div>
         <div class="f"><div class="k">ALTITUDE</div><div class="v">${t.altitude_m==null?'—':t.altitude_m+'<small>m sim</small>'}</div></div>
-        <div class="f"><div class="k">ESTIMATE</div><div class="v ${t.fresh==='S'?'p-high':t.fresh==='P'?'p-watch':''}">${t.fresh==='U'?'UPDATED':t.fresh==='P'?'PREDICTED':'STALE'}</div></div>
+        <div class="f"><div class="k">TRACK STATE</div><div class="v ${t.fresh==='S'?'p-lost':t.fresh==='P'?'p-watch':''}">${t.fresh==='U'?'TRACKING':t.fresh==='P'?'COASTING':'LOST'}</div></div>
+        ${t.vel?`<div class="f"><div class="k">VELOCITY</div><div class="v">${t.vel[0]>=0?'+':''}${t.vel[0].toFixed(1)}, ${t.vel[1]>=0?'+':''}${t.vel[1].toFixed(1)}<small>m/s E,N</small></div></div>`:''}
+        ${t.r95!=null?`<div class="f"><div class="k">CONTAINMENT R95</div><div class="v ${t.fresh!=='U'?'p-lost':''}">${t.r95>=1000?(t.r95/1000).toFixed(2)+'<small>km</small>':t.r95+'<small>m</small>'}</div></div>`:''}
         <div class="f"><div class="k">POSITION INFO AGE</div><div class="v">${t.age_s.toFixed(1)}<small>s</small></div></div>
         ${t.ell?`<div class="f"><div class="k">95% REGION</div><div class="v">±${t.ell[0]}<small>× ±${t.ell[1]} m</small></div></div>`:''}
         ${t.meas?`<div class="f"><div class="k">LAST MEASURED</div><div class="v small">${fmtRange(Math.hypot(t.meas[0]-state.site.x,t.meas[1]-state.site.y))} from site · T+${t.meas[2].toFixed(1)}</div></div>`:''}
         ${t.src?`<div class="f fact-wide"><div class="k">SOURCES</div><div class="v small">${Object.entries(t.src).map(([k,v])=>`${k.replace(/-(north|south|east|west)$/,'')} ${v.toFixed(1)} s ago`).join(' · ')}</div></div>`:''}
         ${(t.amb!=null||t.ambn)?`<div class="f fact-wide"><div class="k">ASSOCIATION</div><div class="v small ${t.amb!=null&&t.amb<2?'p-watch':''}">${t.amb!=null?(t.amb<2?`ambiguous — competing track within ${t.amb.toFixed(1)} (−2 ln L)`:`supported — next candidate ${t.amb.toFixed(1)} (−2 ln L) worse`):'supported'}${t.ambn?` · ${t.ambn} ambiguous update${t.ambn===1?'':'s'} so far`:''}</div></div>`:''}
       </div>
+      ${(()=>{ if(!t.cue) return '';
+        const est=(state.data&&state.data.estimator)||{}; const mrad=est.cue_basket_mrad||26, maxR=est.cue_max_range_m||3000;
+        const basket=Math.tan(mrad/1000)*Math.max(t.range_m,1), excess=t.r95/Math.max(basket,1e-6), ok=t.cue==='ok';
+        const why=ok?'Track localised within acquisition basket':t.cue==='range'?`Beyond illustrative effective range (${maxR} m)`:`Position uncertainty ${t.r95} m exceeds the ${basket.toFixed(0)} m acquisition basket at this range`;
+        return `<div class="cue ${ok?'ok':'no'}"><div class="h">EFFECTOR HANDOVER · DE / LASER CUE</div>
+        <div class="v">${ok?'CUEABLE':'NO HANDOVER'}</div>
+        <div class="d">${why}${ok&&t.cue_window_s!=null?` · window ${t.cue_window_s}s`:''}</div>
+        <div class="d">R95 ${t.r95} m vs ${basket.toFixed(0)} m basket · ${excess.toFixed(2)}× · ${(mrad/17.453).toFixed(1)}° acq. FOV, illustrative</div></div>`; })()}
+      ${state.mc&&state.mc.track===t.id?`<div class="mc-note">MONTE CARLO · ${state.mc.n_paths} paths, ${state.mc.horizon_s}s horizon, Itô SDE dv=dW (w=${state.mc.process_noise_w} m²/s³)<br>
+        R95 at horizon: analytic ${state.mc.analytic_r95_at_horizon_m.toFixed(0)} m · empirical ${state.mc.empirical_r95_at_horizon_m.toFixed(0)} m · containment ${(state.mc.empirical_containment*100).toFixed(1)}%<br>
+        ${state.mc.rejected_by_speed_bound} draws rejected by 45 m/s airspeed bound</div>`:''}
       <div class="acts">
         <button id="act-focus" aria-pressed="${state.mode==='focus'}">FOCUS</button>
         <button id="act-follow" aria-pressed="${state.mode==='follow'}">FOLLOW</button>
@@ -708,6 +766,24 @@ identity   tracker-assigned, not ground truth</div></details>`;
     state.selectedId=id;
     if(state.mode==='focus'||state.mode==='follow') focusSelected(state.mode==='follow');
     render();
+    loadPathsIfLost();
+  }
+
+  // Sampled realisations of the Ito process, fetched from the backend for the
+  // selected lost contact at the current frame. Cached per (track, frame).
+  async function loadPathsIfLost(){
+    const f=state.playback.frame(); if(!f) return;
+    const t=OP.resolveSelection(state.selectedId,f.tracks);
+    if(!t||t.fresh==='U'){ state.mc=null; state.mcKey=null; return; }
+    const key=`${t.id}@${f.t}`;
+    if(state.mcKey===key) return;
+    state.mcKey=key;
+    try{
+      const u=`/api/preview/paths?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}&mode=${encodeURIComponent(state.lossMode)}&track=${encodeURIComponent(t.id)}&t=${f.t}&paths=140&horizon_s=20`;
+      const r=await fetch(u); if(!r.ok) return;
+      const mc=await r.json();
+      if(state.mcKey===key){ state.mc=mc; draw(); renderCard(); }
+    }catch(e){}
   }
 
   /* ---------------- input ---------------- */
@@ -717,7 +793,7 @@ identity   tracker-assigned, not ground truth</div></details>`;
     $('reset').addEventListener('click',reset);
     $('speed').addEventListener('change',()=>{ if(state.playback.playing) start(); });
     $('scenario').addEventListener('change',e=>{ state.scenario=e.target.value; state.selectedId=null; load(); });
-    $('mode').addEventListener('change',e=>{ state.mode=e.target.value; load(); });
+    $('mode').addEventListener('change',e=>{ state.lossMode=e.target.value; load(); });
     for(const b of document.querySelectorAll('#count-seg button')){
       b.addEventListener('click',()=>{
         for(const o of document.querySelectorAll('#count-seg button')) o.setAttribute('aria-pressed','false');

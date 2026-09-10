@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from ..domain.enums import Modality
 from ..domain.observation import GeoPosition, SensorObservation
 from . import kalman as K
+from . import uncertainty as U
 from .attention import PRIORITY_ORDER, AttentionModel
 from .site import MonitoredSite
 from .tracker import Freshness, Tracker, TrackerConfig
@@ -139,8 +140,14 @@ def build_timeline(
             distance = site.range_to(track.x, track.y)
             pos_age = now - (track.last_measurement.t if track.last_measurement else track.state_time)
             cov = track.display_cov
-            ellipse = K.position_ellipse([[cov[0][0], cov[0][1]], [cov[1][0], cov[1][1]]])
+            pos_cov = [[cov[0][0], cov[0][1]], [cov[1][0], cov[1][1]]]
+            ellipse = K.position_ellipse(pos_cov)
             est = track.display_state
+            r95 = U.containment_radius(pos_cov, 0.95)
+            cue = U.cue_feasibility(
+                cov, distance, pos_age,
+                growth_probe=(track.state, track.covariance, tracker.config.process_noise_w),
+            )
             snapshots.append({
                 "id": track.track_id,
                 # Displayed position: predicted state, or the last measured
@@ -159,6 +166,17 @@ def build_timeline(
                 "age_s": round(pos_age, 1),
                 # --- projection v2 ---
                 "fresh": track.freshness.value[0],          # U / P / S
+                # Velocity vector of the estimate, m/s, simulation frame.
+                "vel": [round(est[2], 1), round(est[3], 1)],
+                # 95% circular containment radius, metres (major semi-axis).
+                "r95": round(r95),
+                # Effector handover feasibility: decision support, not fire control.
+                # Handover feasibility as a code: 'ok' | 'range' | 'unc'. The
+                # basket and excess are derived client-side from r95, range_m
+                # and the basket angle sent once below — not repeated 4,500x.
+                "cue": "ok" if cue.feasible else ("range" if "range" in cue.reason else "unc"),
+                **({"cue_window_s": cue.seconds_until_infeasible}
+                   if cue.seconds_until_infeasible is not None else {}),
                 # Predicted position is only carried separately when the
                 # displayed marker is held at the last measured position.
                 **({"est": [round(est[0], 1), round(est[1], 1)]}
@@ -206,6 +224,8 @@ def build_timeline(
             "gate_chi2_2dof": tracker.config.gate_chi2,
             "reorder_window_s": tracker.config.reorder_window_s,
             "region": "95% planar ellipse, chi2(2)=5.991, model-based",
+            "cue_basket_mrad": U.DEFAULT_ACQUISITION_BASKET_MRAD,
+            "cue_max_range_m": U.DEFAULT_MAX_EFFECTIVE_RANGE_M,
         },
         "origin": "synthetic",
     }

@@ -358,9 +358,14 @@ def test_timeline_payload_stays_bounded():
     scenario = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=10)
     timeline = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0,
                               scans=scenario.scans)
-    # Compact separators, as FastAPI's JSONResponse serialises it.
+    # Compact separators, as FastAPI's JSONResponse serialises it. The raw
+    # ceiling is 2 MB; the API serves it gzip-compressed and the measured wire
+    # size for ten contacts is ~300 KB, which is the number that matters to a
+    # browser. Projection v2 now carries velocity, containment radius and
+    # handover feasibility per track per frame, all of which the operator
+    # view displays.
     payload = json.dumps(timeline, separators=(",", ":"))
-    assert len(payload.encode("utf-8")) < 1_500_000
+    assert len(payload.encode("utf-8")) < 2_000_000
 
 
 def test_tracking_uses_only_radar_observations():
