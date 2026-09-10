@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'legacy.html'), 'utf8');
 const source = html.match(/<script id="dronewatch-core">([\s\S]*?)<\/script>/)[1];
 const context = vm.createContext({ URL });
 vm.runInContext(`${source}\nglobalThis.helpers = DW;`, context);
