@@ -11,6 +11,11 @@ test('five target demo can be inspected, focused, paused and reset by touch', as
   await expect(page.getByTestId('target-list').getByRole('button', { name: /^Select target/ })).toHaveCount(5);
   await expect(page.getByText(/Synthetic demo/i).first()).toBeVisible();
   await activate(page.getByRole('button', { name: 'Pause scenario', exact: true }), isMobile);
+  const brokenLabels = await page.locator('.transport button > span:last-child:visible').evaluateAll(elements => elements.filter(e => {
+    const range = document.createRange(); range.selectNodeContents(e);
+    return range.getClientRects().length > 1;
+  }).map(e => e.textContent));
+  expect(brokenLabels, 'Playback labels must not split words across lines').toEqual([]);
   await activate(page.getByRole('button', { name: 'Select target DW-03', exact: true }), isMobile);
   await expect(page.getByTestId('target-detail')).toContainText('DW-03');
   const distanceFromCentre = () => page.evaluate(() => {

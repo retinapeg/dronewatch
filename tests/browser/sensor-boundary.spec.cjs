@@ -108,3 +108,19 @@ test('sensor details keep keyboard focus and expanded evidence across polling', 
   await expect(summary).toBeFocused();
   await expect(page.getByTestId('target-detail').getByText('QA mocked Viso camera', { exact: false })).toBeVisible();
 });
+
+test('long valid sensor identifiers and literal evidence cannot break the layout or execute HTML', async ({ page, isMobile }) => {
+  const targetId = 'Z'.repeat(256);
+  const literalHTML = '<img src="/qa-nope.png" onerror="window.__qaInjected=true">';
+  await page.route('**/api/targets', route => route.fulfill({ json: envelope([sensor({ target_id: targetId, source: 'Long camera source '.repeat(24), evidence: [literalHTML], uncertainty: { unexpected: 'object' } })]) }));
+  await openSensor(page, isMobile);
+  await activate(page.getByRole('button', { name: `Select target ${targetId}`, exact: true }), isMobile);
+  const summary = page.getByText('Source & interpretation', { exact: true });
+  await activate(summary, isMobile);
+  await expect(page.getByTestId('target-detail')).toContainText(targetId);
+  await expect(page.getByTestId('target-detail')).toContainText(literalHTML);
+  const state = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth, injected: window.__qaInjected === true, image: !!document.querySelector('img[src="/qa-nope.png"]') }));
+  expect(state.documentWidth).toBeLessThanOrEqual(state.width + 1);
+  expect(state.injected).toBe(false);
+  expect(state.image).toBe(false);
+});

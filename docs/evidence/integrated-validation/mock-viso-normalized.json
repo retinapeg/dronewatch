@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "targets": [
+    {
+      "target_id": "QA-RECEIPT-ONLY",
+      "event_id": "QA-NO-TIME-002",
+      "source_kind": "WEBHOOK_EVENT",
+      "status": "TRACKED",
+      "confidence": 0.72,
+      "position": null,
+      "velocity": null,
+      "heading": null,
+      "source": "QA mocked Viso camera",
+      "updated_at": "",
+      "timestamp_basis": "receipt_time_only",
+      "last_received_at": "2026-09-10T10:28:31.578884+00:00",
+      "evidence": [
+        "Stored unauthenticated webhook event reported by the source",
+        "Reported detection type: drone",
+        "Reported event state: DETECTED"
+      ],
+      "alternative_interpretation": "The observation may be benign activity or a source classification error.",
+      "uncertainty": "No independent validation of identity, intent, position, or movement is available.",
+      "status_basis": "reported_event"
+    },
+    {
+      "target_id": "QA-CANONICAL",
+      "event_id": "QA-NORMALIZED-001",
+      "source_kind": "WEBHOOK_EVENT",
+      "status": "POSSIBLE THREAT",
+      "confidence": 0.88,
+      "position": {
+        "x": 0.0,
+        "y": 0.4,
+        "coordinate_system": "normalized_frame"
+      },
+      "velocity": null,
+      "heading": null,
+      "source": "QA mocked Viso camera",
+      "updated_at": "2026-09-10T10:23:31.575042+00:00",
+      "timestamp_basis": "reported_event_time",
+      "last_received_at": "2026-09-10T10:28:31.577768+00:00",
+      "evidence": [
+        "Stored unauthenticated webhook event reported by the source",
+        "Reported detection type: drone",
+        "Reported event state: APPROACHING"
+      ],
+      "alternative_interpretation": "The observation may be benign activity or a source classification error.",
+      "uncertainty": "No independent validation of identity, intent, position, or movement is available.",
+      "status_basis": "reported_event"
+    }
+  ],
+  "received_at": "2026-09-10T10:28:31.580407+00:00"
+}
