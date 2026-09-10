@@ -1,6 +1,7 @@
 import importlib
 import json
 import math
+import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
@@ -95,15 +96,16 @@ def test_targets_schema_provenance_deduplication_and_absent_kinematics(client):
     assert body["schema_version"] == 1
     assert len(body["targets"]) == 2
 
-    real = next(target for target in body["targets"] if target["source_kind"] == "SENSOR_EVENT")
-    assert list(real) == [
-        "target_id", "event_id", "source_kind", "status", "confidence", "position", "velocity",
-        "heading", "source", "updated_at", "evidence", "alternative_interpretation", "uncertainty", "status_basis",
-    ]
+    real = next(target for target in body["targets"] if target["source_kind"] == "WEBHOOK_EVENT")
+    assert {"target_id", "event_id", "source_kind", "status", "confidence", "position", "velocity",
+            "heading", "source", "updated_at", "timestamp_basis", "last_received_at", "evidence",
+            "alternative_interpretation", "uncertainty", "status_basis"} <= set(real)
     assert real["target_id"] == "track-7"
     assert real["event_id"] == "evt-new"
     assert real["status"] == "THREAT"
     assert real["status_basis"] == "reported_event"
+    assert real["timestamp_basis"] == "reported_event_time"
+    assert real["last_received_at"]
     assert real["confidence"] == 0.93 and math.isfinite(real["confidence"])
     assert real["position"] == {"x": 0.0, "y": 0.75, "coordinate_system": "normalized_frame"}
     assert real["velocity"] is None
@@ -126,6 +128,35 @@ def test_ambiguous_identity_and_position_are_not_inferred(client):
     target = test_client.get("/api/targets").json()["targets"][0]
     assert target["target_id"] == "event-fallback"
     assert target["position"] is None
+
+
+def test_database_migration_adds_receipt_time_without_rewriting_existing_rows(tmp_path, monkeypatch):
+    db_path = tmp_path / "legacy.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """CREATE TABLE incidents (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT NOT NULL,
+                received_at TEXT NOT NULL, detection_type TEXT, drone_detected INTEGER NOT NULL DEFAULT 0,
+                confidence REAL, state TEXT NOT NULL DEFAULT 'UNKNOWN', severity TEXT NOT NULL DEFAULT 'INFO',
+                source TEXT, media_url TEXT, raw_payload TEXT NOT NULL, is_simulated INTEGER NOT NULL DEFAULT 0
+            )"""
+        )
+        conn.execute(
+            """INSERT INTO incidents
+               (event_id, received_at, raw_payload) VALUES (?, ?, ?)""",
+            ("legacy-event", "2025-01-01T00:00:00+00:00", '{"label":"drone"}'),
+        )
+
+    monkeypatch.setenv("DRONEWATCH_DB_PATH", str(db_path))
+    import main as app_module
+    importlib.reload(app_module)
+    app_module.ensure_db()
+
+    with sqlite3.connect(db_path) as conn:
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(incidents)")}
+        row = conn.execute("SELECT event_id, received_at, ingested_at, raw_payload FROM incidents").fetchone()
+    assert "ingested_at" in columns
+    assert row == ("legacy-event", "2025-01-01T00:00:00+00:00", None, '{"label":"drone"}')
 
 
 def test_static_mount_cannot_escape_assets_and_legacy_is_scoped(client):

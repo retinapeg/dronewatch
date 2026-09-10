@@ -69,10 +69,14 @@ def ensure_db() -> None:
                 source TEXT,
                 media_url TEXT,
                 raw_payload TEXT NOT NULL,
-                is_simulated INTEGER NOT NULL DEFAULT 0
+                is_simulated INTEGER NOT NULL DEFAULT 0,
+                ingested_at TEXT
             )
             """
         )
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(incidents)")}
+        if "ingested_at" not in columns:
+            conn.execute("ALTER TABLE incidents ADD COLUMN ingested_at TEXT")
 
 
 def walk_nodes(value: Any) -> Iterable[Any]:
@@ -90,24 +94,15 @@ def find_first(payload: Any, candidate_keys: Iterable[str]) -> Any:
     def compact(value: str) -> str:
         return re.sub(r"[^a-z0-9]+", "", value.lower())
 
-    normalized_candidates = {compact(candidate) for candidate in candidate_keys}
-    lower_candidates = {candidate.lower() for candidate in candidate_keys}
-    for node in walk_nodes(payload):
-        if not isinstance(node, dict):
-            continue
-        for key, value in node.items():
-            if not isinstance(key, str):
-                continue
-            key_compact = compact(key)
-            key_tokens = {part for part in re.split(r"[^a-z0-9]+", key.lower()) if part}
-            token_compact = {compact(token) for token in key_tokens}
-            if key_compact in normalized_candidates or key.lower() in lower_candidates:
-                if value is None:
+    nodes = [node for node in walk_nodes(payload) if isinstance(node, dict)]
+    # Candidate order expresses semantic specificity (for example event_id
+    # before generic id); payload key order must not change normalization.
+    for candidate in candidate_keys:
+        normalized_candidate = compact(candidate)
+        for node in nodes:
+            for key, value in node.items():
+                if not isinstance(key, str) or compact(key) != normalized_candidate:
                     continue
-                if isinstance(value, str) and value.strip() == "":
-                    continue
-                return value
-            if token_compact & normalized_candidates:
                 if value is None:
                     continue
                 if isinstance(value, str) and value.strip() == "":
@@ -170,13 +165,13 @@ def coerce_str(value: Any) -> Optional[str]:
     return str(value)
 
 
-def parse_timestamp(value: Any) -> str:
-    if value is None:
-        return utcnow()
+def parse_timestamp(value: Any) -> Optional[str]:
+    if value is None or isinstance(value, bool):
+        return None
     if isinstance(value, str):
         text = value.strip()
         if not text:
-            return utcnow()
+            return None
         if text.endswith("Z"):
             try:
                 parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
@@ -191,25 +186,37 @@ def parse_timestamp(value: Any) -> str:
                 parsed = parsed.replace(tzinfo=timezone.utc)
             return parsed.isoformat()
         except ValueError:
-            return utcnow()
+            return None
     if isinstance(value, (int, float)):
         try:
             text = float(value)
             if not math.isfinite(text):
-                return utcnow()
+                return None
             if text > 1_000_000_000_000:  # millis
                 text = text / 1000
             return datetime.fromtimestamp(text, tz=timezone.utc).isoformat()
         except (OSError, OverflowError, ValueError):
-            return utcnow()
-    return utcnow()
+            return None
+    return None
 
 
 def _extract_detection_type(payload: Any) -> Optional[str]:
+    label_values = [
+        value for node in walk_nodes(payload) if isinstance(node, dict)
+        for key, value in node.items() if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) == "label"
+    ]
+    if len(label_values) > 1:
+        return None
     return coerce_str(find_first(payload, ["label", "object", "detection", "detected", "type", "class", "category"]))
 
 
 def _extract_confidence(payload: Any) -> Optional[float]:
+    confidence_values = [
+        value for node in walk_nodes(payload) if isinstance(node, dict)
+        for key, value in node.items() if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) == "confidence"
+    ]
+    if len(confidence_values) > 1:
+        return None
     return coerce_float(find_first(payload, ["confidence", "score", "probability", "prob" ]))
 
 
@@ -218,8 +225,22 @@ def _extract_media_url(payload: Any) -> Optional[str]:
 
 
 def _extract_received(payload: Any) -> str:
-    candidate = find_first(payload, ["timestamp", "event_time", "eventtime", "received_at", "receivedat", "created_at", "createdat", "time", "ts"])
-    return parse_timestamp(candidate)
+    keys = {re.sub(r"[^a-z0-9]+", "", key) for key in (
+        "timestamp", "event_time", "received_at", "created_at", "time", "ts"
+    )}
+    candidates = []
+    for node in walk_nodes(payload):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if isinstance(key, str) and re.sub(r"[^a-z0-9]+", "", key.lower()) in keys:
+                    candidates.append(value)
+    parsed = [parse_timestamp(value) for value in candidates]
+    valid = {value for value in parsed if value is not None}
+    # Conflicting, duplicated, or partly malformed timestamp claims are not a
+    # reliable capture time. A single repeated normalized value is acceptable.
+    if candidates and len(valid) == 1 and all(value is not None for value in parsed):
+        return valid.pop()
+    return ""
 
 
 def _is_negated_observation(value: Optional[str]) -> bool:
@@ -227,7 +248,9 @@ def _is_negated_observation(value: Optional[str]) -> bool:
         return False
     normalized = re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
     tokens = normalized.split("_")
-    return any(token in {"no", "not", "false", "negative", "absent"} for token in tokens)
+    return normalized == "undetected" or "cleared" in tokens or any(
+        token in {"no", "not", "false", "negative", "absent"} for token in tokens
+    )
 
 
 def _normalize_state(
@@ -316,6 +339,7 @@ def _normalize_incident(payload: Any, source_default: str, simulated: bool = Fal
         severity = "INFO"
 
     received_at = _extract_received(raw_payload)
+    ingested_at = utcnow()
     source = coerce_str(find_first(raw_payload, ["source", "camera", "station"]))
     if source is None:
         source = "SIMULATED" if simulated else source_default
@@ -323,6 +347,7 @@ def _normalize_incident(payload: Any, source_default: str, simulated: bool = Fal
     return {
         "event_id": event_id,
         "received_at": received_at,
+        "ingested_at": ingested_at,
         "detection_type": detection_type,
         "drone_detected": bool(drone_detected),
         "confidence": confidence,
@@ -350,8 +375,9 @@ def _write_incident(incident: Dict[str, Any]) -> None:
                 source,
                 media_url,
                 raw_payload,
-                is_simulated
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                is_simulated,
+                ingested_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 incident["event_id"],
@@ -365,6 +391,7 @@ def _write_incident(incident: Dict[str, Any]) -> None:
                 incident.get("media_url"),
                 json.dumps(incident["raw_payload"], ensure_ascii=False),
                 int(bool(incident["is_simulated"])),
+                incident["ingested_at"],
             ),
         )
         conn.commit()
@@ -384,6 +411,7 @@ def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
         "media_url": row["media_url"],
         "raw_payload": json.loads(row["raw_payload"]),
         "is_simulated": bool(row["is_simulated"]),
+        "ingested_at": row["ingested_at"],
     }
 
 
@@ -484,10 +512,16 @@ def _validate_json_depth(payload: Any) -> None:
     pending = [(payload, 1)]
     while pending:
         node, depth = pending.pop()
+        if isinstance(node, str):
+            # json.loads permits escaped lone surrogates, but SQLite's UTF-8
+            # encoder cannot store them. Valid surrogate pairs decode to one
+            # non-BMP scalar and pass this check.
+            if any(0xD800 <= ord(char) <= 0xDFFF for char in node):
+                raise ValueError("JSON contains an invalid Unicode scalar")
         if isinstance(node, (dict, list)):
             if depth > MAX_JSON_DEPTH:
                 raise ValueError("JSON nesting depth exceeded")
-            children = node.values() if isinstance(node, dict) else node
+            children = (*node.keys(), *node.values()) if isinstance(node, dict) else node
             pending.extend((child, depth + 1) for child in children)
 
 

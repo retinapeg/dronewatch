@@ -75,11 +75,36 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
     simulated = bool(event.get("is_simulated"))
     state = event.get("state") if event.get("state") in STATUS_BY_EVENT_STATE else "UNKNOWN"
     status = STATUS_BY_EVENT_STATE[state]
-    source_kind = "SYNTHETIC_EVENT" if simulated else "SENSOR_EVENT"
+    raw_payload = event.get("raw_payload")
+    source = str(event.get("source") or "UNKNOWN")
+    raw_simulated = any(
+        value is True or (isinstance(value, str) and value.strip().lower() in {"true", "yes", "1"})
+        for value in _matching_values(raw_payload, ("is_simulated", "simulated", "is_synthetic", "synthetic"))
+    )
+    raw_test = any(
+        value is True or (isinstance(value, str) and value.strip().lower() in {"true", "yes", "1"})
+        for value in _matching_values(raw_payload, ("is_test", "test", "test_event"))
+    )
+    source_marker = _compact(source)
+    if simulated or raw_simulated or source_marker in {"simulated", "synthetic"}:
+        source_kind = "SYNTHETIC_EVENT"
+    elif raw_test or source_marker in {"test", "manualtest", "testevent"}:
+        source_kind = "TEST_EVENT"
+    else:
+        source_kind = "WEBHOOK_EVENT"
     status_basis = "scenario_authored" if simulated else "reported_event"
+    has_receipt_provenance = bool(event.get("ingested_at"))
+    reported_time = (event.get("received_at") or "") if has_receipt_provenance else ""
 
     confidence = _finite_unit(event.get("confidence"))
-    evidence = ["Synthetic scenario event"] if simulated else ["Stored sensor event reported by the source"]
+    if simulated:
+        evidence = ["Internally generated synthetic scenario event"]
+    elif source_kind == "SYNTHETIC_EVENT":
+        evidence = ["Source-marked synthetic webhook event"]
+    elif source_kind == "TEST_EVENT":
+        evidence = ["Source-marked test webhook event"]
+    else:
+        evidence = ["Stored unauthenticated webhook event reported by the source"]
     if event.get("detection_type"):
         evidence.append(f"Reported detection type: {event['detection_type']}")
     if state != "UNKNOWN":
@@ -91,6 +116,8 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
     else:
         alternative = "The observation may be benign activity or a source classification error."
         uncertainty = "No independent validation of identity, intent, position, or movement is available."
+    if len(_matching_values(raw_payload, ("label",))) > 1:
+        uncertainty = "Multiple reported objects are ambiguous; no single classification is selected."
 
     return {
         "target_id": _explicit_target_id(event),
@@ -101,8 +128,10 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
         "position": _explicit_position(event.get("raw_payload")),
         "velocity": None,
         "heading": None,
-        "source": str(event.get("source") or "UNKNOWN"),
-        "updated_at": event["received_at"],
+        "source": source,
+        "updated_at": reported_time,
+        "timestamp_basis": "reported_event_time" if reported_time else "receipt_time_only",
+        "last_received_at": event.get("ingested_at") or "",
         "evidence": evidence,
         "alternative_interpretation": alternative,
         "uncertainty": uncertainty,
@@ -116,7 +145,8 @@ def targets_from_events(events: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]
 
     def newest_first(event: Dict[str, Any]) -> tuple[datetime, int]:
         try:
-            received = datetime.fromisoformat(str(event["received_at"]).replace("Z", "+00:00"))
+            sort_time = event.get("ingested_at") or event.get("received_at")
+            received = datetime.fromisoformat(str(sort_time).replace("Z", "+00:00"))
             if received.tzinfo is None:
                 received = received.replace(tzinfo=timezone.utc)
             received = received.astimezone(timezone.utc)
