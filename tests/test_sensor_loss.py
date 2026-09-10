@@ -388,6 +388,7 @@ def test_projection_carries_velocity_containment_and_cue():
         assert "vel" in tr and len(tr["vel"]) == 2
         assert tr["r95"] > 0
         assert tr["cue"] in ("ok", "range", "unc")
-        assert tr["fresh"] == "S" and tr["cue"] != "ok", "a stale track must not be cueable"
+        assert tr["fresh"] == "S" and tr["cue"] == "unc", \
+            "a stale track inside effective range fails on UNCERTAINTY, and must say so"
     before = tl["frames"][int(38 * 5)]["tracks"]
     assert all(t["r95"] < f["tracks"][0]["r95"] for t in before), "containment grows through the blackout"

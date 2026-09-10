@@ -174,7 +174,7 @@ def build_timeline(
                 # Handover feasibility as a code: 'ok' | 'range' | 'unc'. The
                 # basket and excess are derived client-side from r95, range_m
                 # and the basket angle sent once below — not repeated 4,500x.
-                "cue": "ok" if cue.feasible else ("range" if "range" in cue.reason else "unc"),
+                "cue": "ok" if cue.feasible else ("range" if cue.reason.startswith("Beyond") else "unc"),
                 **({"cue_window_s": cue.seconds_until_infeasible}
                    if cue.seconds_until_infeasible is not None else {}),
                 # Predicted position is only carried separately when the
