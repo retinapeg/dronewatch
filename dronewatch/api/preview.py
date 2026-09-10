@@ -359,6 +359,11 @@ async def protected_viso_webhook(request: Request) -> Dict[str, Any]:
     STATUS.last_error = None
     STATUS.record(delivery.outcome.value, delivery.reason, shape)
 
+    # Keep bounded local callback evidence for the camera demo, including
+    # unknown schemas. Empty connection probes never become camera results.
+    from .camera import record_delivery
+    record_delivery(payload, outcome=delivery.outcome.value, received_at=STATUS.last_receipt_at)
+
     if delivery.outcome is MappingOutcome.UNMAPPED:
         QUARANTINE.insert(0, {
             "received_at": STATUS.last_receipt_at,

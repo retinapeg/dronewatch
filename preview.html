@@ -34,6 +34,8 @@ select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid 
 .viso.ok .dot{background:#4ad27a}.viso.warn .dot{background:var(--watch)}.viso.bad .dot{background:var(--high)}
 .diag{font-size:12px;color:var(--ink-faint);text-decoration:none}
 .diag:hover{color:var(--ink-dim)}
+.camera-link{font:600 11px var(--mono);letter-spacing:.03em;white-space:nowrap;color:#7ddbd0;text-decoration:none;border:1px solid #315a58;background:#102421;padding:7px 10px;border-radius:4px}.camera-link:hover{background:#193b36;color:#c4fff8}
+.top{gap:10px}.top .brand,.top .seg,.top .viso,.top .camera-link{flex-shrink:0}.top .sim{white-space:nowrap;font-size:10px}.top .viso{white-space:nowrap;letter-spacing:.02em}.top .seg button{min-width:32px;padding:5px 9px}.top #scenario{width:180px;min-width:120px}.top select[id="mode"]{max-width:330px;min-width:175px;flex:1}.top .spacer{display:none}@media(max-width:1300px){.top .diag{display:none}.top .lbl{display:none}.top{gap:8px}.top #scenario{width:150px}.top .sim{font-size:9px}.top .camera-link{font-size:10px}}@media(max-width:1100px){.top .sim{display:none}.top select[id="mode"]{max-width:280px}}
 .lbl{font-size:12px;color:var(--ink-faint)}
 
 /* main */
@@ -104,6 +106,7 @@ select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid 
 .badge{font:700 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;border:1px solid}
 .badge.p-high{background:#2a1416;border-color:#5a2426}.badge.p-watch{background:#2a2110;border-color:#5a4416}.badge.p-low{background:#0f272c;border-color:#1f4a52}
 .reason{color:var(--ink-dim);font-size:13px;margin:6px 0 12px}
+.airframe-card{border:1px solid #2b3d4b;border-radius:5px;overflow:hidden;margin:10px 0 14px;background:#0b1721}.airframe-heading{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid #223541;font:8px var(--mono);letter-spacing:.07em;color:#78939f}.airframe-heading strong{font-weight:500;color:#bfd0da;letter-spacing:0}.airframe-image{aspect-ratio:4/3;position:relative;overflow:hidden;background-color:#0b1721;background-repeat:no-repeat;background-size:300% auto;background-position:var(--airframe-position,0%) 50%}.airframe-image svg{display:block;width:100%;height:100%;filter:drop-shadow(0 9px 7px #0007)}.drone-art-ready .airframe-image{background-image:url('/assets/drone-types.png')}.drone-art-ready .airframe-image svg{visibility:hidden}.airframe-examples{display:flex;border-top:1px solid #223541;padding:7px;gap:5px}.airframe-examples button{flex:1;min-width:0;padding:6px 3px;border:1px solid #263c49;border-radius:3px;font:9px var(--mono);color:#8ba5b3;white-space:nowrap}.airframe-examples button[aria-pressed="true"]{color:#c9f6ef;background:#17312e;border-color:#45766f}.airframe-examples button:hover{background:#182d38}.airframe-examples button:focus-visible{outline:2px solid #7ddbd0;outline-offset:2px}
 .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .f .k{font:600 10px var(--mono);letter-spacing:.08em;color:var(--ink-faint)}
 .f .v{font:600 15px var(--mono);color:var(--ink);margin-top:2px}
@@ -133,6 +136,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 .drawer p{color:var(--ink-dim);font-size:13px}
 .drawer .kv{font:12px/1.7 var(--mono);color:var(--ink);white-space:pre-wrap;background:var(--panel-2);border:1px solid var(--line);padding:10px;border-radius:4px}
 .pill{display:inline-block;font:700 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;border:1px solid var(--line-2);color:var(--ink-dim)}
+.viso-evidence{position:absolute;right:14px;bottom:44px;width:310px;max-width:calc(100% - 28px);border:1px solid #31534f;border-radius:6px;background:#0c161ef2;box-shadow:0 10px 30px #0006;z-index:2;color:var(--ink);font-size:12px}.viso-evidence>summary{list-style:none;padding:11px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;font:600 10px var(--mono);letter-spacing:.06em;color:#8de1d7}.viso-evidence>summary:before{content:"▸"}.viso-evidence[open]>summary:before{content:"▾"}.viso-evidence>summary .ev-badge{margin-left:auto;font:9px var(--mono);color:var(--ink-dim);letter-spacing:0}.ev-body{padding:0 12px 12px;max-height:400px;overflow:auto}.ev-body video{display:block;position:static;width:100%;aspect-ratio:16/9;background:#03080c;border:1px solid var(--line);border-radius:3px;object-fit:contain}.ev-caption{font:9px/1.6 var(--mono);color:var(--ink-faint);margin:5px 0 11px;overflow-wrap:anywhere}.ev-source{font:600 9px/1.6 var(--mono);color:#8de1d7;margin:9px 0 5px}.ev-labels{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}.ev-label{border:1px solid #31534f;background:#132c29;color:#9be4dc;padding:4px 6px;border-radius:3px;font:10px var(--mono);overflow-wrap:anywhere}.ev-summary{font-size:11px;line-height:1.6;color:var(--ink-dim);margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}.ev-note{font:9px/1.6 var(--mono);color:var(--ink-faint);margin:9px 0}.ev-more{display:block;border-top:1px solid var(--line);padding-top:9px;color:#8de1d7;text-decoration:none;font:10px var(--mono)}.ev-pending{font:10px/1.5 var(--mono);color:var(--watch);margin:7px 0}.ev-media-empty{font:11px/1.7 var(--mono);color:var(--ink-faint);padding:15px 0}.viso-evidence[hidden]{display:none}@media(max-height:760px){.ev-body{max-height:315px}.viso-evidence{width:275px}}@media(max-width:900px){.viso-evidence{width:245px;right:9px;bottom:42px}.ev-body{max-height:280px}.camera-link{font-size:9px;padding:6px}}
 
 @media (max-width:1500px){
   .main{grid-template-columns:minmax(0,1fr) 300px}
@@ -156,7 +160,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 <div class="app">
   <header class="top">
     <div class="brand"><span class="mark"></span>DroneWatch</div>
-    <span class="sim">SIMULATION — NOT LIVE · C-UAS TRACK PICTURE</span>
+    <span class="sim" title="Synthetic counter-UAS track picture">SIMULATION · NOT LIVE</span>
     <select id="scenario" aria-label="Scenario">
       <option value="operator_demo">Incoming group</option>
       <option value="operator_demo_signal_loss">Incoming group + contact loss</option>
@@ -167,6 +171,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
     <span class="lbl">Sensor loss</span>
     <select id="mode" aria-label="Sensor-loss demonstration"><option value="normal">Normal operation</option></select>
     <span class="spacer"></span>
+    <a class="camera-link" href="/camera" title="Sensor replay and live Viso results">VISO EVIDENCE ↗</a>
     <button class="viso" id="viso-btn" title="Viso Now connection"><span class="dot" id="viso-dot"></span><span id="viso-text">VISO</span></button>
     <a class="diag" href="/preview/diagnostics">Diagnostics</a>
   </header>
@@ -183,6 +188,21 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
       </div>
       <div class="scale"><div class="bar" id="scale-bar" style="width:90px"></div><span id="scale-text">500 m</span></div>
       <div class="north"><svg viewBox="0 0 16 22"><path d="M8 1 L13 14 L8 11 L3 14 Z" fill="#8d9caa"/></svg>N</div>
+      <details class="viso-evidence" id="viso-evidence" open>
+        <summary>VISO EVIDENCE <span class="ev-badge" id="ev-badge">Waiting</span></summary>
+        <div class="ev-body">
+          <div class="ev-caption">Real Viso results · synthetic tracker simulation</div>
+          <video id="ev-video" muted playsinline preload="metadata" aria-label="Synthetic 2D sensor excerpt synchronised with the replay clock" hidden></video>
+          <div class="ev-media-empty" id="ev-media-empty">Preparing 2D sensor footage…</div>
+          <div class="ev-caption" id="ev-caption">Recorded synthetic sensor excerpt</div>
+          <div class="ev-source" id="ev-source">WAITING FOR VISO</div>
+          <div class="ev-labels" id="ev-labels"></div>
+          <p class="ev-summary" id="ev-summary">Viso's returned analysis will appear here after processing the sensor file.</p>
+          <p class="ev-pending" id="ev-pending" hidden></p>
+          <p class="ev-note" id="ev-note">Narrative evidence · no position update to the tracker.</p>
+          <a class="ev-more" href="/camera">Open full sensor evidence ↗</a>
+        </div>
+      </details>
     </section>
 
     <aside class="rail">
@@ -420,7 +440,7 @@ if(typeof module!=='undefined') module.exports=OP;
     mode:'operator',            // operator | focus | follow | manual
     selectedId:null, timer:null, lastRaf:0, lastFrame:-1,
     count:6, scenario:'operator_demo', seed:42, lossMode:'normal', drag:null,
-    mc:null, mcKey:null,
+    mc:null, mcKey:null, referenceByTrack:{},
   };
   window.OPSTATE=state;
 
@@ -428,6 +448,7 @@ if(typeof module!=='undefined') module.exports=OP;
   async function load(){
     stop();
     state.playback=OP.createPlayback([]); state.lastFrame=-1;
+    clearEvidence();
     $('contact-count').textContent='loading…';
     $('rows').innerHTML=''; renderCard();
     const url=`/api/preview/tracks?name=${encodeURIComponent(state.scenario)}&seed=${state.seed}&count=${state.count}&mode=${encodeURIComponent(state.lossMode)}`;
@@ -467,7 +488,7 @@ if(typeof module!=='undefined') module.exports=OP;
     syncTransport();
   }
   function stop(){ clearInterval(state.timer); state.timer=null; state.playback.pause(); syncTransport(); }
-  function reset(){ stop(); state.playback.reset(); state.lastFrame=-1; overview(); render(); }
+  function reset(){ stop(); state.playback.reset(); state.lastFrame=-1; overview(); render(); clearEvidence(); refreshEvidence(); }
 
   /* ---------------- camera ---------------- */
   function resizeViewport(){
@@ -758,6 +779,15 @@ if(typeof module!=='undefined') module.exports=OP;
     }
   }
 
+  const AIRFRAME_REFERENCES=[
+    {name:'Long-wing UAV',tab:'Long-wing',position:'0%',shape:'<path d="M150 24c-6 3-8 15-8 32v26L45 105v13l98-17 2 32-33 19v9l35-10h6l35 10v-9l-33-19 2-32 98 17v-13l-97-23V56c0-17-2-29-8-32Z"/><path d="M147 39h6v34h-6z" fill="#6d8898" stroke="none"/><path d="M134 135h32M150 127v29M53 109l81-15M166 94l81 15" fill="none" stroke="#688596"/>'},
+    {name:'Delta-wing UAV',tab:'Delta-wing',position:'50%',shape:'<path d="M150 28 263 146l-70-10-26 12h-34l-26-12-70 10Z"/><path d="m150 37-13 96h26Z" fill="#728d9b" stroke="#a7bac5"/><path d="m91 111 40 18m38 0 40-18M132 151h36m-18-8v16" fill="none" stroke="#aec1ca"/>'},
+    {name:'FPV quadcopter',tab:'FPV',position:'100%',shape:'<g fill="none" stroke-width="5"><path d="m96 48 108 88M204 48 96 136"/><circle cx="96" cy="48" r="28"/><circle cx="204" cy="48" r="28"/><circle cx="96" cy="136" r="28"/><circle cx="204" cy="136" r="28"/></g><path d="m136 68 28 0 12 20-12 27h-28l-12-27Z"/><rect x="139" y="65" width="22" height="21" rx="3" fill="#445d6c"/><circle cx="150" cy="73" r="5" fill="#9bd9dc"/><path d="m79 40 34 16m74-16 34 16M79 128l34 16m74-16 34 16" stroke-width="3"/>'}
+  ];
+  function referenceArtwork(index){
+    const ref=AIRFRAME_REFERENCES[index]||AIRFRAME_REFERENCES[0];
+    return `<div class="airframe-card"><div class="airframe-heading"><span>REFERENCE ILLUSTRATION</span><strong>${ref.name}</strong></div><div class="airframe-image" role="img" aria-label="${ref.name} reference illustration" style="--airframe-position:${ref.position}"><svg viewBox="0 0 300 180" aria-hidden="true"><g fill="#b1c2ca" stroke="#d6e5e9" stroke-width="1.4" stroke-linejoin="round">${ref.shape}</g></svg></div><div class="airframe-examples" role="group" aria-label="Choose a reference illustration">${AIRFRAME_REFERENCES.map((item,i)=>`<button type="button" data-reference="${i}" aria-pressed="${i===index}">${item.tab}</button>`).join('')}</div></div>`;
+  }
   function renderCard(){
     const card=$('card');
     const t=OP.resolveSelection(state.selectedId,currentTracks());
@@ -766,6 +796,7 @@ if(typeof module!=='undefined') module.exports=OP;
     card.innerHTML=`
       <div class="top"><span class="cid">${t.id}</span><span class="badge ${pc}">${t.priority}</span></div>
       <div class="reason">${t.reason||''}${t.basis==='p'?' <span style="color:var(--watch)">· from predicted state</span>':t.basis==='s'?' <span style="color:var(--high)">· held, position stale</span>':''}</div>
+      ${referenceArtwork(state.referenceByTrack[t.id]||0)}
       <div class="facts">
         <div class="f"><div class="k">RANGE TO SITE</div><div class="v">${fmtRange(t.range_m)}</div></div>
         <div class="f"><div class="k">CLOSING SPEED</div><div class="v">${c>=0?'+':''}${c.toFixed(1)}<small>m/s</small></div></div>
@@ -808,6 +839,7 @@ model      nearly constant velocity, continuous white acceleration
 identity   tracker-assigned, not ground truth</div></details>`;
     $('act-focus').addEventListener('click',()=>{ if(state.mode==='focus') overview(); else focusSelected(false); });
     $('act-follow').addEventListener('click',()=>{ if(state.mode==='follow') overview(); else focusSelected(true); });
+    for(const button of card.querySelectorAll('[data-reference]')) button.addEventListener('click',()=>{state.referenceByTrack[t.id]=Number(button.dataset.reference);renderCard();});
   }
 
   function renderClock(){
@@ -817,12 +849,15 @@ identity   tracker-assigned, not ground truth</div></details>`;
   function syncTransport(){
     const p=state.playback;
     $('play').disabled=p.playing||p.done||!p.total; $('pause').disabled=!p.playing;
+    syncEvidenceVideo();
   }
 
   function select(id){
+    const changed=state.selectedId!==id;
     state.selectedId=id;
     if(state.mode==='focus'||state.mode==='follow') focusSelected(state.mode==='follow');
     render();
+    if(changed)$('card').scrollTop=0;
     loadPathsIfLost();
   }
 
@@ -845,6 +880,7 @@ identity   tracker-assigned, not ground truth</div></details>`;
 
   /* ---------------- input ---------------- */
   function bind(){
+    for(const event of ['mousedown','wheel','dblclick']) $('viso-evidence').addEventListener(event,e=>e.stopPropagation());
     $('play').addEventListener('click',start);
     $('pause').addEventListener('click',stop);
     $('reset').addEventListener('click',reset);
@@ -885,8 +921,8 @@ identity   tracker-assigned, not ground truth</div></details>`;
   async function refreshViso(){
     try{
       const r=await fetch('/api/preview/viso/status'); const v=await r.json();
-      const st=(v.state||'UNKNOWN'), cls=st==='RECEIVING'?'ok':st==='NOT CONFIGURED'||st==='WAITING FOR DELIVERY'?'':st.includes('ERROR')?'bad':'warn';
-      $('viso-btn').className='viso '+cls; $('viso-text').textContent='VISO · '+st;
+      const st=(v.state||'UNKNOWN'), cls=['RECEIVING','VALID DELIVERY RECEIVED'].includes(st)?'ok':st==='NOT CONFIGURED'||st==='WAITING FOR DELIVERY'?'':st.includes('ERROR')?'bad':'warn';
+      $('viso-btn').className='viso '+cls; $('viso-text').textContent='VISO · '+(cls==='ok'?'RECEIVED':st==='WAITING FOR DELIVERY'?'WAITING':st==='NOT CONFIGURED'?'OFFLINE':st);$('viso-btn').title=st;
       $('viso-pill').textContent=st;
       $('viso-kv').textContent=`state          ${st}
 configured     ${v.configured}
@@ -899,7 +935,85 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     }catch(e){ $('viso-text').textContent='VISO · UNAVAILABLE'; }
   }
 
-  function init(){ bind(); requestAnimationFrame(tick); load(); refreshViso(); setInterval(refreshViso,8000); }
+  let evidencePolling=false, evidenceSignature='', evidenceMedia='', evidenceContext=null;
+  function syncEvidenceVideo(){
+    const video=$('ev-video'), c=evidenceContext, f=state.playback.frame();
+    if(!c||!f||!Number.isFinite(video.duration)) return;
+    const matches=c.scenario===state.scenario&&c.seed===state.seed&&c.count===state.count&&c.mode===state.lossMode;
+    const start=Number(c.sim_start_s), end=Number(c.sim_end_s), span=end-start;
+    if(!matches||!(span>0)){video.pause();$('ev-caption').textContent='Recorded sensor excerpt · different scenario';return;}
+    const desired=Math.max(0,Math.min(video.duration-.025,(f.t-start)/span*video.duration));
+    if(Math.abs(video.currentTime-desired)>.3) video.currentTime=desired;
+    const active=f.t>=start&&f.t<end;
+    $('ev-caption').textContent=active?'SYNCED TO MAP · T+'+f.t.toFixed(1)+'s':f.t<start?'EXCERPT BEGINS AT T+'+start+'s':'EXCERPT ENDED AT T+'+end+'s';
+    const rate=(parseFloat($('speed').value)||1)*video.duration/span;
+    video.playbackRate=Math.min(4,Math.max(.0625,rate));
+    if(active&&state.playback.playing&&$('viso-evidence').open){if(video.paused)video.play().catch(()=>{});}
+    else video.pause();
+  }
+  function clearEvidence(){
+    evidenceSignature='';$('ev-source').textContent='WAITING FOR VISO';$('ev-labels').replaceChildren();
+    $('ev-summary').textContent='Loading evidence for this scenario and replay time…';$('ev-pending').hidden=true;
+    $('ev-note').textContent='Narrative evidence · no position update to the tracker.';
+  }
+  async function refreshEvidence(){
+    if(evidencePolling) return;
+    evidencePolling=true;
+    const f=state.playback.frame(), query=new URLSearchParams({name:state.scenario,seed:String(state.seed),count:String(state.count),mode:state.lossMode,t:String(f?f.t:0)});
+    const requestedContext=[state.scenario,state.seed,state.count,state.lossMode].join('|'), requestedTime=f?f.t:0;
+    try{
+      const replies=await Promise.all([fetch('/api/preview/viso/evidence?'+query,{cache:'no-store'}),fetch('/api/camera/status',{cache:'no-store'})]);
+      if(!replies[0].ok||!replies[1].ok) throw new Error('unavailable');
+      const [data,camera]=await Promise.all(replies.map(r=>r.json()));
+      const currentFrame=state.playback.frame();
+      if(requestedContext!==[state.scenario,state.seed,state.count,state.lossMode].join('|')||(currentFrame?currentFrame.t:0)<requestedTime) return;
+      const clip=(camera.media||[]).filter(item=>/^schematic-\d+\.mp4$/.test(item.filename)).sort((a,b)=>b.filename.localeCompare(a.filename,undefined,{numeric:true}))[0];
+      if(clip) evidenceContext=clip.scenario_context||null;
+      if(clip&&clip.url&&clip.url.startsWith('/api/camera/media/')&&clip.url!==evidenceMedia){
+        evidenceMedia=clip.url; const video=$('ev-video'); video.src=clip.url;
+        if(clip.poster_url&&clip.poster_url.startsWith('/api/camera/media/')) video.poster=clip.poster_url;
+        video.hidden=false; $('ev-media-empty').hidden=true;
+        $('ev-caption').textContent='2D SENSOR REPLAY · '+clip.filename;
+        video.addEventListener('loadedmetadata',syncEvidenceVideo,{once:true});
+        video.load();
+      }
+      syncEvidenceVideo();
+      const real=list=>Array.isArray(list)?list.filter(item=>item.outcome==='MAPPED'&&item.synthetic_sender!==true):[];
+      const correlated=real(data.results), other=real(data.uncorrelated_results), item=correlated[0]||other[0];
+      const signature=JSON.stringify({item,matched:!!correlated.length,pending:data.pending_count});
+      if(signature!==evidenceSignature){
+        evidenceSignature=signature;
+        $('ev-badge').textContent=item?'Viso returned':data.pending_count?'Result held for replay':'Waiting';
+        $('ev-source').textContent=item?(correlated.length?'THIS SCENARIO · ':'OTHER FOOTAGE · ')+(item.source_filename||'file not supplied'):'WAITING FOR VISO';
+        const summary=typeof(item&&item.summary)==='string'?item.summary:'';
+        const section=/^#{1,6}\s+Summary\s*$/im.exec(summary);
+        const excerpt=section?summary.slice(section.index+section[0].length).split(/\n#{1,6}\s/)[0].trim():summary;
+        $('ev-summary').textContent=item?(excerpt.length>350?excerpt.slice(0,350).trimEnd()+'…':excerpt||'Viso returned an incident without a description.'):'Viso analysis will appear after its source file is processed and the replay reaches that source time.';
+        const labels=$('ev-labels'); labels.replaceChildren();
+        for(const label of (Array.isArray(item&&item.labels)?item.labels:[]).slice(0,6)){
+          if(!label||typeof label.label!=='string') continue;
+          const chip=document.createElement('span');chip.className='ev-label';
+          const confidence=typeof label.confidence==='number'&&label.confidence>=0&&label.confidence<=1?' · '+Math.round(label.confidence*100)+'%':'';
+          chip.textContent=label.label+confidence;labels.appendChild(chip);
+        }
+        $('ev-note').textContent=correlated.length?'Scenario file matched · narrative evidence only; no position update.':item?'Separate footage · not associated with a map contact. No position update.':'Narrative evidence · no position update to the tracker.';
+        $('ev-pending').hidden=!data.pending_count;
+        $('ev-pending').textContent=data.pending_count+' Viso result(s) held until their source time in this replay.';
+      }
+    }catch(e){$('ev-badge').textContent='Reconnecting';}
+    finally{evidencePolling=false;}
+  }
+  async function init(){
+    let artAttempts=0;
+    const loadReferenceArt=()=>{const art=new Image();art.onload=()=>document.documentElement.classList.add('drone-art-ready');art.onerror=()=>{if(++artAttempts<30)setTimeout(loadReferenceArt,4000);};art.src='/assets/drone-types.png';};
+    loadReferenceArt();
+    const eventDemo=new URLSearchParams(location.search).get('demo')==='viso';
+    if(eventDemo){state.lossMode='radar_off_30s_viso';$('speed').value='2';$('viso-evidence').open=true;}
+    bind(); requestAnimationFrame(tick); refreshViso(); setInterval(refreshViso,8000);
+    await load();
+    if(eventDemo&&state.data){const i=state.data.frames.findIndex(frame=>frame.t>=35);if(i>=0)state.playback.seek(i);render();start();}
+    refreshEvidence();setInterval(refreshEvidence,2000);
+  }
   init();
 })();
 </script>

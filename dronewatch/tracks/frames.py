@@ -21,6 +21,7 @@ and association ambiguity. Per frame it adds source health.
 from __future__ import annotations
 
 import math
+import zlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -150,7 +151,8 @@ def build_timeline(
             elif track.track_id not in ensembles:
                 ensembles[track.track_id] = U.sample_paths_adaptive(
                     track.state, track.covariance, LOSS_HORIZON_S, track.history,
-                    n_paths=120, steps=int(LOSS_HORIZON_S), seed=hash(track.track_id) & 0xFFFF,
+                    n_paths=120, steps=int(LOSS_HORIZON_S),
+                    seed=zlib.crc32(track.track_id.encode('utf-8')),
                     w_cv_reference=w_cv,
                 )
         for gone in [k for k in ensembles if k not in live_ids]:

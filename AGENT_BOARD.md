@@ -92,3 +92,48 @@ S2 (Claude): read-side. In api_events, group rows by incident key and keep the
 1. Codex answers the D2 challenge with a defence, revision, or third option.
 2. Claude reproduces the mobile failure and writes the regression test.
 3. Winner of D2 implemented on a branch with E1-E3 passing.
+
+## 2026-09-10 Camera demo frontend (Codex)
+- Added `/camera` interface in `camera.html`: real HTML video replay, media
+  selection/downloads, Google Drive submission state, and separately polled
+  authenticated callback results. Added a prominent Camera + Viso preview link.
+- Empty probes and explicitly synthetic webhook senders never become displayed
+  Viso incident results. Unknown callback shapes remain visibly unmapped.
+- No boxes or coordinates are inferred. The sender's own Summary is presented
+  with its full text available; all callback strings use `textContent`.
+- Verified camera/operator Node tests pass, and inspected desktop/mobile browser
+  screenshots. Actual callback returned a long narrative without boxes; UI now
+  surfaces its own summary and source instead of burying them below the report.
+- Added the same actual evidence to a collapsible `/preview` inset with a 2D
+  sensor video, sender labels/confidences, and explicit scenario association.
+  `/preview?demo=viso` starts the existing radar-loss demo at T+35 at 2x.
+- Inset time synchronisation uses manifest scenario context, replay time and
+  video duration. It pauses before/after the source interval, with simulation
+  pause, and for other scenarios. The standalone evidence page remains a replay.
+- Browser smoke at 1440x900 confirmed autoplay, H.264 media readyState 4, actual
+  Viso label rendering, and no JavaScript errors. A header fit issue was found
+  visually and fixed so all 3/6/10 contact choices remain available.
+- Added selected-contact reference artwork with Long-wing, Delta-wing and FPV
+  examples. Choices are presentation preferences per contact and do not assign
+  a military model or alter tracker evidence. Raster sprite loads from the exact
+  `/assets/drone-types.png` route; vector silhouettes cover asset unavailability.
+  Browser verified all three choices, visible selected artwork and preserved
+  metadata with no JavaScript errors; inspected the final screenshot at 1440x900.
+
+
+## Event camera demo — 10 September 2026 (Codex)
+- Isolated branch: `codex/viso-camera-demo`, based on GitHub main c079626.
+- Verified live receiver accepted two authenticated empty Viso connection tests; no visual-analysis incident had arrived before implementation.
+- Added camera media replay and bounded actual webhook-result evidence in parallel with a deterministic synthetic-camera renderer. Synthetic pixels are input to Viso; generator truth and generated result payloads must not become Viso detections.
+- Found existing private Google Drive folder `DroneWatchIngest` with last week's drone MP4s. Preparing a bounded synthetic media batch for this input, while user checks the Viso application's input configuration.
+- Public tunnel forwards only POST /v2/webhook/viso to the local authenticated receiver. Dashboard and camera media remain local.
+- Validation and end-to-end result pending below.
+
+### Event demo verified — final state
+- Real Drive→Viso→authenticated webhook deliveries observed for clip-02.mp4, schematic-01.mp4 and schematic-02.mp4. Returned schema includes sender labels, confidence/zone fields and narrative. No fake feed script was run.
+- User requested simple labelled2D symbols; schematic02 uses existing observation pipeline and exact stable cue schedule. Original uploaded schematic01 assets restored byte-for-byte from Drive; corrected versions have separate filenames.
+- Fixed hash(track_id) process randomness with crc32 so renderer and server cues match across Python processes; cross-process regression passes.
+- /preview?demo=viso starts atT+35 at2x, shows source-correlated nonspatial Viso evidence and synchronized2D clip. Existing synthetic tracker estimates positions; real Viso callbacks do not supply positional updates.
+- Clicking a contact shows generated reference art with long-wing/delta-wing/FPV example selection. It is explicitly reference artwork, not a detected aircraft identification.
+- Validation:242 Python tests passed;60 Node tests passed. Desktop1440x960 and mobile393x873 browser QA: no page errors or horizontal overflow, playable synchronized H264, all3 reference choices inspected.
+- Local app127.0.0.1:8020 remains running; authenticated webhook tunnel unchanged. Private callback evidence and feed state remain in this thread work directory.

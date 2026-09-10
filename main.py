@@ -398,6 +398,11 @@ def preview() -> FileResponse:
     return FileResponse(BASE_DIR / "preview.html")
 
 
+@app.get("/assets/drone-types.png")
+def drone_reference_art() -> FileResponse:
+    return FileResponse(BASE_DIR / "static" / "drone-types.png", media_type="image/png")
+
+
 @app.get("/preview/diagnostics")
 def preview_diagnostics() -> FileResponse:
     """The raw-observation research view, kept rather than deleted."""
@@ -518,3 +523,7 @@ def simulate_event(payload: SimulatePayload):
 from dronewatch.api.preview import router as _preview_router  # noqa: E402
 
 app.include_router(_preview_router)
+
+from dronewatch.api.camera import router as _camera_router  # noqa: E402
+
+app.include_router(_camera_router)
