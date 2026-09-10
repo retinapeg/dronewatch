@@ -10,3 +10,8 @@ __pycache__/
 .env
 .env.*
 .DS_Store
+node_modules/
+test-results/
+playwright-report/
+.runtime/
+.agent-runs/

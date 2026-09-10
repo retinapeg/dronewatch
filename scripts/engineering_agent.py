@@ -73,8 +73,7 @@ def main() -> int:
     else:
         command = [
             "codex", "--ask-for-approval", "never", "exec",
-            "--sandbox", "workspace-write", "--json",
-            "--add-dir", git(worktree, "rev-parse", "--git-common-dir"),
+            "--ignore-user-config", "--sandbox", "danger-full-access", "--json",
             "--output-last-message", str(prefix) + ".final.md", "-",
         ]
     env = os.environ.copy()
@@ -118,6 +117,25 @@ def main() -> int:
         metadata["final_sha"] = git(worktree, "rev-parse", "HEAD")
         manifest.write_text(json.dumps(metadata, indent=2) + "\n")
         lock.unlink(missing_ok=True)
+    # CLI transport exit zero alone is not evidence that the model completed work.
+    completed = False
+    model_failed = False
+    for line in Path(str(prefix) + ".stdout.jsonl").read_text().splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("type") == "result":
+            completed = event.get("subtype") == "success" and not event.get("is_error")
+            model_failed |= not completed
+        elif event.get("type") == "turn.completed":
+            completed = True
+        elif event.get("type") == "turn.failed":
+            model_failed = True
+    metadata["model_completed"] = completed and not model_failed
+    if metadata["exit_code"] == 0 and not metadata["model_completed"]:
+        metadata["exit_code"] = 1
+    manifest.write_text(json.dumps(metadata, indent=2) + "\n")
     print(json.dumps(metadata), flush=True)
     return int(metadata["exit_code"])
 
