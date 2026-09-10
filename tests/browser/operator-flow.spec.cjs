@@ -69,3 +69,25 @@ test('orientation changes preserve selection and all controls', async ({ page, i
   await activate(page.getByRole('button', { name: 'Focus selected target', exact: true }), true);
   await expect(page.getByRole('button', { name: 'Show all targets', exact: true })).toBeVisible();
 });
+
+test('page reload keeps the demo usable with external internet unavailable', async ({ page, baseURL, isMobile }) => {
+  const origin = new URL(baseURL).origin;
+  const external = [], runtime = [];
+  page.on('pageerror', error => runtime.push(error.message));
+  await page.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.origin === origin) return route.continue();
+    external.push(url.href);
+    return route.abort('internetdisconnected');
+  });
+  await page.goto('/');
+  await expect(page.getByTestId('target-list').getByRole('button', { name: /^Select target/ })).toHaveCount(5);
+  await activate(page.getByRole('button', { name: 'Select target DW-05', exact: true }), isMobile);
+  await expect(page.getByTestId('target-detail')).toContainText('DW-05');
+  await page.reload();
+  await expect(page.getByTestId('target-list').getByRole('button', { name: /^Select target/ })).toHaveCount(5);
+  await activate(page.getByRole('button', { name: 'Select target DW-02', exact: true }), isMobile);
+  await expect(page.getByTestId('target-detail')).toContainText('DW-02');
+  expect(external, 'The local demo should not request external dependencies').toEqual([]);
+  expect(runtime).toEqual([]);
+});
