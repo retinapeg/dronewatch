@@ -49,12 +49,14 @@ echo
 echo "==> feeding the scenario's Viso camera detections through the authenticated webhook"
 echo "    (the same synthetic detections that re-localise lost tracks in the"
 echo "     'Radar off 30 s + Viso visual detection' mode; plus one unrecognised payload)"
-.venv/bin/python scripts/viso_feed.py \
-  --secret "$SECRET" --url "http://127.0.0.1:$PORT/v2/webhook/viso" \
-  --source scenario --from-t 40 --to-t 70 --interval 0.15 "$@"
+# Unrecognised payload FIRST so it is visible in the quarantine, then the real
+# detections, so the panel's headline state ends on VALID DELIVERY RECEIVED.
 .venv/bin/python scripts/viso_feed.py \
   --secret "$SECRET" --url "http://127.0.0.1:$PORT/v2/webhook/viso" \
   --count 1 --include-unmapped --interval 0 >/dev/null 2>&1 || true
+.venv/bin/python scripts/viso_feed.py \
+  --secret "$SECRET" --url "http://127.0.0.1:$PORT/v2/webhook/viso" \
+  --source scenario --from-t 40 --to-t 70 --interval 0.15 "$@"
 
 echo
 echo "==> Viso status after"
