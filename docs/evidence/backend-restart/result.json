@@ -1,0 +1,23 @@
+{
+  "candidate": "f9c59adb92efd8ce4c088c508bf9e973cfddc62a",
+  "method": "Real private Uvicorn termination/restart and persisted temporary SQLite, with 360x800 Chromium touch emulation; no mocked HTTP responses.",
+  "steps": [
+    "Initial actual webhook record selected with recent source timestamp",
+    "Server termination visibly marks the selected observation cached and preserves expanded evidence",
+    "Ten-target synthetic demo remains touch-selectable and focusable with backend stopped",
+    "Restart retains SQLite history and automatically restores fresh selected detail without reload or overflow"
+  ],
+  "runtimeErrors": [],
+  "expectedNetworkErrors": [
+    {
+      "path": "/api/targets",
+      "error": "net::ERR_CONNECTION_REFUSED"
+    },
+    {
+      "path": "/api/targets",
+      "error": "net::ERR_CONNECTION_REFUSED"
+    }
+  ],
+  "passed": true,
+  "completedAt": "2026-09-10T11:39:27.267Z"
+}
