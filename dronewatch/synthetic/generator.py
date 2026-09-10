@@ -65,6 +65,9 @@ class FaultSpec:
     delivery: str = "default"
     #: Aim the centre pair of the wedge across each other so their paths cross.
     crossing: bool = False
+    #: Pan-tilt cue schedule for the Viso camera: ((t, centre_deg), ...).
+    #: Produced by the tracker (dronewatch/tracks/cueing.py), never by hand.
+    viso_cues: Tuple[Tuple[float, float], ...] = ()
 
     @classmethod
     def parse(cls, text: Optional[str]) -> "FaultSpec":
@@ -100,7 +103,7 @@ class FaultSpec:
             else:
                 raise ValueError(f"unknown fault {key!r}")
         return cls(tuple(radar), tuple(allp), tuple(deg), cadence, tuple(loss), backup,
-                   delivery, crossing)
+                   delivery, crossing, ())
 
     def label(self) -> str:
         bits = []
@@ -185,6 +188,7 @@ def _tuned_sensors(scenario_name: str, duration: float,
             class_evidence_strength=0.5, false_positive_rate=0.0,
             location=VISO_SENSOR_LOCATION, fov_centre_deg=VISO_FOV_CENTRE_DEG,
             fov_half_deg=VISO_FOV_HALF_DEG, max_range_m=VISO_MAX_RANGE_M,
+            cue_schedule=list(faults.viso_cues),
         ))
     if faults.backup == "bearing":
         sensors.append(SensorModel(

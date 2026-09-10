@@ -121,6 +121,13 @@ def build_timeline(
     cursor, hb_cursor = 0, 0
     frame_count = int(round(duration_s * frame_hz)) + 1
 
+    # One behaviour-shaped ensemble per loss event. Started when a track first
+    # goes PREDICTED, run from its last accepted state and its own recent
+    # history, dropped when it is re-acquired. Sliced by elapsed time below.
+    LOSS_HORIZON_S = 60.0
+    ensembles: Dict[str, Any] = {}
+    w_cv = tracker.config.process_noise_w
+
     for index in range(frame_count):
         now = round(index * step, 3)
         while hb_cursor < len(heartbeats) and heartbeats[hb_cursor][0] <= now:
@@ -133,6 +140,21 @@ def build_timeline(
             cursor += 1
 
         tracker.process(due, now=now)
+
+        # Maintain the per-loss ensembles.
+        live_ids = set()
+        for track in tracker.visible_tracks():
+            live_ids.add(track.track_id)
+            if track.freshness is Freshness.UPDATED:
+                ensembles.pop(track.track_id, None)
+            elif track.track_id not in ensembles:
+                ensembles[track.track_id] = U.sample_paths_adaptive(
+                    track.state, track.covariance, LOSS_HORIZON_S, track.history,
+                    n_paths=120, steps=int(LOSS_HORIZON_S), seed=hash(track.track_id) & 0xFFFF,
+                    w_cv_reference=w_cv,
+                )
+        for gone in [k for k in ensembles if k not in live_ids]:
+            ensembles.pop(gone, None)
 
         snapshots = []
         for track in tracker.visible_tracks():
@@ -190,6 +212,11 @@ def build_timeline(
                 "src": {sid: round(now - t_last, 1) for sid, t_last in track.sources.items()},
                 **({"amb": round(track.last_margin, 1)} if track.last_margin is not None else {}),
                 **({"ambn": track.ambiguous_count} if track.ambiguous_count else {}),
+                # Behaviour-shaped region for a lost contact: the hull of the
+                # per-loss ensemble at this elapsed time, and its centroid. Its
+                # shape follows what the contact was doing when it was lost.
+                **(_region_fields(ensembles.get(track.track_id), pos_age)
+                   if track.freshness is not Freshness.UPDATED else {}),
             })
 
         snapshots.sort(key=lambda s: (PRIORITY_ORDER[_priority(s)], s["range_m"]))
@@ -228,6 +255,20 @@ def build_timeline(
             "cue_max_range_m": U.DEFAULT_MAX_EFFECTIVE_RANGE_M,
         },
         "origin": "synthetic",
+    }
+
+
+def _region_fields(ens, elapsed_s: float) -> Dict[str, Any]:
+    if ens is None:
+        return {}
+    k = int(round(elapsed_s))
+    hull = U.hull_at_step(ens, k)
+    cx, cy = U.centroid_at_step(ens, k)
+    b = ens.behaviour
+    return {
+        "hull": [[x, y] for x, y in hull],
+        "hc": [round(cx, 1), round(cy, 1)],
+        "beh": [round(b.speed_m_s, 1), round(math.degrees(b.turn_rate_rad_s), 1), b.fit_quality[0]],
     }
 
 

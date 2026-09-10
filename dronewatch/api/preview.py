@@ -524,7 +524,7 @@ SENSOR_LOSS_MODES: Dict[str, Dict[str, Any]] = {
     # for 45 s. That is a display policy and is stated as such.
     "radar_off_30s": {"label": "Radar off 30 s (40-70) — stochastic containment",
                       "faults": "radar:40-70", "admit": ["radar-north"], "retain_s": 45.0},
-    "radar_off_30s_viso": {"label": "Radar off 30 s + Viso visual detection",
+    "radar_off_30s_viso": {"label": "Radar off 30 s + Viso camera cued to lost contacts",
                            "faults": "radar:40-70;backup:viso",
                            "admit": ["radar-north", "viso-eo"], "retain_s": 45.0},
 }
@@ -559,11 +559,29 @@ def get_tracks(
 
     spec = SENSOR_LOSS_MODES[mode]
     faults = FaultSpec.parse(spec["faults"])
+    from ..tracks.tracker import TrackerConfig
+    config = TrackerConfig(drop_after_s=spec["retain_s"]) if spec.get("retain_s") else None
+
+    cues: List[Dict[str, Any]] = []
+    if faults.backup == "viso":
+        # PASS 1: the tracker's picture on radar alone decides where the camera
+        # should look. PASS 2 generates the camera's detections against that
+        # schedule. The camera only ever sees what it was pointed at.
+        from dataclasses import replace as _replace
+        from ..tracks.cueing import plan_camera_cues
+        radar_only = _replace(faults, backup=None)
+        obs1, scans1 = pipeline_input(name, seed=seed, duration_s=duration_s, count=count,
+                                      faults=radar_only)
+        pass1 = build_timeline(obs1, t_zero=T_ZERO, duration_s=duration_s,
+                               site=MonitoredSite(), scans=scans1,
+                               admit=[a for a in spec["admit"] if a != "viso-eo"], config=config)
+        cues = plan_camera_cues(pass1["frames"], _gen.VISO_SENSOR_LOCATION,
+                                rest_deg=_gen.VISO_FOV_CENTRE_DEG)
+        faults = _replace(faults, viso_cues=tuple((c["t"], c["centre_deg"]) for c in cues))
+
     observations, scans = pipeline_input(
         name, seed=seed, duration_s=duration_s, count=count, faults=faults
     )
-    from ..tracks.tracker import TrackerConfig
-    config = TrackerConfig(drop_after_s=spec["retain_s"]) if spec.get("retain_s") else None
     timeline = build_timeline(
         observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite(),
         scans=scans, admit=spec["admit"], config=config,
@@ -581,7 +599,11 @@ def get_tracks(
         "mode_label": spec["label"],
         "sensors": ([{"id": "viso-eo", "kind": "eo-camera", "x": _gen.VISO_SENSOR_LOCATION[0],
                       "y": _gen.VISO_SENSOR_LOCATION[1], "fov_centre_deg": _gen.VISO_FOV_CENTRE_DEG,
-                      "fov_half_deg": _gen.VISO_FOV_HALF_DEG, "max_range_m": _gen.VISO_MAX_RANGE_M}]
+                      "fov_half_deg": _gen.VISO_FOV_HALF_DEG, "max_range_m": _gen.VISO_MAX_RANGE_M,
+                      "pan_tilt": True, "slew_deg_s": 40.0,
+                      # The cue schedule the tracker produced: what the camera was
+                      # pointed at, when, and why.
+                      "cues": cues}]
                     if "viso-eo" in spec["admit"] else []),
         "faults": faults.label(),
         "modes": [{"id": k, "label": v["label"]} for k, v in SENSOR_LOSS_MODES.items()],

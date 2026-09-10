@@ -567,10 +567,15 @@ if(typeof module!=='undefined') module.exports=OP;
     // Cued visual sensor: the sector the Viso camera is looking at. This is
     // where a lost contact can be re-acquired; drawn so the operator sees
     // WHICH lost contacts the camera can help with and which it cannot.
+    const frameNow=state.playback.frame(); const tNow=frameNow?frameNow.t:0;
     for(const cam of (state.data&&state.data.sensors)||[]){
       if(cam.kind!=='eo-camera') continue;
+      // Pan-tilt: the sector points wherever the tracker cued it at this time.
+      let centre=cam.fov_centre_deg, cue=null;
+      for(const q of (cam.cues||[])){ if(q.t<=tNow){centre=q.centre_deg;cue=q} else break; }
+      cam._centre=centre; cam._cue=cue;
       const c=P.toScreen(cam.x,cam.y);
-      const a0=(cam.fov_centre_deg-cam.fov_half_deg)*Math.PI/180, a1=(cam.fov_centre_deg+cam.fov_half_deg)*Math.PI/180;
+      const a0=(centre-cam.fov_half_deg)*Math.PI/180, a1=(centre+cam.fov_half_deg)*Math.PI/180;
       const R=cam.max_range_m*sc;
       const px=(a)=>c.px+R*Math.cos(a), py=(a)=>c.py-R*Math.sin(a);
       const large=(a1-a0)>Math.PI?1:0;
@@ -579,7 +584,10 @@ if(typeof module!=='undefined') module.exports=OP;
       g.append(svg('path',{d,fill:'#49c9d9','fill-opacity':0.06,stroke:'#49c9d9','stroke-opacity':0.55,'stroke-width':1,'stroke-dasharray':'4 4'}));
       g.append(svg('circle',{cx:c.px,cy:c.py,r:5,fill:'#49c9d9'}));
       const lb=svg('text',{x:c.px+9,y:c.py+4,fill:'#49c9d9','font-size':10,'font-family':'var(--mono)','letter-spacing':'.08em'});
-      lb.textContent=`VISO EO · ${cam.fov_half_deg*2}° · ${cam.max_range_m/1000} km`; g.append(lb);
+      lb.textContent=cue&&cue.target?`VISO EO · CUED ${cue.target} · ${Math.round(centre)}°`:`VISO EO · ${cam.pan_tilt?'REST':'FIXED'} · ${cam.fov_half_deg*2}°`; g.append(lb);
+      // centreline of the cue
+      const ang=centre*Math.PI/180, L=cam.max_range_m*sc;
+      g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+L*Math.cos(ang),y2:c.py-L*Math.sin(ang),stroke:'#49c9d9','stroke-opacity':0.5,'stroke-width':1}));
       stage.append(g);
     }
 
@@ -610,15 +618,21 @@ if(typeof module!=='undefined') module.exports=OP;
       if(lost&&t.r95){
         const ec=t.est?P.toScreen(t.est[0],t.est[1]):p;
         const rr=Math.max(6,t.r95*sc);
-        const hasHull=isSel&&state.mc&&state.mc.track===t.id&&state.mc.hull95&&state.mc.hull95.length>=3;
-        const g=svg('g',{class:hasHull?'hull-glow':'lost-glow'});
-        if(hasHull){
-          // The MORPHED region: hull of the innermost 95% of behaviour-weighted
-          // Monte Carlo endpoints. Its shape follows what the contact was doing.
-          const d=state.mc.hull95.map((q,i)=>{const z=P.toScreen(q[0],q[1]);return `${i?'L':'M'} ${z.px.toFixed(1)} ${z.py.toFixed(1)}`}).join(' ')+' Z';
-          g.append(svg('path',{d,fill:'#ff2a2a','fill-opacity':0.12,stroke:'#ff3b3b','stroke-width':2,'stroke-linejoin':'round'}));
-          // faint isotropic CV circle for comparison
-          g.append(svg('circle',{cx:ec.px,cy:ec.py,r:Math.max(4,state.mc.cv_r95_at_horizon_m*sc),fill:'none',stroke:'#ff3b3b','stroke-opacity':0.28,'stroke-width':1,'stroke-dasharray':'2 6'}));
+        // Every lost contact carries its own behaviour-shaped region in the
+        // frame: the hull of a per-loss Monte Carlo ensemble sliced at this
+        // elapsed time. It is NOT a circle: it stretches along the track and
+        // curls with a turn, and its centroid moves along the predicted path.
+        const hull=(t.hull&&t.hull.length>=3)?t.hull:null;
+        const g=svg('g',{class:'lost-glow'});
+        if(hull){
+          const d=hull.map((q,i)=>{const z=P.toScreen(q[0],q[1]);return `${i?'L':'M'} ${z.px.toFixed(1)} ${z.py.toFixed(1)}`}).join(' ')+' Z';
+          g.append(svg('path',{d,fill:'#ff2a2a','fill-opacity':isSel?0.14:0.07,stroke:'#ff3b3b','stroke-width':isSel?2.2:1.4,'stroke-linejoin':'round',
+            'stroke-dasharray':t.fresh==='S'?'6 4':'none'}));
+          // most-probable position now: the ensemble centroid
+          if(t.hc){const h=P.toScreen(t.hc[0],t.hc[1]);
+            g.append(svg('path',{d:`M ${h.px-5} ${h.py} L ${h.px+5} ${h.py} M ${h.px} ${h.py-5} L ${h.px} ${h.py+5}`,stroke:'#ff8a8a','stroke-width':1.2}));}
+          // the naive isotropic circle, faint, for comparison
+          if(isSel) g.append(svg('circle',{cx:ec.px,cy:ec.py,r:rr,fill:'none',stroke:'#ff3b3b','stroke-opacity':0.25,'stroke-width':1,'stroke-dasharray':'2 6'}));
         }else{
           g.append(svg('circle',{cx:ec.px,cy:ec.py,r:rr,fill:'#ff2a2a',
             'fill-opacity':isSel?0.10:0.06,stroke:'#ff3b3b','stroke-width':isSel?2:1.4,
@@ -626,9 +640,11 @@ if(typeof module!=='undefined') module.exports=OP;
         }
         stage.append(g);
         if(rr>26){
-          const rl=svg('text',{x:ec.px,y:ec.py-rr-6,'text-anchor':'middle',fill:'#ff6b6b',
+          const top=hull?Math.min(...hull.map(q=>P.toScreen(q[0],q[1]).py)):ec.py-rr;
+          const rl=svg('text',{x:ec.px,y:top-6,'text-anchor':'middle',fill:'#ff6b6b',
             'font-size':10,'font-family':'var(--mono)','letter-spacing':'.08em'});
-          rl.textContent=`R95 ${t.r95>=1000?(t.r95/1000).toFixed(1)+' km':t.r95+' m'}`;
+          const b=t.beh; const turn=b&&Math.abs(b[1])>1.1?` · ${b[1]>0?'L':'R'} ${Math.abs(b[1]).toFixed(0)}°/s`:'';
+          rl.textContent=`R95 ${t.r95>=1000?(t.r95/1000).toFixed(1)+' km':t.r95+' m'}${turn}`;
           stage.append(rl);
         }
         // Monte Carlo fan for the selected lost contact: sampled realisations
@@ -715,11 +731,13 @@ if(typeof module!=='undefined') module.exports=OP;
     const short=id=>id.replace('-north','').replace('-south','').replace('-west','').replace('-east','').toUpperCase();
     const srcHtml=Object.keys(srcs).length?`<div class="src">${Object.entries(srcs).map(([id,s])=>`<div class="row"><span>${short(id)}</span><span class="${cls(s)}">${s}</span></div>`).join('')}</div>`:'';
     const lost=tracks.filter(t=>t.fresh&&t.fresh!=='U').length;
+    const cam=((state.data&&state.data.sensors)||[]).find(s=>s.kind==='eo-camera');
+    const camLine=cam?`<div class="row" style="margin-top:4px"><span style="color:#49c9d9">CAMERA</span><span style="color:#49c9d9">${cam._cue&&cam._cue.target?'→ '+cam._cue.target:'rest'}</span></div>`:'';
     $('summary').innerHTML=`<div class="h">INCOMING GROUP</div><div class="n">${tracks.length} TRACK${tracks.length===1?'':'S'}</div>
       <div class="row"><span><i class="k" style="background:var(--high)"></i>HIGH</span><span>${n.h}</span></div>
       <div class="row"><span><i class="k" style="background:var(--watch)"></i>WATCH</span><span>${n.w}</span></div>
       <div class="row"><span><i class="k" style="background:var(--low)"></i>LOW</span><span>${n.l}</span></div>
-      ${lost?`<div class="row" style="margin-top:4px"><span class="lost">TRACK LOST</span><span class="lost">${lost}</span></div>`:''}${srcHtml}`;
+      ${lost?`<div class="row" style="margin-top:4px"><span class="lost">TRACK LOST</span><span class="lost">${lost}</span></div>`:''}${camLine}${srcHtml}`;
   }
 
   function renderRows(){

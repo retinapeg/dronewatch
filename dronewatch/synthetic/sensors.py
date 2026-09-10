@@ -75,6 +75,20 @@ class SensorModel:
     fov_centre_deg: Optional[float] = None
     fov_half_deg: float = 180.0
     max_range_m: Optional[float] = None
+    #: A pan-tilt camera follows a cue schedule: (t, centre_deg) pairs, held
+    #: until the next entry. Empty means the camera is fixed at fov_centre_deg.
+    cue_schedule: List[Tuple[float, float]] = field(default_factory=list)
+
+    def centre_at(self, t: float) -> Optional[float]:
+        if not self.cue_schedule:
+            return self.fov_centre_deg
+        centre = self.cue_schedule[0][1]
+        for when, deg in self.cue_schedule:
+            if when <= t:
+                centre = deg
+            else:
+                break
+        return centre
     #: A bearing-only sensor reports the angle from `location` to the target,
     #: mathematical convention, and no position at all.
     bearing_only: bool = False
@@ -100,17 +114,18 @@ class SensorModel:
     def is_blind_to(self, entity_id: str, t: float) -> bool:
         return any(start <= t <= end for start, end in self.blind_windows.get(entity_id, ()))
 
-    def can_see(self, x: float, y: float) -> bool:
+    def can_see(self, x: float, y: float, t: float = 0.0) -> bool:
         """Sector and range check for a cued sensor. Always true if no FOV set."""
-        if self.fov_centre_deg is None and self.max_range_m is None:
+        centre = self.centre_at(t)
+        if centre is None and self.max_range_m is None:
             return True
         sx, sy = self.location or (0.0, 0.0)
         dx, dy = x - sx, y - sy
         if self.max_range_m is not None and math.hypot(dx, dy) > self.max_range_m:
             return False
-        if self.fov_centre_deg is not None:
+        if centre is not None:
             bearing = math.degrees(math.atan2(dy, dx))
-            diff = (bearing - self.fov_centre_deg + 180.0) % 360.0 - 180.0
+            diff = (bearing - centre + 180.0) % 360.0 - 180.0
             if abs(diff) > self.fov_half_deg:
                 return False
         return True
@@ -260,7 +275,7 @@ def observe_entity(
             continue
 
         point = entity.state_at(t)
-        if not sensor.can_see(point.x, point.y):
+        if not sensor.can_see(point.x, point.y, t):
             t += sensor.interval_s
             continue
         factor = sensor.noise_factor(t)

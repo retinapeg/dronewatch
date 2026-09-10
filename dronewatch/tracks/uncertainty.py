@@ -327,53 +327,67 @@ class Behaviour:
 def behaviour_from_history(history: Sequence[Tuple[float, float, float]]) -> Behaviour:
     """Estimate speed, heading, turn rate and manoeuvre level from (t, x, y).
 
-    Uses the last few seconds only; older behaviour is not predictive of the
-    next few. Turn rate is the least-squares slope of heading against time,
-    which is robust to a little position noise at these cadences.
+    Fits x(t) and y(t) each with a quadratic by least squares over the last
+    few seconds, then reads velocity and acceleration from the derivatives.
+    Turn rate is the cross product of velocity and acceleration over speed
+    squared. A short-window quadratic IS the coordinated-turn model to first
+    order, and the fit averages out the position jitter that a filtered track
+    carries — consecutive-point headings at 2 Hz and 25 m/s see ~25 deg of
+    noise from 7 m of position error, which is why they are not used.
     """
     pts = [p for p in history if p is not None]
-    if len(pts) < 3:
+    if len(pts) < 4:
         return Behaviour(0.0, 0.0, 0.0, 2.0, 0.0, len(pts), "none")
-    pts = pts[-12:]                                   # ~6 s at 2 Hz
-    vs, hs, ts = [], [], []
-    for (t0, x0, y0), (t1, x1, y1) in zip(pts, pts[1:]):
-        dt = t1 - t0
-        if dt <= 1e-6:
-            continue
-        vx, vy = (x1 - x0) / dt, (y1 - y0) / dt
-        vs.append(math.hypot(vx, vy))
-        hs.append(math.atan2(vy, vx))
-        ts.append((t0 + t1) / 2)
-    if len(hs) < 2:
-        return Behaviour(0.0, 0.0, 0.0, 2.0, 0.0, len(pts), "none")
-
-    # Unwrap headings so a turn through ±pi does not look like a reversal.
-    unwrapped = [hs[0]]
-    for h in hs[1:]:
-        d = h - unwrapped[-1]
-        while d > math.pi: d -= 2 * math.pi
-        while d < -math.pi: d += 2 * math.pi
-        unwrapped.append(unwrapped[-1] + d)
-
+    pts = pts[-20:]                                   # ~10 s at 2 Hz
+    t_last = pts[-1][0]
+    ts = [p[0] - t_last for p in pts]                 # 0 at the last point
     n = len(ts)
-    tm, hm = sum(ts) / n, sum(unwrapped) / n
-    sxx = sum((t - tm) ** 2 for t in ts)
-    turn = sum((t - tm) * (h - hm) for t, h in zip(ts, unwrapped)) / sxx if sxx > 1e-9 else 0.0
 
-    speed = sum(vs) / len(vs)
-    speed_sigma = math.sqrt(sum((v - speed) ** 2 for v in vs) / max(1, len(vs) - 1))
-    # Residual heading change not explained by the constant turn, as lateral
-    # acceleration, plus along-track speed change: the manoeuvre level.
-    resid = [h - (hm + turn * (t - tm)) for t, h in zip(ts, unwrapped)]
-    lat_sigma = speed * math.sqrt(sum(r * r for r in resid) / max(1, len(resid) - 1)) / max(0.25, (ts[-1] - ts[0]) / max(1, n - 1))
-    man = math.sqrt(lat_sigma ** 2 + speed_sigma ** 2)
-    # Clamp to a physically sane band. Positions from a filtered track carry
-    # the filter's own jitter, which the lateral-acceleration estimate
-    # amplifies; above ~3 m/s^1.5 the draws are mostly rejected by the
-    # airspeed bound and the ensemble stops meaning anything.
+    def quad_fit(ys):
+        # Normal equations for y = a + b t + c t^2.
+        s0 = n; s1 = sum(ts); s2 = sum(u * u for u in ts)
+        s3 = sum(u ** 3 for u in ts); s4 = sum(u ** 4 for u in ts)
+        y0 = sum(ys); y1 = sum(u * y for u, y in zip(ts, ys)); y2 = sum(u * u * y for u, y in zip(ts, ys))
+        m = [[s0, s1, s2], [s1, s2, s3], [s2, s3, s4]]
+        v = [y0, y1, y2]
+        # Solve 3x3 by Cramer's rule; the window is tiny.
+        def det3(a):
+            return (a[0][0] * (a[1][1] * a[2][2] - a[1][2] * a[2][1])
+                    - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0])
+                    + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]))
+        d = det3(m)
+        if abs(d) < 1e-9:
+            return None
+        cols = []
+        for i in range(3):
+            mm = [row[:] for row in m]
+            for r in range(3):
+                mm[r][i] = v[r]
+            cols.append(det3(mm) / d)
+        a, b, c = cols
+        resid = [y - (a + b * u + c * u * u) for u, y in zip(ts, ys)]
+        rms = math.sqrt(sum(r * r for r in resid) / max(1, n - 3))
+        return b, 2.0 * c, rms                        # velocity, acceleration, residual
+
+    fx = quad_fit([p[1] for p in pts])
+    fy = quad_fit([p[2] for p in pts])
+    if fx is None or fy is None:
+        return Behaviour(0.0, 0.0, 0.0, 2.0, 0.0, len(pts), "none")
+    vx, ax, rx = fx
+    vy, ay, ry = fy
+    speed = math.hypot(vx, vy)
+    if speed < 0.5:
+        return Behaviour(speed, 0.0, 0.0, 1.0, 0.0, len(pts), "thin")
+    heading = math.atan2(vy, vx)
+    turn = (vx * ay - vy * ax) / (speed * speed)      # rad/s, +ve anticlockwise
+    # Along-track acceleration is a speed change; the residual RMS is what the
+    # quadratic could not explain — the genuinely unmodelled manoeuvring.
+    along = (vx * ax + vy * ay) / speed
+    span = max(0.5, ts[-1] - ts[0])
+    man = math.sqrt(along * along + (math.hypot(rx, ry) / span) ** 2)
     return Behaviour(
-        speed_m_s=speed, heading_rad=unwrapped[-1], turn_rate_rad_s=turn,
-        manoeuvre_sigma=max(0.8, min(3.0, man)), speed_sigma=min(speed_sigma, 4.0),
+        speed_m_s=speed, heading_rad=heading, turn_rate_rad_s=turn,
+        manoeuvre_sigma=max(0.6, min(3.0, man)), speed_sigma=min(abs(along) * span, 4.0),
         n_points=len(pts), fit_quality="good" if len(pts) >= 6 else "thin",
     )
 
@@ -405,9 +419,9 @@ def regimes_for(b: Behaviour) -> List[Regime]:
                 Regime("tighten-turn", 0.15, b.turn_rate_rad_s * 1.8, w_turn * 1.3),
                 Regime("roll-out", 0.20, 0.0, w_turn),
                 Regime("reverse-turn", 0.10, -s * abs(b.turn_rate_rad_s), w_turn * 1.3)]
-    return [Regime("straight", 0.60, 0.0, w_turn),
-            Regime("turn-left", 0.18, +0.07, w_turn * 1.2),
-            Regime("turn-right", 0.18, -0.07, w_turn * 1.2),
+    return [Regime("straight", 0.70, 0.0, w_turn),
+            Regime("turn-left", 0.13, +0.05, w_turn * 1.2),
+            Regime("turn-right", 0.13, -0.05, w_turn * 1.2),
             Regime("decelerate", 0.04, 0.0, w_turn * 1.5)]
 
 
@@ -552,3 +566,34 @@ def sample_paths_adaptive(
         cv_radius_m=round(cv_r, 1), empirical_radius_m=round(emp_r, 1),
         n_paths=len(paths), rejected=rejected, seed=seed,
     )
+
+
+# --- one ensemble per loss event, sliced by time ---------------------------
+#
+# The behaviour that shapes the region is fixed at the instant of loss, so a
+# single ensemble run from that instant can be sliced at any later time. That
+# makes a behaviour-shaped region for EVERY lost contact on EVERY frame cost
+# one simulation per loss event rather than one per frame.
+
+def hull_at_step(ens: AdaptiveEnsemble, step: int, keep_fraction: float = 0.95) -> List[Tuple[float, float]]:
+    """Convex hull of the innermost `keep_fraction` of paths at `step`."""
+    if not ens.paths:
+        return []
+    k = max(0, min(step, len(ens.times) - 1))
+    pts = [p[k] for p in ens.paths if len(p) > k]
+    if len(pts) < 3:
+        return [(round(x, 1), round(y, 1)) for x, y in pts]
+    cx = sum(p[0] for p in pts) / len(pts)
+    cy = sum(p[1] for p in pts) / len(pts)
+    ranked = sorted(pts, key=lambda p: math.hypot(p[0] - cx, p[1] - cy))
+    keep = ranked[: max(3, int(round(keep_fraction * len(ranked))))]
+    return [(round(x, 1), round(y, 1)) for x, y in _hull(keep)]
+
+
+def centroid_at_step(ens: AdaptiveEnsemble, step: int) -> Tuple[float, float]:
+    """Mean position of the ensemble at `step` — where the contact most likely is."""
+    if not ens.paths:
+        return (0.0, 0.0)
+    k = max(0, min(step, len(ens.times) - 1))
+    pts = [p[k] for p in ens.paths if len(p) > k]
+    return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))

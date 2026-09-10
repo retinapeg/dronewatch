@@ -504,3 +504,98 @@ def test_thirty_second_outage_without_backup_stays_lost_until_radar_returns():
     assert r95(68)[0] > r95(52)[0] > r95(45)[0] > r95(38)[-1]
     assert all(x["fresh"] == "U" for x in tl["frames"][int(74 * 5)]["tracks"])
     assert tl["tracks_confirmed"] == 6 and tl["tracks_archived"] == 0
+
+
+# --- shaped regions on every frame, and the cued camera -------------------------------
+
+def test_every_lost_track_carries_a_behaviour_shaped_region():
+    from dronewatch.tracks.tracker import TrackerConfig
+    tl = run_mode("radar:40-70")
+    # run_mode uses the default 25 s retention; use frames inside it.
+    f = tl["frames"][int(58 * 5)]
+    lost = [t for t in f["tracks"] if t["fresh"] != "U"]
+    assert lost
+    for t in lost:
+        assert len(t["hull"]) >= 3, f"{t['id']} has no region polygon"
+        assert len(t["hc"]) == 2 and len(t["beh"]) == 3
+        xs = [p[0] for p in t["hull"]]; ys = [p[1] for p in t["hull"]]
+        w, h = max(xs) - min(xs), max(ys) - min(ys)
+        # Not a circle: the aspect ratio must differ from 1 for at least some.
+        t["_aspect"] = max(w, h) / max(1.0, min(w, h))
+    assert any(t["_aspect"] > 1.25 for t in lost), [round(t["_aspect"], 2) for t in lost]
+    # The region's centroid moves along the predicted path, not around the
+    # last-known point: at 18 s at ~25 m/s that is hundreds of metres.
+    moved = [math.hypot(t["hc"][0] - t["x"], t["hc"][1] - t["y"]) for t in lost]
+    assert max(moved) > 200, moved
+
+
+def test_fresh_tracks_carry_no_region():
+    tl = run_mode("")
+    for f in tl["frames"][100:]:
+        for t in f["tracks"]:
+            assert t["fresh"] == "U" and "hull" not in t
+
+
+def test_quadratic_behaviour_fit_is_unbiased_under_filter_noise():
+    from dronewatch.tracks import uncertainty as U
+    import random as _r
+    for truth in (0.0, 3.0, -6.0):
+        ests = []
+        for seed in range(6):
+            rng = _r.Random(seed); x = y = 0.0; h = math.radians(270); hist = []
+            for i in range(21):
+                hist.append((i * 0.5, x + rng.gauss(0, 7), y + rng.gauss(0, 7)))
+                h += math.radians(truth) * 0.5; x += 25 * math.cos(h) * 0.5; y += 25 * math.sin(h) * 0.5
+            ests.append(math.degrees(U.behaviour_from_history(hist).turn_rate_rad_s))
+        mean = sum(ests) / len(ests)
+        if abs(truth) <= 3.0:
+            assert abs(mean - truth) < 0.6, (truth, ests)          # unbiased at demo turn rates
+        else:
+            # Known quadratic-on-arc bias: magnitude low, sign right (see docstring).
+            assert all((e < 0) == (truth < 0) for e in ests), (truth, ests)
+            assert 0.6 * abs(truth) <= abs(mean) <= 1.1 * abs(truth), (truth, mean)
+
+
+def test_camera_cue_plan_targets_lost_contacts_and_slews_at_a_finite_rate():
+    from dronewatch.tracks.cueing import plan_camera_cues
+    tl = run_mode("radar:40-70")
+    cues = plan_camera_cues(tl["frames"], (0.0, 560.0), rest_deg=90.0, slew_deg_s=40.0)
+    at = {c["t"]: c for c in cues}
+    assert at[30.0]["target"] is None and at[30.0]["centre_deg"] == 90.0
+    during = [c for c in cues if 44 <= c["t"] <= 62]
+    assert all(c["target"] for c in during), "camera must be cued while contacts are lost"
+    assert len({c["target"] for c in during}) >= 3, "dwell-and-rotate must visit several contacts"
+    for a, b in zip(cues, cues[1:]):
+        d = abs((b["centre_deg"] - a["centre_deg"] + 180) % 360 - 180)
+        assert d <= 40.0 * (b["t"] - a["t"]) + 1e-6, "slew rate exceeded"
+
+
+def test_cued_camera_reacquires_more_than_a_fixed_one():
+    """The whole point of cueing: pointed at the predicted position of each
+    lost contact in turn, the camera re-localises contacts a fixed sector
+    would never see."""
+    from dataclasses import replace
+    from dronewatch.tracks.cueing import plan_camera_cues
+    from dronewatch.tracks.tracker import TrackerConfig
+    from dronewatch.synthetic import generator as G
+    cfg = TrackerConfig(drop_after_s=45.0)
+    base = FaultSpec.parse("radar:40-70;backup:viso")
+
+    def seen_by_camera(faults):
+        s = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6, faults=faults)
+        tl = build_timeline(s.observations, t_zero=T_ZERO, duration_s=90.0, scans=s.scans,
+                            admit=("radar-north", "viso-eo"), config=cfg)
+        ids = set()
+        for f in tl["frames"]:
+            if 40 <= f["t"] <= 70:
+                ids |= {t["id"] for t in f["tracks"] if "viso-eo" in t["src"]}
+        return ids
+
+    fixed = seen_by_camera(base)
+    s1 = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6,
+                           faults=replace(base, backup=None))
+    pass1 = build_timeline(s1.observations, t_zero=T_ZERO, duration_s=90.0, scans=s1.scans, config=cfg)
+    cues = plan_camera_cues(pass1["frames"], G.VISO_SENSOR_LOCATION, rest_deg=G.VISO_FOV_CENTRE_DEG)
+    cued = seen_by_camera(replace(base, viso_cues=tuple((c["t"], c["centre_deg"]) for c in cues)))
+    assert len(cued) == 6, cued
+    assert len(cued) >= len(fixed)
