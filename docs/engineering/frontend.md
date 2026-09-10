@@ -41,3 +41,11 @@
 - Reproduced valid 256-character target ID expanding a 360px mobile document to 1714px. Bounded the overview/action ID presentation and enabled attention-copy wrapping while preserving the complete ID in target detail. The same browser probe after the fix reports viewport=360, document=360 and detail ID length=256.
 - The hostile optional-field probe included an object-valued uncertainty, object-valued alternative interpretation, object evidence and an HTML-looking evidence string. It produced no page errors and zero unexpected image nodes; objects use safe fallback and evidence remains text.
 - Scenario unit suite now has 14 passing tests (24 together with the 10 unchanged historical helper tests).
+
+## Source disambiguation and announcement follow-up
+
+- Duplicate target IDs from different sources now show the source in the row and include source/source-kind in the accessible button name. Unique target labels are unchanged. Browser checks select the intended source independently and verify its detail provenance.
+- A MutationObserver reproduced one redundant rewrite of the unchanged `role=status` error message per retry. The shared text-update guard now leaves identical announcements untouched; the executable retry test observes zero mutations.
+- Strict `truncated: true` on a healthy canonical response now displays an independent limited-window notice. It does not become a connection failure and clears after an untruncated response.
+- QA's screenshot showed Resume and Reset wrapping inside words at 393px. The transport group now retains its intrinsic width, uses compact padding and keeps button words on one line. A 393px touch probe verifies document width=393 and each label is a single 15px text line at 11px font size.
+- Eight targeted browser checks passed across 360px touch emulation and desktop for source identity, independent selection, unchanged announcements and healthy truncated responses. These committed tests join the manager's full browser matrix.

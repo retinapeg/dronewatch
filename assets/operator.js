@@ -18,7 +18,7 @@
   let mode = params.get('mode') === 'sensor' ? 'sensor' : 'demo';
   let elapsed = 0, count = 5, playing = true, focused = false;
   let tracks = Scenario.snapshot(0, count), sensorRecords = [], selectedKey = targetKey(tracks[0]);
-  let sensorConnected = false, sensorAttempted = false, sensorError = '', request = null, requestEpoch = 0;
+  let sensorConnected = false, sensorAttempted = false, sensorError = '', sensorTruncated = false, request = null, requestEpoch = 0;
   let lastTick = performance.now(), lastActivity = -1;
   const markers = new Map();
   const observationFreshness = target => target.timestamp_basis === 'reported_event_time' ? Scenario.freshness(target.updated_at) : { fresh: false, label: 'Observation time unverified' };
@@ -114,12 +114,15 @@
   function renderRoster() {
     const activeKey = document.activeElement?.dataset?.targetKey;
     const fragment = document.createDocumentFragment();
+    const idCounts = new Map(); for (const item of tracks) idCounts.set(item.target_id, (idCounts.get(item.target_id) || 0) + 1);
     for (const target of tracks) {
       const key = targetKey(target), button = el('button', null, `target-row ${statusClass(target.status)}`);
       button.type = 'button'; button.dataset.targetKey = key; button.dataset.targetId = target.target_id;
-      button.setAttribute('aria-label', `Select target ${target.target_id}`); button.setAttribute('aria-pressed', String(selectedKey === key));
+      const duplicateID = idCounts.get(target.target_id) > 1;
+      button.setAttribute('aria-label', `Select target ${target.target_id}${duplicateID ? ` from ${target.source} (${sourceLabel(target.source_kind)})` : ''}`); button.setAttribute('aria-pressed', String(selectedKey === key));
       button.append(el('span', glyph(target.status), 'row-icon'));
       const main = el('span', null, 'row-main'); main.append(el('strong', target.target_id));
+      if (duplicateID) main.append(el('small', `Source: ${shortID(target.source)}`, 'row-source'));
       const age = observationFreshness(target);
       main.append(el('small', mode === 'demo' ? `${target.direction} · scripted` : `${sourceLabel(target.source_kind)} · ${!sensorConnected ? 'cached' : age.label}`, mode === 'sensor' && (!sensorConnected || !age.fresh) ? 'stale-label' : undefined));
       const state = el('span', target.status, 'row-status');
@@ -199,7 +202,9 @@
   }
   function renderSensorStatus() {
     const notice = $('sensor-notice'); notice.hidden = mode !== 'sensor' || !sensorError;
-    notice.textContent = sensorError;
+    put('sensor-notice', sensorError);
+    $('sensor-window-notice').hidden = mode !== 'sensor' || !sensorTruncated;
+    put('sensor-window-notice', 'Showing a limited window of stored observations. Additional events are not included in this view.');
     const message = sensorError || (!sensorAttempted ? 'Connecting to the stored event feed…' : !sensorRecords.length ? 'No sensor observations yet · feed reachable' : 'Stored event feed reachable · observation freshness shown per target');
     put('sensor-feed-note', message);
     if (mode === 'sensor') put('footer-status', sensorError ? 'EVENT FEED UNAVAILABLE · AUTOMATIC RETRY' : 'STORED EVENT FEED · NO DIRECT SENSOR CONNECTION CLAIM');
@@ -238,7 +243,7 @@
       const payload = await response.json();
       const next = Scenario.normalizeSensorPayload(payload);
       if (epoch !== requestEpoch || mode !== 'sensor') return;
-      sensorRecords = next; sensorConnected = true; sensorAttempted = true; sensorError = ''; tracks = next;
+      sensorRecords = next; sensorTruncated = payload.truncated === true; sensorConnected = true; sensorAttempted = true; sensorError = ''; tracks = next;
       if (!tracks.some(target => targetKey(target) === selectedKey)) selectedKey = tracks.length ? targetKey(tracks[0]) : '';
       renderAll();
     } catch (error) {
