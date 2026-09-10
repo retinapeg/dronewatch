@@ -44,6 +44,8 @@ from ..synthetic.generator import (
 from ..synthetic.scenarios import SCENARIO_NAMES
 from ..tracks.frames import build_timeline
 from ..tracks import uncertainty as _unc
+import math as _math
+from ..synthetic import generator as _gen
 from ..tracks.site import MonitoredSite
 
 router = APIRouter()
@@ -416,10 +418,29 @@ def get_paths(
     p0 = [[c[0], c[1], 0.0, 0.0], [c[1], c[2], 0.0, 0.0],
           [0.0, 0.0, v_var, 0.0], [0.0, 0.0, 0.0, v_var]]
 
-    ens = _unc.sample_paths(x0, p0, horizon_s, w, n_paths=paths, steps=16,
-                            seed=seed * 7919 + idx, max_speed_m_s=max_speed)
-    # A second, unbounded ensemble purely to report agreement with the closed form.
-    check = _unc.sample_paths(x0, p0, horizon_s, w, n_paths=1500, steps=16, seed=seed + 1)
+    # Recent behaviour: the contact's positions over the frames before it was
+    # lost, taken from the timeline itself. This is what shapes the region.
+    hz = timeline["frame_hz"]
+    history = []
+    # The last accepted measurement was `age` seconds ago; look 14 s before THAT.
+    lost_idx = idx - int(round(age * hz))
+    for j in range(max(0, lost_idx - int(14 * hz)), idx + 1):
+        s = next((q for q in frames[j]["tracks"] if q["id"] == track), None)
+        if s and s["fresh"] == "U":
+            history.append((frames[j]["t"], s["x"], s["y"]))
+    # Thin to roughly the radar cadence so the estimator sees real motion, not
+    # frame-rate jitter.
+    history = history[::2] if len(history) > 8 else history
+
+    # The loss instant, so paths start from the last accepted state and run
+    # for (age + horizon): where it may be NOW and where it may be going.
+    ens = _unc.sample_paths_adaptive(
+        x0, p0, age + horizon_s, history, n_paths=paths, steps=24,
+        seed=seed * 7919 + idx, max_speed_m_s=max_speed, w_cv_reference=w,
+    )
+    # Plain CV ensemble as the reference the adaptive one is compared against.
+    cv = _unc.sample_paths(x0, p0, age + horizon_s, w, n_paths=1500, steps=16, seed=seed + 1)
+    b = ens.behaviour
     return {
         "track": track, "t": frame["t"], "status": snap["status"], "fresh": snap["fresh"],
         "age_s": age, "horizon_s": horizon_s, "process_noise_w": w,
@@ -427,12 +448,25 @@ def get_paths(
         "vel": snap["vel"],
         "times": ens.times,
         "paths": [[[round(x, 1), round(y, 1)] for x, y in path] for path in ens.paths],
+        "regimes": ens.regimes,
+        "regime_weights": ens.regime_weights,
+        "behaviour": {
+            "speed_m_s": round(b.speed_m_s, 1),
+            "heading_deg": round((90.0 - _math.degrees(b.heading_rad)) % 360.0, 1),
+            "turn_rate_deg_s": round(_math.degrees(b.turn_rate_rad_s), 2),
+            "manoeuvre_sigma": round(b.manoeuvre_sigma, 2),
+            "history_points": b.n_points, "fit": b.fit_quality,
+        },
+        # The morphed region: convex hull of the innermost 95% of endpoints.
+        "hull95": ens.hull95,
         "n_paths": ens.n_paths, "rejected_by_speed_bound": ens.rejected,
         "analytic_r95_now_m": snap["r95"],
-        "analytic_r95_at_horizon_m": ens.analytic_radius_m,
-        "empirical_r95_at_horizon_m": check.empirical_radius_m,
-        "empirical_containment": check.empirical_containment,
-        "model": "Ito SDE: dp = v dt, dv = dW, W = w I; Euler-Maruyama, exact for this linear model",
+        "cv_r95_at_horizon_m": ens.cv_radius_m,
+        "adaptive_r95_at_horizon_m": ens.empirical_radius_m,
+        "cv_empirical_containment": cv.empirical_containment,
+        "model": ("behaviour-weighted mixture of coordinated-turn regimes with white "
+                  "acceleration; Monte Carlo (no closed form for the mixture). "
+                  "CV Ito SDE ensemble reported alongside as the reference."),
         "cue": snap["cue"],
         "cue_window_s": snap.get("cue_window_s"),
         "synthetic": True,
@@ -486,6 +520,13 @@ SENSOR_LOSS_MODES: Dict[str, Dict[str, Any]] = {
                        "admit": ["radar-north"]},
     "single_loss": {"label": "One contact unobserved 40-55 s", "faults": "loss:2@40-55",
                     "admit": ["radar-north"]},
+    # 30 s: longer than the default 25 s retention, so this mode keeps tracks
+    # for 45 s. That is a display policy and is stated as such.
+    "radar_off_30s": {"label": "Radar off 30 s (40-70) — stochastic containment",
+                      "faults": "radar:40-70", "admit": ["radar-north"], "retain_s": 45.0},
+    "radar_off_30s_viso": {"label": "Radar off 30 s + Viso visual detection",
+                           "faults": "radar:40-70;backup:viso",
+                           "admit": ["radar-north", "viso-eo"], "retain_s": 45.0},
 }
 
 
@@ -521,9 +562,11 @@ def get_tracks(
     observations, scans = pipeline_input(
         name, seed=seed, duration_s=duration_s, count=count, faults=faults
     )
+    from ..tracks.tracker import TrackerConfig
+    config = TrackerConfig(drop_after_s=spec["retain_s"]) if spec.get("retain_s") else None
     timeline = build_timeline(
         observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite(),
-        scans=scans, admit=spec["admit"],
+        scans=scans, admit=spec["admit"], config=config,
     )
     timeline.update({
         "scenario": name,
@@ -536,6 +579,10 @@ def get_tracks(
         "scenarios": list(OPERATOR_SCENARIOS),
         "mode": mode,
         "mode_label": spec["label"],
+        "sensors": ([{"id": "viso-eo", "kind": "eo-camera", "x": _gen.VISO_SENSOR_LOCATION[0],
+                      "y": _gen.VISO_SENSOR_LOCATION[1], "fov_centre_deg": _gen.VISO_FOV_CENTRE_DEG,
+                      "fov_half_deg": _gen.VISO_FOV_HALF_DEG, "max_range_m": _gen.VISO_MAX_RANGE_M}]
+                    if "viso-eo" in spec["admit"] else []),
         "faults": faults.label(),
         "modes": [{"id": k, "label": v["label"]} for k, v in SENSOR_LOSS_MODES.items()],
     })

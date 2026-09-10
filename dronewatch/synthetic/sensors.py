@@ -68,6 +68,13 @@ class SensorModel:
     visibility: float = 1.0
     #: Sensor location in simulation metres; required for bearing-only sensors.
     location: Optional[Tuple[float, float]] = None
+    #: A camera sees a sector, not the sky. When set, a target is only
+    #: detectable inside this range and this half-angle about the centre
+    #: bearing (mathematical convention, degrees). This is what makes a cued
+    #: EO sensor "specific": it looks where it is pointed.
+    fov_centre_deg: Optional[float] = None
+    fov_half_deg: float = 180.0
+    max_range_m: Optional[float] = None
     #: A bearing-only sensor reports the angle from `location` to the target,
     #: mathematical convention, and no position at all.
     bearing_only: bool = False
@@ -92,6 +99,21 @@ class SensorModel:
 
     def is_blind_to(self, entity_id: str, t: float) -> bool:
         return any(start <= t <= end for start, end in self.blind_windows.get(entity_id, ()))
+
+    def can_see(self, x: float, y: float) -> bool:
+        """Sector and range check for a cued sensor. Always true if no FOV set."""
+        if self.fov_centre_deg is None and self.max_range_m is None:
+            return True
+        sx, sy = self.location or (0.0, 0.0)
+        dx, dy = x - sx, y - sy
+        if self.max_range_m is not None and math.hypot(dx, dy) > self.max_range_m:
+            return False
+        if self.fov_centre_deg is not None:
+            bearing = math.degrees(math.atan2(dy, dx))
+            diff = (bearing - self.fov_centre_deg + 180.0) % 360.0 - 180.0
+            if abs(diff) > self.fov_half_deg:
+                return False
+        return True
 
     @property
     def interval_s(self) -> float:
@@ -238,6 +260,9 @@ def observe_entity(
             continue
 
         point = entity.state_at(t)
+        if not sensor.can_see(point.x, point.y):
+            t += sensor.interval_s
+            continue
         factor = sensor.noise_factor(t)
         signals: Tuple[SignalFeature, ...] = ()
         if sensor.emits_signal_features:

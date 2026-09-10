@@ -46,9 +46,9 @@ DEFAULT_ADMIT = ("radar-north",)
 #: mirror the synthetic suite; a real deployment would take them from the
 #: sensor's own declaration.
 NOMINAL_SIGMA_M = {"radar-north": 10.0, "eo-south": 25.0, "ir-south": 40.0,
-                   "acoustic-west": 200.0, "rf-east": 120.0}
+                   "acoustic-west": 200.0, "rf-east": 120.0, "viso-eo": 18.0}
 CADENCE_S = {"radar-north": 0.5, "eo-south": 1.0, "ir-south": 1.0,
-             "acoustic-west": 2.0, "rf-east": 2.0, "bearing-west": 1.0}
+             "acoustic-west": 2.0, "rf-east": 2.0, "bearing-west": 1.0, "viso-eo": 1.0}
 
 
 def _sim_seconds(moment: datetime, t_zero: datetime) -> float:

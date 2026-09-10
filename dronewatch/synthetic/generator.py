@@ -117,6 +117,15 @@ class FaultSpec:
 
 POSITIONAL_SENSOR_IDS = ("radar-north", "eo-south", "ir-south", "acoustic-west", "rf-east")
 BEARING_SENSOR_ID = "bearing-west"
+#: A Viso Now-style visual detector: a camera at the site's north edge, cued
+#: up the approach axis. It geolocates what it detects (calibrated camera,
+#: known height, ground-plane intersection) with modest noise, but ONLY inside
+#: its sector and range. Outside that it reports nothing at all.
+VISO_SENSOR_ID = "viso-eo"
+VISO_SENSOR_LOCATION = (0.0, 560.0)
+VISO_FOV_CENTRE_DEG = 90.0          # looks north, up the approach
+VISO_FOV_HALF_DEG = 32.0
+VISO_MAX_RANGE_M = 1500.0
 BACKUP_POSITION_SENSOR_ID = "eo-south"
 
 
@@ -168,6 +177,15 @@ def _tuned_sensors(scenario_name: str, duration: float,
         for index, a, b in faults.single_loss:
             if 1 <= index <= len(entity_ids):
                 radar.blind_windows.setdefault(entity_ids[index - 1], []).append((a, b))
+    if faults.backup == "viso":
+        sensors.append(SensorModel(
+            sensor_id=VISO_SENSOR_ID, modality=Modality.EO,
+            cadence_hz=1.0, detection_probability=0.85, position_noise_m=18.0,
+            latency_mean_s=0.35, latency_jitter_s=0.1, confidence_range=(0.6, 0.95),
+            class_evidence_strength=0.5, false_positive_rate=0.0,
+            location=VISO_SENSOR_LOCATION, fov_centre_deg=VISO_FOV_CENTRE_DEG,
+            fov_half_deg=VISO_FOV_HALF_DEG, max_range_m=VISO_MAX_RANGE_M,
+        ))
     if faults.backup == "bearing":
         sensors.append(SensorModel(
             sensor_id=BEARING_SENSOR_ID, modality=Modality.ACOUSTIC,

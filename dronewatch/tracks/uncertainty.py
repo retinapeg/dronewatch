@@ -300,3 +300,255 @@ def cue_feasibility(
         seconds_since_measurement=round(seconds_since_measurement, 1),
         seconds_until_infeasible=until,
     )
+
+
+# --- behaviour-adaptive containment -----------------------------------------
+#
+# Constant velocity plus white acceleration treats every contact the same. A
+# drone that has been holding a steady turn for the last ten seconds is far
+# more likely to keep turning than to fly straight, and one that has been
+# jinking should be given a wider region than one that has been cruising.
+# So: read the recent track, estimate what it was DOING, and let that shape
+# the region.
+
+@dataclass(frozen=True)
+class Behaviour:
+    """What the recent track history says the contact was doing."""
+    speed_m_s: float
+    heading_rad: float               # mathematical convention
+    turn_rate_rad_s: float           # +ve anticlockwise; 0 = straight
+    #: How much the contact has been manoeuvring, as an acceleration sigma.
+    manoeuvre_sigma: float
+    speed_sigma: float
+    n_points: int
+    fit_quality: str                 # 'good' | 'thin' | 'none'
+
+
+def behaviour_from_history(history: Sequence[Tuple[float, float, float]]) -> Behaviour:
+    """Estimate speed, heading, turn rate and manoeuvre level from (t, x, y).
+
+    Uses the last few seconds only; older behaviour is not predictive of the
+    next few. Turn rate is the least-squares slope of heading against time,
+    which is robust to a little position noise at these cadences.
+    """
+    pts = [p for p in history if p is not None]
+    if len(pts) < 3:
+        return Behaviour(0.0, 0.0, 0.0, 2.0, 0.0, len(pts), "none")
+    pts = pts[-12:]                                   # ~6 s at 2 Hz
+    vs, hs, ts = [], [], []
+    for (t0, x0, y0), (t1, x1, y1) in zip(pts, pts[1:]):
+        dt = t1 - t0
+        if dt <= 1e-6:
+            continue
+        vx, vy = (x1 - x0) / dt, (y1 - y0) / dt
+        vs.append(math.hypot(vx, vy))
+        hs.append(math.atan2(vy, vx))
+        ts.append((t0 + t1) / 2)
+    if len(hs) < 2:
+        return Behaviour(0.0, 0.0, 0.0, 2.0, 0.0, len(pts), "none")
+
+    # Unwrap headings so a turn through ±pi does not look like a reversal.
+    unwrapped = [hs[0]]
+    for h in hs[1:]:
+        d = h - unwrapped[-1]
+        while d > math.pi: d -= 2 * math.pi
+        while d < -math.pi: d += 2 * math.pi
+        unwrapped.append(unwrapped[-1] + d)
+
+    n = len(ts)
+    tm, hm = sum(ts) / n, sum(unwrapped) / n
+    sxx = sum((t - tm) ** 2 for t in ts)
+    turn = sum((t - tm) * (h - hm) for t, h in zip(ts, unwrapped)) / sxx if sxx > 1e-9 else 0.0
+
+    speed = sum(vs) / len(vs)
+    speed_sigma = math.sqrt(sum((v - speed) ** 2 for v in vs) / max(1, len(vs) - 1))
+    # Residual heading change not explained by the constant turn, as lateral
+    # acceleration, plus along-track speed change: the manoeuvre level.
+    resid = [h - (hm + turn * (t - tm)) for t, h in zip(ts, unwrapped)]
+    lat_sigma = speed * math.sqrt(sum(r * r for r in resid) / max(1, len(resid) - 1)) / max(0.25, (ts[-1] - ts[0]) / max(1, n - 1))
+    man = math.sqrt(lat_sigma ** 2 + speed_sigma ** 2)
+    # Clamp to a physically sane band. Positions from a filtered track carry
+    # the filter's own jitter, which the lateral-acceleration estimate
+    # amplifies; above ~3 m/s^1.5 the draws are mostly rejected by the
+    # airspeed bound and the ensemble stops meaning anything.
+    return Behaviour(
+        speed_m_s=speed, heading_rad=unwrapped[-1], turn_rate_rad_s=turn,
+        manoeuvre_sigma=max(0.8, min(3.0, man)), speed_sigma=min(speed_sigma, 4.0),
+        n_points=len(pts), fit_quality="good" if len(pts) >= 6 else "thin",
+    )
+
+
+@dataclass(frozen=True)
+class Regime:
+    name: str
+    weight: float
+    turn_rate_rad_s: float
+    accel_sigma: float
+
+
+def regimes_for(b: Behaviour) -> List[Regime]:
+    """A small multiple-model mixture, weighted by what the contact was doing.
+
+    A contact in a steady turn gets most of its mass on 'continue the turn';
+    one flying straight gets most on 'straight' with symmetric turn branches.
+    The weights are stated here rather than fitted, so they can be argued with.
+    """
+    steady = abs(b.turn_rate_rad_s) > 0.02              # > ~1.1 deg/s
+    w_turn = b.manoeuvre_sigma
+    if b.fit_quality == "none":
+        return [Regime("straight", 0.6, 0.0, 2.5),
+                Regime("turn-left", 0.2, +0.06, 3.0),
+                Regime("turn-right", 0.2, -0.06, 3.0)]
+    if steady:
+        s = 1.0 if b.turn_rate_rad_s > 0 else -1.0
+        return [Regime("continue-turn", 0.55, b.turn_rate_rad_s, w_turn),
+                Regime("tighten-turn", 0.15, b.turn_rate_rad_s * 1.8, w_turn * 1.3),
+                Regime("roll-out", 0.20, 0.0, w_turn),
+                Regime("reverse-turn", 0.10, -s * abs(b.turn_rate_rad_s), w_turn * 1.3)]
+    return [Regime("straight", 0.60, 0.0, w_turn),
+            Regime("turn-left", 0.18, +0.07, w_turn * 1.2),
+            Regime("turn-right", 0.18, -0.07, w_turn * 1.2),
+            Regime("decelerate", 0.04, 0.0, w_turn * 1.5)]
+
+
+@dataclass(frozen=True)
+class AdaptiveEnsemble:
+    times: List[float]
+    paths: List[List[Tuple[float, float]]]
+    regimes: List[str]                       # regime per path
+    behaviour: Behaviour
+    regime_weights: List[Tuple[str, float]]
+    #: Convex hull (metres) of the innermost 95% of endpoints: the MORPHED region.
+    hull95: List[Tuple[float, float]]
+    #: For comparison: the isotropic analytic R95 of the plain CV model.
+    cv_radius_m: float
+    empirical_radius_m: float
+    n_paths: int
+    rejected: int
+    seed: int
+
+
+def _hull(points: Sequence[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    """Andrew's monotone chain. Returns the hull anticlockwise."""
+    pts = sorted(set(points))
+    if len(pts) < 3:
+        return list(pts)
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lower: List[Tuple[float, float]] = []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    upper: List[Tuple[float, float]] = []
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return lower[:-1] + upper[:-1]
+
+
+def sample_paths_adaptive(
+    x0: Sequence[float],
+    p0: K.Matrix,
+    tau: float,
+    history: Sequence[Tuple[float, float, float]],
+    *,
+    n_paths: int = 300,
+    steps: int = 24,
+    seed: int = 0,
+    max_speed_m_s: float = 45.0,
+    min_speed_m_s: float = 3.0,
+    w_cv_reference: float = 4.0,
+) -> AdaptiveEnsemble:
+    """Monte Carlo over a behaviour-weighted mixture of manoeuvre regimes.
+
+    Each path draws a regime, then integrates a coordinated-turn model with
+    that regime's turn rate, driven by white acceleration at that regime's
+    level. Speed is bounded to a plausible envelope. The result is a cloud
+    whose shape follows the contact's recent behaviour — curving along a
+    turn, stretching along a straight run — rather than an isotropic circle.
+
+    This is deliberately a simulation rather than a closed form: the mixture
+    of turn rates is not Gaussian, so there is no exact ellipse to quote.
+    """
+    rng = random.Random(seed)
+    b = behaviour_from_history(history)
+    regs = regimes_for(b)
+    cum, acc = [], 0.0
+    for r in regs:
+        acc += r.weight
+        cum.append(acc)
+
+    tau = max(0.0, tau)
+    steps = max(1, steps)
+    dt = tau / steps
+    times = [round(i * dt, 3) for i in range(steps + 1)]
+    l0 = K.cholesky_psd(p0)
+
+    # A good fit over ~12 points beats a single filter velocity for the initial
+    # heading and speed: the filter's velocity is the same measurements seen
+    # through a constant-velocity assumption, so during a turn it lags. Fall
+    # back to the filter only when the history is too thin to fit.
+    v_filter = math.hypot(x0[2], x0[3])
+    use_b = b.fit_quality == "good" or (b.fit_quality == "thin" and v_filter < 2.0)
+
+    paths, regimes, endpoints = [], [], []
+    rejected, attempts = 0, 0
+    while len(paths) < n_paths and attempts < n_paths * 12:
+        attempts += 1
+        u = rng.random() * cum[-1]
+        reg = next(r for r, c in zip(regs, cum) if u <= c)
+
+        noise = K.matvec(l0, [rng.gauss(0, 1) for _ in range(4)]) if l0 else [0, 0, 0, 0]
+        x, y = x0[0] + noise[0], x0[1] + noise[1]
+        if use_b:
+            spd = max(min_speed_m_s, b.speed_m_s + rng.gauss(0, max(0.5, b.speed_sigma)))
+            hdg = b.heading_rad + rng.gauss(0, 0.06)
+        else:
+            vx, vy = x0[2] + noise[2], x0[3] + noise[3]
+            spd, hdg = max(min_speed_m_s, math.hypot(vx, vy)), math.atan2(vy, vx)
+
+        sig = reg.accel_sigma * math.sqrt(dt)
+        pts = [(x, y)]
+        ok = True
+        for _ in range(steps):
+            hdg += reg.turn_rate_rad_s * dt
+            x += spd * math.cos(hdg) * dt
+            y += spd * math.sin(hdg) * dt
+            # White acceleration: along-track on speed, cross-track on heading.
+            spd += rng.gauss(0, sig)
+            hdg += rng.gauss(0, sig) / max(spd, 1.0)
+            if spd > max_speed_m_s or spd < 0:
+                ok = False
+                break
+            spd = max(min_speed_m_s, spd)
+            pts.append((x, y))
+        if not ok:
+            rejected += 1
+            continue
+        paths.append(pts)
+        regimes.append(reg.name)
+        endpoints.append(pts[-1])
+
+    # Region: hull of the 95% of endpoints nearest their own centroid.
+    if endpoints:
+        cx = sum(p[0] for p in endpoints) / len(endpoints)
+        cy = sum(p[1] for p in endpoints) / len(endpoints)
+        ranked = sorted(endpoints, key=lambda p: math.hypot(p[0] - cx, p[1] - cy))
+        keep = ranked[: max(3, int(round(0.95 * len(ranked))))]
+        hull = _hull(keep)
+        emp_r = math.hypot(keep[-1][0] - cx, keep[-1][1] - cy)
+    else:
+        hull, emp_r = [], 0.0
+
+    _, cov = analytic_state(x0, p0, tau, w_cv_reference)
+    cv_r = containment_radius([[cov[0][0], cov[0][1]], [cov[1][0], cov[1][1]]], 0.95)
+
+    return AdaptiveEnsemble(
+        times=times, paths=paths, regimes=regimes, behaviour=b,
+        regime_weights=[(r.name, r.weight) for r in regs],
+        hull95=[(round(px, 1), round(py, 1)) for px, py in hull],
+        cv_radius_m=round(cv_r, 1), empirical_radius_m=round(emp_r, 1),
+        n_paths=len(paths), rejected=rejected, seed=seed,
+    )

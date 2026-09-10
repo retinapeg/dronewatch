@@ -101,6 +101,44 @@ def synthetic_deliveries(count: int, seed: int, include_unmapped: bool) -> List[
     return out
 
 
+def scenario_viso_deliveries(seed: int, count: int, mode_faults: str) -> List[Dict[str, Any]]:
+    """The scenario's own Viso camera detections, as webhook payloads.
+
+    These are the SAME synthetic detections the tracker consumes in the
+    'radar_off_30s_viso' mode, so what the Connections panel shows arriving is
+    what re-localised the tracks on the map. Observation ids become incident
+    ids, so the two can be matched by eye.
+    """
+    import sys as _sys
+    from pathlib import Path as _P
+    _sys.path.insert(0, str(_P(__file__).resolve().parent.parent))
+    from dronewatch.synthetic.generator import FaultSpec, T_ZERO, generate_scenario, VISO_SENSOR_ID
+    s = generate_scenario("operator_demo", seed=seed, duration_s=90.0, count=count,
+                          faults=FaultSpec.parse(mode_faults))
+    out = []
+    for o in s.observations:
+        if o.sensor_id != VISO_SENSOR_ID or o.position is None:
+            continue
+        t = (o.observed_at - T_ZERO).total_seconds()
+        top = o.classification.top() if o.classification else (None, None)
+        out.append({
+            "appId": f"viso-app-{7000 + (seed % 900)}",
+            "incidentId": o.observation_id,
+            "incidentUrl": f"https://{VISO_HOST}/incidents/{o.observation_id}",
+            "detectedAt": o.observed_at.isoformat().replace("+00:00", "Z"),
+            "simulationTime": round(t, 2),
+            "label": str(getattr(top[0], "value", top[0]) or "drone").lower(),
+            "confidence": o.confidence,
+            "siteName": "Site Alpha — Viso EO, north sector",
+            # Geolocated by the camera (calibrated, ground-plane intersection).
+            "localPosition": {"x": o.position.latitude, "y": o.position.longitude,
+                              "frame": "LOCAL_SIM_METRES"},
+            "synthetic": True,
+        })
+    out.sort(key=lambda d: d["simulationTime"])
+    return out
+
+
 # --------------------------------------------------------------------------
 # sources
 # --------------------------------------------------------------------------
@@ -236,7 +274,11 @@ def main(argv=None) -> int:
     p.add_argument("--secret", default=None,
                    help="shared secret; defaults to $DRONEWATCH_WEBHOOK_SECRET")
     p.add_argument("--header", default=DEFAULT_HEADER)
-    p.add_argument("--source", choices=["generate", "drive", "local"], default="generate")
+    p.add_argument("--source", choices=["generate", "drive", "local", "scenario"], default="generate")
+    p.add_argument("--scenario-faults", default="radar:40-70;backup:viso",
+                   help="fault spec whose Viso camera detections to replay (--source scenario)")
+    p.add_argument("--from-t", type=float, default=None, help="only detections at/after this sim time")
+    p.add_argument("--to-t", type=float, default=None, help="only detections at/before this sim time")
     p.add_argument("--count", type=int, default=6)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--interval", type=float, default=2.0,
@@ -268,6 +310,14 @@ def main(argv=None) -> int:
         print(f"  generated {len(payloads)} synthetic delivery(ies)")
     elif args.source == "local":
         payloads = from_local(args.local_dir)
+    elif args.source == "scenario":
+        payloads = scenario_viso_deliveries(args.seed, args.count, args.scenario_faults)
+        if args.from_t is not None:
+            payloads = [p_ for p_ in payloads if p_["simulationTime"] >= args.from_t]
+        if args.to_t is not None:
+            payloads = [p_ for p_ in payloads if p_["simulationTime"] <= args.to_t]
+        print(f"  {len(payloads)} Viso camera detection(s) from the scenario "
+              f"({args.scenario_faults})")
     else:
         if args.drive_folder:
             if not args.drive_key:

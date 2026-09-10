@@ -46,10 +46,15 @@ curl -s "http://127.0.0.1:$PORT/api/preview/viso/status" \
   | python3 -c 'import json,sys; d=json.load(sys.stdin); print("   ", d["state"], "| deliveries:", d["delivery_count"])'
 
 echo
-echo "==> feeding synthetic Viso deliveries through the authenticated webhook"
+echo "==> feeding the scenario's Viso camera detections through the authenticated webhook"
+echo "    (the same synthetic detections that re-localise lost tracks in the"
+echo "     'Radar off 30 s + Viso visual detection' mode; plus one unrecognised payload)"
 .venv/bin/python scripts/viso_feed.py \
   --secret "$SECRET" --url "http://127.0.0.1:$PORT/v2/webhook/viso" \
-  --include-unmapped --interval 1.5 "$@"
+  --source scenario --from-t 40 --to-t 70 --interval 0.15 "$@"
+.venv/bin/python scripts/viso_feed.py \
+  --secret "$SECRET" --url "http://127.0.0.1:$PORT/v2/webhook/viso" \
+  --count 1 --include-unmapped --interval 0 >/dev/null 2>&1 || true
 
 echo
 echo "==> Viso status after"
@@ -59,7 +64,9 @@ curl -s "http://127.0.0.1:$PORT/api/preview/viso/status" \
 cat <<TXT
 
 Open:
-  operator view   http://127.0.0.1:$PORT/preview        (click VISO, top right)
+  operator view   http://127.0.0.1:$PORT/preview
+                  Sensor loss -> "Radar off 30 s + Viso visual detection", Play 4x,
+                  pause ~T+58, click a LOST row. VISO chip top-right for the panel.
   legacy board    http://127.0.0.1:$PORT/
   diagnostics     http://127.0.0.1:$PORT/preview/diagnostics
 

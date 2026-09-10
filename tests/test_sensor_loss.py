@@ -392,3 +392,115 @@ def test_projection_carries_velocity_containment_and_cue():
             "a stale track inside effective range fails on UNCERTAINTY, and must say so"
     before = tl["frames"][int(38 * 5)]["tracks"]
     assert all(t["r95"] < f["tracks"][0]["r95"] for t in before), "containment grows through the blackout"
+
+
+# --- behaviour-adaptive containment ---------------------------------------------------
+
+def _turning_history(turn_deg_s, speed=25.0, n=13, dt=0.5):
+    import math as _m
+    h = _m.radians(270.0); x = y = 0.0; out = []
+    for i in range(n):
+        out.append((i * dt, x, y))
+        h += _m.radians(turn_deg_s) * dt
+        x += speed * _m.cos(h) * dt; y += speed * _m.sin(h) * dt
+    return out
+
+
+def test_behaviour_estimator_recovers_a_known_turn_rate():
+    from dronewatch.tracks import uncertainty as U
+    b = U.behaviour_from_history(_turning_history(3.0))
+    assert abs(math.degrees(b.turn_rate_rad_s) - 3.0) < 0.15
+    assert abs(b.speed_m_s - 25.0) < 0.5
+    assert b.fit_quality == "good"
+    s = U.behaviour_from_history(_turning_history(0.0))
+    assert abs(math.degrees(s.turn_rate_rad_s)) < 0.05
+
+
+def test_behaviour_estimator_unwraps_heading_through_pi():
+    """A turn that crosses the ±180° seam must not read as a reversal."""
+    from dronewatch.tracks import uncertainty as U
+    import math as _m
+    h = _m.radians(175.0); x = y = 0.0; hist = []
+    for i in range(13):
+        hist.append((i * 0.5, x, y)); h += _m.radians(4.0) * 0.5
+        x += 25 * _m.cos(h) * 0.5; y += 25 * _m.sin(h) * 0.5
+    b = U.behaviour_from_history(hist)
+    assert abs(_m.degrees(b.turn_rate_rad_s) - 4.0) < 0.3
+
+
+def test_regimes_follow_behaviour():
+    from dronewatch.tracks import uncertainty as U
+    turning = U.regimes_for(U.behaviour_from_history(_turning_history(3.0)))
+    straight = U.regimes_for(U.behaviour_from_history(_turning_history(0.0)))
+    assert turning[0].name == "continue-turn" and turning[0].weight > 0.5
+    assert straight[0].name == "straight" and straight[0].weight > 0.5
+    assert abs(sum(r.weight for r in turning) - 1.0) < 1e-9
+    assert abs(sum(r.weight for r in straight) - 1.0) < 1e-9
+
+
+def test_adaptive_region_is_shaped_by_prior_movement():
+    """A turning contact's region must be displaced toward the inside of its
+    turn relative to a straight contact's, and both must be non-circular."""
+    from dronewatch.tracks import uncertainty as U
+    p0 = [[100, 0, 0, 0], [0, 100, 0, 0], [0, 0, 25, 0], [0, 0, 0, 25]]
+    left = _turning_history(+4.0); right = _turning_history(-4.0)
+    tl, tr_ = left[-1], right[-1]
+    el = U.sample_paths_adaptive([tl[1], tl[2], 0, -25], p0, 25.0, left, n_paths=300, seed=2)
+    er = U.sample_paths_adaptive([tr_[1], tr_[2], 0, -25], p0, 25.0, right, n_paths=300, seed=2)
+    cxl = sum(p[0] for p in el.hull95) / len(el.hull95)
+    cxr = sum(p[0] for p in er.hull95) / len(er.hull95)
+    # Heading south, a left (anticlockwise) turn curls toward +x, right toward -x.
+    assert cxl > tl[1] + 50 and cxr < tr_[1] - 50, (cxl, cxr)
+    assert len(el.hull95) >= 5 and len(er.hull95) >= 5
+
+
+def test_adaptive_ensemble_respects_airspeed_bound():
+    from dronewatch.tracks import uncertainty as U
+    hist = _turning_history(0.0, speed=40.0)
+    e = U.sample_paths_adaptive([0, 0, 0, -40], [[25, 0, 0, 0], [0, 25, 0, 0], [0, 0, 9, 0], [0, 0, 0, 9]],
+                                20.0, hist, n_paths=200, seed=4, max_speed_m_s=45.0)
+    assert e.n_paths == 200 and e.rejected > 0
+
+
+def test_cued_camera_only_sees_its_sector():
+    from dronewatch.synthetic.sensors import SensorModel
+    from dronewatch.domain.enums import Modality
+    cam = SensorModel(sensor_id="cam", modality=Modality.EO, location=(0.0, 560.0),
+                      fov_centre_deg=90.0, fov_half_deg=32.0, max_range_m=1500.0)
+    assert cam.can_see(0.0, 1500.0)            # straight ahead, in range
+    assert not cam.can_see(0.0, 2200.0)        # too far
+    assert not cam.can_see(1500.0, 560.0)      # 90 deg off axis
+    assert not cam.can_see(0.0, 0.0)           # behind the camera
+
+
+def test_viso_camera_relocalises_only_what_it_can_see():
+    """Radar off for 30 s; the camera keeps SOME contacts fresh and cueable
+    while others go stale. That difference is the point."""
+    from dronewatch.tracks.tracker import TrackerConfig
+    scenario = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6,
+                                 faults=FaultSpec.parse("radar:40-70;backup:viso"))
+    assert any(o.sensor_id == "viso-eo" for o in scenario.observations)
+    tl = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0,
+                        scans=scenario.scans, admit=("radar-north", "viso-eo"),
+                        config=TrackerConfig(drop_after_s=45.0))
+    f = tl["frames"][int(52 * 5)]
+    fresh = [t["fresh"] for t in f["tracks"]]
+    assert "U" in fresh and "S" in fresh, fresh
+    assert f["sources"]["radar-north"] == "UNAVAILABLE"
+    assert f["sources"]["viso-eo"] == "REPORTING"
+    seen = [t for t in f["tracks"] if "viso-eo" in t["src"]]
+    assert seen, "the camera must have contributed to at least one track"
+    assert tl["tracks_archived"] == 0, "a 45 s retention must carry tracks across a 30 s outage"
+
+
+def test_thirty_second_outage_without_backup_stays_lost_until_radar_returns():
+    from dronewatch.tracks.tracker import TrackerConfig
+    scenario = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6,
+                                 faults=FaultSpec.parse("radar:40-70"))
+    tl = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0,
+                        scans=scenario.scans, config=TrackerConfig(drop_after_s=45.0))
+    r95 = lambda t: sorted(x["r95"] for x in tl["frames"][int(t * 5)]["tracks"])
+    assert all(x["fresh"] == "S" for x in tl["frames"][int(68 * 5)]["tracks"])
+    assert r95(68)[0] > r95(52)[0] > r95(45)[0] > r95(38)[-1]
+    assert all(x["fresh"] == "U" for x in tl["frames"][int(74 * 5)]["tracks"])
+    assert tl["tracks_confirmed"] == 6 and tl["tracks_archived"] == 0
