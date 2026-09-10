@@ -116,8 +116,16 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
     else:
         alternative = "The observation may be benign activity or a source classification error."
         uncertainty = "No independent validation of identity, intent, position, or movement is available."
-    if len(_matching_values(raw_payload, ("label",))) > 1:
-        uncertainty = "Multiple reported objects are ambiguous; no single classification is selected."
+    ambiguous_objects = len(_matching_values(raw_payload, ("label",))) > 1 or any(
+        isinstance(value, list) and len(value) > 1
+        for value in _matching_values(raw_payload, ("labels", "detections", "objects"))
+    )
+    if ambiguous_objects:
+        # A root-level alert/score cannot identify which member of an unparsed
+        # object list it belongs to. Keep the reported event in evidence only.
+        status = "UNKNOWN"
+        confidence = None
+        uncertainty = "Multiple reported objects are ambiguous; no single classification, confidence, or position is selected."
 
     return {
         "target_id": _explicit_target_id(event),
@@ -125,7 +133,7 @@ def event_to_target(event: Dict[str, Any]) -> Dict[str, Any]:
         "source_kind": source_kind,
         "status": status,
         "confidence": confidence,
-        "position": _explicit_position(event.get("raw_payload")),
+        "position": None if ambiguous_objects else _explicit_position(raw_payload),
         "velocity": None,
         "heading": None,
         "source": source,

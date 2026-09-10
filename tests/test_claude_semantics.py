@@ -58,3 +58,15 @@ def test_ambiguous_multiple_objects_do_not_choose_max_confidence_as_ground_truth
     assert target["status"] == "UNKNOWN"
     assert target["confidence"] is None
     assert "multiple" in target["uncertainty"].lower() or "ambiguous" in target["uncertainty"].lower()
+
+
+@pytest.mark.parametrize("objects", [
+    {"labels": [{"label": "bird", "confidence": 0.2}, {"label": "drone", "confidence": 0.99}]},
+    {"detections": [{"class": "bird", "score": 0.2}, {"class": "drone", "score": 0.99}]},
+])
+def test_multiobject_payload_cannot_attach_a_root_alert_to_one_target(client, objects):
+    latest(client, {"state": "restricted_zone", "confidence": 0.99, **objects})
+    target = client.get("/api/targets").json()["targets"][0]
+    assert target["status"] == "UNKNOWN"
+    assert target["confidence"] is None
+    assert target["position"] is None
