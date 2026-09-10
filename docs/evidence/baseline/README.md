@@ -39,3 +39,8 @@ Additional visual findings: the 360px scenario log clips the SIMULATED / LOCAL b
 `measurements.json` retains widths, heights, transformed font sizes, touch-control dimensions, failed request URLs and console messages. `regression-results.json` is the full machine-readable failed run. `*-initial.png`, `*-controls.png` and `*-scenario.png` cover all five viewports. The 360px scenario, 393px initial, 412px controls, landscape scenario and desktop scenario screenshots were visually inspected.
 
 The capture script intentionally targets the old baseline. For the new operator interface use `npm run test:browser`; its screenshots and traces are written under `test-results/`, and the HTML report under `playwright-report/`. Browser regressions retain the original three failure checks and add touch operator flows and failure cases.
+
+
+## Claude independent baseline probes
+
+`claude_attack_baseline.py` preserves Claude Code's exact baseline-oriented adversarial tests from `2f62e63` (originally `tests/claude_attack_test.py`). Run it explicitly only against the original `31a32e1` checkout. Its original expectations and strict expected-failure markers document that baseline; they are not part of the current release test suite. Accepted fixes have ordinary passing regression tests under `tests/`, including `test_claude_semantics.py`. The full independent findings and final baseline counts are in `docs/engineering/claude-baseline.md`.

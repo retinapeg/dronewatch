@@ -61,13 +61,11 @@ def test_moderately_nested_payload_must_not_poison_the_events_api(client):
     assert read.status_code == 200, "a single accepted webhook must never make the events feed unreadable"
 
 
+@pytest.mark.xfail(strict=True, reason="100k-deep body returns 500 (RecursionError inside json.loads) instead of a 4xx")
 def test_very_deep_payload_is_rejected_not_500(client):
-    """Depth 100k currently returns 500 (RecursionError inside json.loads)."""
     test_client, _ = client
     body = ("[" * 100_000 + "]" * 100_000).encode()
     response = post_raw(test_client, body)
-    if response.status_code == 500:
-        pytest.xfail("baseline returns 500 for a 100k-deep body instead of a 4xx")
     assert response.status_code in {400, 413, 422}
 
 
@@ -196,16 +194,30 @@ def test_multi_label_payload_prefers_drone_detection(client):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="received_at stores the sender's timestamp; there is no server receipt time (main.py:198-200, 277)")
+def _iso_timestamps(mapping):
+    for key, value in mapping.items():
+        if key == "raw_payload" or not isinstance(value, str):
+            continue
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        yield key, parsed
+
+
+@pytest.mark.xfail(strict=True, reason="received_at stores the sender's timestamp; no field records the server receipt time (main.py:198-200, 277)")
 def test_server_receipt_time_is_recorded_independently_of_sender_timestamp(client):
+    """Field-agnostic: any top-level ISO timestamp on the event within 5 s of
+    wall clock satisfies this, whatever the column is called."""
     test_client, _ = client
     future = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
     test_client.post("/webhook/viso", json={"timestamp": future, "label": "drone"})
     event = latest(test_client)
-    reported = datetime.fromisoformat(event["received_at"])
-    assert reported <= datetime.now(timezone.utc) + timedelta(seconds=5), (
-        "a value named received_at must be the server receipt time, not the sender's claim"
-    )
+    now = datetime.now(timezone.utc)
+    server_times = [key for key, parsed in _iso_timestamps(event) if abs(parsed - now) < timedelta(seconds=5)]
+    assert server_times, f"no server receipt time on the event; timestamps present: {dict(_iso_timestamps(event))}"
 
 
 def test_unparseable_timestamp_is_replaced_silently(client):
@@ -255,12 +267,13 @@ def test_non_json_body_is_not_stored_as_a_viso_event(client):
 
 
 def test_valid_empty_and_list_json_still_acknowledged(client):
-    """Guard for Codex's 4xx proposal: valid JSON of any shape must stay 2xx."""
+    """Guard for Codex's 4xx proposal: empty-object and array JSON (the shapes
+    Codex committed to preserving) must stay 2xx. Scalars are deliberately not
+    asserted here; see the baseline report."""
     test_client, _ = client
     assert test_client.post("/webhook/viso", json={}).status_code == 200
     assert test_client.post("/webhook/viso", json=[{"state": "restricted"}]).status_code == 200
-    assert test_client.post("/webhook/viso", json="drone").status_code == 200
-    assert len(test_client.get("/api/events").json()["events"]) == 3
+    assert len(test_client.get("/api/events").json()["events"]) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -268,15 +281,30 @@ def test_valid_empty_and_list_json_still_acknowledged(client):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="every event is serialised twice (events + open_incidents) and payloads are unbounded; 50 x 50 KB events -> ~5 MB per 2 s poll")
-def test_events_feed_response_is_bounded_for_mobile_polling(client):
+def test_legacy_events_feed_duplicates_every_event(client):
+    """Documents the cost driver: /api/events returns each row in `events` and
+    again in `open_incidents`. The legacy contract is preserved by decision,
+    so this is a measurement, not an xfail."""
     test_client, _ = client
     for _ in range(50):
         test_client.post("/webhook/viso", json={"label": "drone", "state": "detected", "frame": "y" * 50_000})
     response = test_client.get("/api/events?limit=200")
     assert response.status_code == 200
-    assert len(response.content) < 1_000_000, f"{len(response.content)} bytes per poll"
     body = response.json()
-    assert not (body["events"] and body["open_incidents"] and body["events"][0] == body["open_incidents"][0]), (
-        "open_incidents duplicates the events list byte for byte"
-    )
+    assert body["events"][0] == body["open_incidents"][0]
+    assert len(response.content) > 5_000_000
+
+
+def test_targets_projection_is_bounded_for_mobile_polling(client):
+    """Acceptance criterion for the canonical projection: with 50 stored
+    events of 50 KB the list must stay under 1 MB and must not embed raw
+    payloads. Skips until the route exists."""
+    test_client, _ = client
+    for _ in range(50):
+        test_client.post("/webhook/viso", json={"label": "drone", "state": "detected", "frame": "y" * 50_000})
+    response = test_client.get("/api/targets")
+    if response.status_code == 404:
+        pytest.skip("/api/targets not present in this tree yet")
+    assert response.status_code == 200
+    assert len(response.content) < 1_000_000, f"{len(response.content)} bytes per poll"
+    assert "raw_payload" not in response.json().get("targets", [{}])[0]

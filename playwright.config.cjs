@@ -20,7 +20,7 @@ module.exports = defineConfig({
   ],
   ...(process.env.DRONEWATCH_BASE_URL ? {} : { webServer: {
     command: `${shellQuote(process.env.DRONEWATCH_PYTHON || '.venv/bin/python')} -m uvicorn main:app --host 127.0.0.1 --port 8012`,
-    url: baseURL + '/health', reuseExistingServer: !process.env.CI,
+    url: baseURL + '/health', reuseExistingServer: false,
     env: { DRONEWATCH_DB_PATH: 'test-results/browser.sqlite3', DRONEWATCH_SIMULATION: '0' },
     timeout: 30_000,
   } }),
