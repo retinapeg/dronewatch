@@ -3,7 +3,10 @@
 Reviewer: Claude Code (branch `claude/android-review`, worktree `dronewatch-claude`).
 Scope: original `main.py`, `index.html`, `tests/`, the Viso ingestion boundary, and the
 emerging Codex designs in `../dronewatch-backend` (only `scripts/demo.sh` and
-`scripts/test.sh` exist so far) and `../dronewatch-mobile` (no changes yet).
+`scripts/test.sh` exist so far; `main.py` and tests are byte-identical to baseline) and
+`../dronewatch-mobile` (no changes yet). One note on the backend scripts: `test.sh` runs
+`npm test` and compiles `target_schema.py`, and neither `package.json` nor that module exists
+in that worktree yet, so the script fails until integration supplies both.
 Every claim below was executed against a throwaway SQLite database or a throwaway
 uvicorn on port 8899. Nothing was sent to the running services on 8765 or 8011.
 This is a software-only schematic demonstration; nothing here concerns engagement.
@@ -12,19 +15,19 @@ This is a software-only schematic demonstration; nothing here concerns engagemen
 
 | # | Sev | Area | Finding | Evidence | New vs Codex list |
 |---|-----|------|---------|----------|-------------------|
-| 1 | High | API robustness | A 300-deep JSON body is accepted (200) and then makes `GET /api/events` return 500 for every reader until the row is deleted. | `main.py:420,344`; test A1 | Partly listed; the persistent read-side poisoning is new |
-| 2 | High | State semantics | `_normalize_state` substring matching inverts negated/cleared states: `no_drone_detected` becomes DETECTED, `exited_restricted_zone` becomes RESTRICTED_ZONE and API status CRITICAL. | `main.py:203-220`; test C1 | New |
+| 1 | High | API robustness | A 300-deep JSON body is accepted (200) and then makes `GET /api/events` return 500 for every reader until the row is deleted. | `main.py:420,344`; `test_moderately_nested_payload_must_not_poison_the_events_api` | Partly listed; the persistent read-side poisoning is new |
+| 2 | High | State semantics | `_normalize_state` substring matching inverts negated/cleared states: `no_drone_detected` becomes DETECTED, `exited_restricted_zone` becomes RESTRICTED_ZONE and API status CRITICAL. | `main.py:203-220`; `test_negated_or_cleared_states_never_raise_alert_level` | New |
 | 3 | High | Provenance | Any anonymous POST with `appId`+`incidentId`+fresh `timestamp` lights VISO ONLINE, "Genuine event < 2 min", LIVE PIPELINE and "VISO / SENSOR EVENT" on the dashboard. | `index.html:66,102,125-127`; UI probe | New |
-| 4 | High | Provenance | `received_at` stores the sender's timestamp; no server receipt time exists. Freshness, ordering labels and Codex's planned `updated_at` all rest on a sender-controlled value. | `main.py:198-200,277`; test E1 | New |
+| 4 | High | Provenance | `received_at` stores the sender's timestamp; no server receipt time exists. Freshness, ordering labels and Codex's planned `updated_at` all rest on a sender-controlled value. | `main.py:198-200,277`; `test_server_receipt_time_is_recorded_independently_of_sender_timestamp` | New |
 | 5 | High | Frontend state | Selecting a historical observation is silently undone by the next 2 s poll. Pinned mode lasts under 2 seconds. | `index.html:171,155`; UI probe | New |
-| 6 | Med | Provenance | `find_first` token matching lets unrelated keys win by dict order: `camera_id` becomes the event id, `processing_time_ms: 42` becomes 1970-01-01T00:00:42, `callback_url` becomes media, `http_status` becomes the zone state, first list element shadows a drone at 0.99. | `main.py:73-100`; tests C2, D1-D4 | New |
+| 6 | Med | Provenance | `find_first` token matching lets unrelated keys win by dict order: `camera_id` becomes the event id, `processing_time_ms: 42` becomes 1970-01-01T00:00:42, `callback_url` becomes media, `http_status` becomes the zone state, first list element shadows a drone at 0.99. | `main.py:73-100`; `test_unrelated_status_key_does_not_supply_zone_state`, `test_explicit_event_id_wins_over_camera_id`, `test_processing_time_field_does_not_become_event_time`, `test_callback_url_is_not_treated_as_media`, `test_multi_label_payload_prefers_drone_detection` | New |
 | 7 | Med | Privacy | The operator's browser fetches any `mediaLink` URL supplied by a webhook poster when the evidence panel is opened. On Android that leaks the phone's IP to the poster. | `index.html:99,145`; UI probe | New |
-| 8 | Med | Mobile cost | Every event is serialised twice per response; 50 events of 50 KB give 5.1 MB per 2 s poll, 200 events of 200 KB give 80 MB. The page also rebuilds all 200 log rows with `JSON.stringify` each poll. | `main.py:403-410`, `index.html:154-156,161`; test H1 | New |
-| 9 | Med | API semantics | Airspace status depends on the `limit` query: `limit=1` says SAFE while `limit=200` says ALERT for the same DB; an old DETECTED never closes. | `main.py:391-401`; test F2 | New |
-| 10 | Med | API robustness | Invalid UTF-8 body returns 500; 100k-deep body returns 500; body size unbounded (20 MiB accepted in 0.18 s). | `main.py:415-422`; tests A2, A3 | Confirmed from Codex list |
-| 11 | Med | Confidence | `1e400`/`NaN` do **not** crash the API on the pinned stack (pydantic serialises them as null), contrary to Codex's task premise. But infinite confidence still yields severity WARNING; 150 stays 150 and yields WARNING; 1.5 becomes 0.015. | `main.py:121-123,230`; tests B1-B3 | Premise corrected; bounds new |
-| 12 | Low | Idempotency | Three deliveries of the same `event_id` create three open incidents. | test F1 | New |
-| 13 | Low | Ingestion | Non-JSON bodies are stored as `source=VISO` events and flip WEBHOOK RECEIVED. | `main.py:422-425`; test G1 | Adjacent to Codex list |
+| 8 | Med | Mobile cost | Every event is serialised twice per response; 50 events of 50 KB give 5.1 MB per 2 s poll, 200 events of 200 KB give 80 MB. The page also rebuilds all 200 log rows with `JSON.stringify` each poll. | `main.py:403-410`, `index.html:154-156,161`; `test_legacy_events_feed_duplicates_every_event` | New |
+| 9 | Med | API semantics | Airspace status depends on the `limit` query: `limit=1` says SAFE while `limit=200` says ALERT for the same DB; an old DETECTED never closes. | `main.py:391-401`; `test_airspace_status_is_independent_of_page_size` | New |
+| 10 | Med | API robustness | Invalid UTF-8 body returns 500; 100k-deep body returns 500; body size unbounded (20 MiB accepted in 0.18 s). | `main.py:415-422`; `test_very_deep_payload_is_rejected_not_500`, `test_invalid_utf8_body_is_rejected_with_4xx` | Confirmed from Codex list |
+| 11 | Med | Confidence | `1e400`/`NaN` do **not** crash the API on the pinned stack (pydantic serialises them as null), contrary to Codex's task premise. But infinite confidence still yields severity WARNING; 150 stays 150 and yields WARNING; 1.5 becomes 0.015. | `main.py:121-123,230`; `test_non_finite_confidence_does_not_crash_events_api_on_pinned_stack`, `test_infinite_confidence_must_not_raise_severity`, `test_out_of_range_confidence_becomes_null_not_warning` | Premise corrected; bounds new |
+| 12 | Low | Idempotency | Three deliveries of the same `event_id` create three open incidents. | `test_redelivered_event_is_not_counted_three_times` | New |
+| 13 | Low | Ingestion | Non-JSON bodies are stored as `source=VISO` events and flip WEBHOOK RECEIVED. | `main.py:422-425`; `test_non_json_body_is_not_stored_as_a_viso_event` | Adjacent to Codex list |
 | 14 | Low | Android UI | Track marker has no tabindex, role or handler; callout box renders 63 by 20 px with a 5 px id; 45 leaf text nodes are 8 to 10 px; "SHOW THIS OBSERVATION" is 167 by 27 px; the 8001 video retry fires every 5 s forever. | UI probe; `index.html:21,135,193` | Extends QA measurements |
 
 Codex's four listed defects (non-finite confidence, invalid UTF-8, deep nesting, unbounded
@@ -46,9 +49,9 @@ Adversarial suite (new file, isolated `tmp_path` database):
 
 ```
 $ ../dronewatch/.venv/bin/python -m pytest -q tests/claude_attack_test.py -rxX -p no:warnings
-3 passed, 21 xfailed in 0.57s
+4 passed, 1 skipped, 20 xfailed in 1.04s
 $ ../dronewatch/.venv/bin/python -m pytest -q -p no:warnings
-13 passed, 21 xfailed in 1.08s
+14 passed, 1 skipped, 20 xfailed in 1.28s
 ```
 
 Every `xfail` is `strict=True`. When a defect is fixed the test flips to XPASS and fails
@@ -165,9 +168,14 @@ year ahead and assert the projection's `received_at` is within seconds of wall c
 ### 5. Historical selection is undone within 2 seconds (High, frontend)
 
 `refresh()` at `index.html:171` runs `displayed=observation; pinned=false` on every poll
-unless a browser-only demo is active. The "SHOW THIS OBSERVATION" handler at
-`index.html:155` sets `pinned=true`, and the UI probe shows the view revert from EVENT 1
-to EVENT 3 with the return button hidden after one poll. On a touch device this reads as
+unless a browser-only demo is active. The comment directly above it (`index.html:169-170`)
+says "Always follow the API latest record ... Only an explicitly running browser-only
+scenario can overlay the contact view", while the "SHOW THIS OBSERVATION" handler at
+`index.html:155` sets `pinned=true` and shows "Historical observation selected" plus a
+RETURN TO SENSOR button. The two intentions contradict each other in the same file, so
+this cannot be waved off as by design: either pinning is dead UI or the poll is wrong.
+The UI probe shows the view revert from EVENT 1 to EVENT 3 with the return button hidden
+after one poll. On a touch device this reads as
 a tap that did nothing. The proposed new UI adds touch selection and focus; the same
 polling loop will erase it unless selection state is explicitly preserved across refreshes.
 Falsify: in the candidate, select a track, wait three poll intervals, assert the selection
@@ -217,8 +225,11 @@ and `latest` (a third copy), each with full `raw_payload`. The dashboard request
 | 200 events of 200 KB | 80.3 MB | 40 MB/s |
 
 Alternative: `/api/targets` must omit raw payloads and be bounded in bytes, with a
-`since` cursor or ETag so an unchanged feed returns 304. Falsify: test H1 in the attack
-suite, currently xfail.
+`since` cursor or ETag so an unchanged feed returns 304. The legacy `/api/events` contract is
+preserved by board decision, so `test_legacy_events_feed_duplicates_every_event` records the
+cost as a measurement rather than an xfail. `test_targets_projection_is_bounded_for_mobile_polling`
+is the acceptance criterion for the new route: under 1 MB with 50 stored 50 KB events and no
+embedded `raw_payload`. It skips until `/api/targets` exists.
 
 ### 9. Status depends on page size and never closes (Medium)
 
@@ -236,7 +247,7 @@ A 20 MiB JSON body is accepted in 0.18 s and the next `limit=1` read returns 63 
 Codex's 256 KiB bound and depth limit address this. I support 4xx for undecodable bodies
 with two conditions: nothing is stored on 4xx, and valid JSON of any shape (empty object,
 array, scalar) still returns 200 because Viso expects 2xx and `test_webhook_empty_json`
-depends on it. Test G2 guards that condition and passes today.
+depends on it. `test_valid_empty_and_list_json_still_acknowledged` guards that condition and passes today. It covers the empty object and array shapes Codex committed to. I did not assert the bare scalar case (`"drone"`), which today returns 200; if the integrated candidate rejects scalars that is a contract choice to record, not a regression.
 
 ### 11. Non-finite confidence: premise correction and real effect (Medium)
 
@@ -245,7 +256,7 @@ On the pinned stack this does not happen: both endpoints are annotated `Dict[str
 so FastAPI builds a response field and pydantic's `serialize_json` emits `null` for
 non-finite floats. A plain `JSONResponse` would raise `Out of range float values are not
 JSON compliant`, so any new endpoint that returns a `JSONResponse` directly, or drops the
-annotation, reintroduces the crash. Test B1 pins the current safe behaviour.
+annotation, reintroduces the crash. `test_non_finite_confidence_does_not_crash_events_api_on_pinned_stack` pins the current safe behaviour.
 
 The real effect is semantic: `coerce_float` (`main.py:121-123`) stores `inf`, and
 `_normalize_severity` (`main.py:230`) then reports WARNING. Bounds are also wrong for
@@ -264,7 +275,7 @@ Codex's "finite 0..1 or null" rule is right. Note that `1.5` must become null, n
 Three posts with `event_id=evt-dup` create three open incidents (`open_count` 3).
 `DATA_SOURCES.md` records that Viso retries are undocumented, so duplicates are plausible.
 A body of `hello world` is stored as `source=VISO`, `state=UNKNOWN` and flips the
-WEBHOOK RECEIVED indicator. Both are covered by xfail tests F1 and G1.
+WEBHOOK RECEIVED indicator. Both are covered by strict xfail tests (`test_redelivered_event_is_not_counted_three_times`, `test_non_json_body_is_not_stored_as_a_viso_event`).
 
 ### 14. Android interaction details beyond the QA list (Low)
 
@@ -311,7 +322,7 @@ keeping real events free of invented positions.
 - `docs/engineering/claude-baseline.md` (this report)
 - `docs/engineering/claude-ui-probe.cjs` (Android-emulated probe; needs Playwright, run
   with `NODE_PATH` pointing at an installed `@playwright/test`)
-- `tests/claude_attack_test.py` (24 tests: 3 pass, 21 strict xfail on 31a32e1)
+- `tests/claude_attack_test.py` (25 tests: 4 pass, 1 skip until `/api/targets` exists, 20 strict xfail on 31a32e1)
 
 Not committed: `AGENT_BOARD.md` (manager-owned copy), `/tmp/dw_probe.py` (exploratory
 script whose results are reproduced by the committed tests).
