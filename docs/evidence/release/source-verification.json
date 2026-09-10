@@ -1,0 +1,31 @@
+{
+  "candidate": "bd12deae27cb2c160a26a04f8c905f628208f7fd",
+  "observedHead": "bd12deae27cb2c160a26a04f8c905f628208f7fd",
+  "checkedAt": "2026-09-10T10:40:35.581Z",
+  "files": [
+    {
+      "file": "index.html",
+      "committedSHA256": "5c2e613da0fb9cbd5a59bef34196ba605417b770dc63858c534422b99186b408",
+      "servedSHA256": "5c2e613da0fb9cbd5a59bef34196ba605417b770dc63858c534422b99186b408",
+      "match": true
+    },
+    {
+      "file": "assets/operator.css",
+      "committedSHA256": "be1c541fe243f2d3c562a96419818bfb0371a1e73baf4635a9fa63c8fa2aa7cd",
+      "servedSHA256": "be1c541fe243f2d3c562a96419818bfb0371a1e73baf4635a9fa63c8fa2aa7cd",
+      "match": true
+    },
+    {
+      "file": "assets/operator.js",
+      "committedSHA256": "6d72f45a220952176923c038cfdbf93bb18cc6a4a4c6b507bb5239867151548c",
+      "servedSHA256": "6d72f45a220952176923c038cfdbf93bb18cc6a4a4c6b507bb5239867151548c",
+      "match": true
+    },
+    {
+      "file": "assets/scenario.js",
+      "committedSHA256": "5c9e486bedea2d060b8b9a59fcf8f4e30d6b19f56db1396d186c4b2cf0f9838f",
+      "servedSHA256": "5c9e486bedea2d060b8b9a59fcf8f4e30d6b19f56db1396d186c4b2cf0f9838f",
+      "match": true
+    }
+  ]
+}
