@@ -44,8 +44,8 @@ The CLI's original focused suite produced **9 failures and 1 pass** before imple
 
 `GET /api/targets` returns `schema_version: 1`, a bounded `targets` array, and server response time `received_at`. Canonical targets include:
 
-- `target_id`, `event_id`, source name, and `updated_at` from the event timestamp.
-- `source_kind`: `SENSOR_EVENT` or `SYNTHETIC_EVENT`, derived from the stored internal simulation flag. This is provenance of the ingestion path, not authentication or proof of real sensor hardware.
+- `target_id`, `event_id`, source name, and `updated_at` from a validated source-reported timestamp. Missing or invalid source timestamps remain empty, with `timestamp_basis: receipt_time_only`; actual server receipt is stored separately as `ingested_at` and projected as `last_received_at`.
+- `source_kind`: `WEBHOOK_EVENT` for unverified deliveries, `TEST_EVENT` for explicit test markers, or `SYNTHETIC_EVENT` for internally simulated/source-marked synthetic records. `SENSOR_EVENT` is reserved for a future verified producer; this unauthenticated receiver cannot substantiate that provenance.
 - `status`: `TRACKED`, `UNKNOWN`, `POSSIBLE THREAT`, or `THREAT` from reported event state.
 - `status_basis`: `reported_event` or `scenario_authored`.
 - Nullable `confidence` and `position`; `velocity` and `heading` remain null because the current receiver has no calibrated movement contract.
@@ -75,3 +75,18 @@ For a phone on the same trusted Wi-Fi, use `DRONEWATCH_HOST=0.0.0.0 ./scripts/de
 - The prototype ingestion and legacy event API are unauthenticated. Raw stored payloads remain exposed through the legacy API for compatibility. Use loopback or an explicitly trusted demo network; production authentication, raw-field redaction, retention and rate limits remain separate work.
 - The target API considers at most the latest 200 stored rows. It is an observation projection, not a multi-sensor track-fusion engine.
 - No credential-backed Viso delivery, physical Android device, certified classification, real radar calibration, or deployment is claimed by these backend tests.
+
+## Manager and Claude follow-up review
+
+The manager rejected the first canonical projection's `SENSOR_EVENT` wording for unauthenticated posts and its use of fallback receipt timestamps as observation freshness. The second official Codex CLI run implements the response; its prompt and JSONL are `followup-task.txt` and `events-provenance.jsonl` in the same untracked run directory. Before that implementation the manager's provenance/freshness/Unicode suite failed 15 cases and passed the valid emoji case.
+
+Claude Code's independent baseline report at commit `87a6875` supplied additional executable cases: `camera_id` hijacking event identity, `processing_time_ms` hijacking source age, `http_status` becoming a restricted-zone alert, negated/cleared states, and ambiguous multi-object observations. The supervisor converted these into `tests/test_claude_semantics.py`; six failed and three passed before the response. Codex read the tests and repaired the failing behaviors in its independently authored patch.
+
+Two Claude proposals were deliberately not adopted:
+
+- **Receipt-only freshness:** receiving an old observation now does not make that observation current. The selected design carries source and receipt timestamps separately. A source timestamp a year old remains a year old; malformed or missing source time is explicitly unverified. Tests exercise both paths.
+- **Maximum drone confidence from mixed detections:** choosing the most confident drone from a list containing multiple objects would manufacture an association to a single target. Until a provider-specific object schema is validated, the canonical projection marks the observation ambiguous with unknown classification/confidence.
+
+A further supervisor regression covers migrated records whose old `received_at` field was manufactured by the earlier fallback. Migration must not promote that timestamp into verified source time. The additive SQLite migration retains old rows and leaves their unknown receipt time null.
+
+Independent full-suite result after the manager/Claude response: **61 passed**, one dependency deprecation warning, **1.18s**. No tests were skipped in this supervisor run. Python compilation and `git diff --check` passed. The official CLI's corresponding sandbox result was 60 passed/1 deselected solely for the local socket bind restriction.
