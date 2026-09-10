@@ -1,0 +1,667 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.8.1/bin/node",
+      "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/node_modules/.bin/playwright",
+      "test",
+      "tests/browser/release-transitions.spec.cjs",
+      "--workers=3"
+    ],
+    "configFile": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/playwright.config.cjs",
+    "rootDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "android-360",
+        "name": "android-360",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "android-393",
+        "name": "android-393",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "android-412",
+        "name": "android-412",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "android-landscape",
+        "name": "android-landscape",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      },
+      {
+        "outputDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch-release-review/tests/browser",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 20000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 3,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "release-transitions.spec.cjs",
+      "file": "release-transitions.spec.cjs",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "complete ten-target scenario can focus every target and replay without a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:35:57.328Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-f8c5836fb3a4dfdc7d28",
+          "file": "release-transitions.spec.cjs",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "obsolete first sensor request cannot replace a newer sensor generation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1389,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:35:57.327Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-4af6d95772c5b723fdb4",
+          "file": "release-transitions.spec.cjs",
+          "line": 42,
+          "column": 1
+        },
+        {
+          "title": "empty refresh removes a selected observation and its expanded evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-360",
+              "projectName": "android-360",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 1211,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:35:57.327Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-e72d9fab0a6f170c0229",
+          "file": "release-transitions.spec.cjs",
+          "line": 68,
+          "column": 1
+        },
+        {
+          "title": "complete ten-target scenario can focus every target and replay without a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 11008,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:35:59.485Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-7d25f828cb1221b961b9",
+          "file": "release-transitions.spec.cjs",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "obsolete first sensor request cannot replace a newer sensor generation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 619,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:35:59.685Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-03978c3822e22b2ea14c",
+          "file": "release-transitions.spec.cjs",
+          "line": 42,
+          "column": 1
+        },
+        {
+          "title": "empty refresh removes a selected observation and its expanded evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-393",
+              "projectName": "android-393",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 360,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:00.417Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-91a88245833269c35022",
+          "file": "release-transitions.spec.cjs",
+          "line": 68,
+          "column": 1
+        },
+        {
+          "title": "complete ten-target scenario can focus every target and replay without a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 9157,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:01.030Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-ef2a4ff41a88403ce724",
+          "file": "release-transitions.spec.cjs",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "obsolete first sensor request cannot replace a newer sensor generation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 616,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:09.321Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-1f9370f174273d9438c8",
+          "file": "release-transitions.spec.cjs",
+          "line": 42,
+          "column": 1
+        },
+        {
+          "title": "empty refresh removes a selected observation and its expanded evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-412",
+              "projectName": "android-412",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 390,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:10.112Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-e069c76b2015f2c2381b",
+          "file": "release-transitions.spec.cjs",
+          "line": 68,
+          "column": 1
+        },
+        {
+          "title": "complete ten-target scenario can focus every target and replay without a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3495,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:10.613Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-85ab791207a6eb165771",
+          "file": "release-transitions.spec.cjs",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "obsolete first sensor request cannot replace a newer sensor generation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 627,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:10.819Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-827edd1048b5831cf89c",
+          "file": "release-transitions.spec.cjs",
+          "line": 42,
+          "column": 1
+        },
+        {
+          "title": "empty refresh removes a selected observation and its expanded evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "android-landscape",
+              "projectName": "android-landscape",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 441,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:10.978Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-44e1e3346d37f4022807",
+          "file": "release-transitions.spec.cjs",
+          "line": 68,
+          "column": 1
+        },
+        {
+          "title": "complete ten-target scenario can focus every target and replay without a reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3374,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:11.812Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-3a94605d34aacd514f02",
+          "file": "release-transitions.spec.cjs",
+          "line": 6,
+          "column": 1
+        },
+        {
+          "title": "obsolete first sensor request cannot replace a newer sensor generation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 724,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:11.815Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-3d6a6bc72478d8501d49",
+          "file": "release-transitions.spec.cjs",
+          "line": 42,
+          "column": 1
+        },
+        {
+          "title": "empty refresh removes a selected observation and its expanded evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 2,
+                  "status": "passed",
+                  "duration": 344,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T10:36:12.671Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "36d24190399d0a3773dc-e4bab4e5ede4d3e73706",
+          "file": "release-transitions.spec.cjs",
+          "line": 68,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-10T10:35:57.032Z",
+    "duration": 18310.007999999998,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
