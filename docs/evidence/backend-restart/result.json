@@ -1,5 +1,5 @@
 {
-  "candidate": "f9c59adb92efd8ce4c088c508bf9e973cfddc62a",
+  "candidate": "b0510fed8c5c364919c819fd169420c73bdeb0a5",
   "method": "Real private Uvicorn termination/restart and persisted temporary SQLite, with 360x800 Chromium touch emulation; no mocked HTTP responses.",
   "steps": [
     "Initial actual webhook record selected with recent source timestamp",
@@ -19,5 +19,5 @@
     }
   ],
   "passed": true,
-  "completedAt": "2026-09-10T11:39:27.267Z"
+  "completedAt": "2026-09-10T11:51:05.065Z"
 }

@@ -129,6 +129,15 @@ Playwright starts a disposable local server automatically. `DRONEWATCH_BASE_URL=
 
 These are desktop Chromium tests with Android viewport/touch emulation; they do not certify a particular physical phone, Android WebView or battery profile. See [Playwright’s emulation documentation](https://playwright.dev/docs/emulation). Browser reports/traces are written to ignored `test-results/` and `playwright-report/`. Original failing screenshots and regression evidence are retained under [docs/evidence/baseline](docs/evidence/baseline/README.md).
 
+Additional controlled recovery probes:
+
+```bash
+node scripts/check-backend-restart.cjs
+DRONEWATCH_BASE_URL=http://127.0.0.1:8000 node scripts/probe-followup-transitions.cjs
+```
+
+The first command starts and stops its own private server with temporary SQLite data, testing actual process-restart recovery. The second needs the demo running and checks an observation crossing its stale-time threshold, actual Chromium tab visibility, preserved selection and touch after return. These checks use isolated browser profiles and loopback services; they do not access a personal browser profile or establish physical Android app-switch behavior. See [the follow-up assessment](docs/engineering/claude-followup-assessment.md) for results and the remaining Claude authentication step.
+
 A local performance sample, with the demo server running:
 
 ```bash

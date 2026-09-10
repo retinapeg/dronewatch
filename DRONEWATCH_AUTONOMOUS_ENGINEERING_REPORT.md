@@ -2,11 +2,11 @@
 
 Date: 10 September 2026. Repository: https://github.com/retinapeg/dronewatch
 
-**Result: the local demo milestone passes its configured release gate.** The default view is a deterministic five-target scenario with 3/5/10 options, touch selection, bounded target focus, clear priority, source disclosure and target detail. The integrated acceptance command passed **78 Python tests, 24 JavaScript tests and 128 browser executions**, with zero failures or retries. All five viewport families have inspected screenshots, no document overflow, no checked controls below 44px and no console/runtime errors.
+**Initial milestone result: the local demo passed its configured release gate.** The default view is a deterministic five-target scenario with 3/5/10 options, touch selection, bounded target focus, clear priority, source disclosure and target detail. The integrated acceptance command passed **78 Python tests, 24 JavaScript tests and 128 browser executions**, with zero failures or retries. All five viewport families have inspected screenshots, no document overflow, no checked controls below 44px and no console/runtime errors.
 
-This is a **local candidate validated with desktop Chromium Android/touch emulation**. It is not physical Android certification, a public production release, real Viso connectivity or a validated threat classifier. Claude Code completed a substantive independent baseline audit; its second candidate pass hit its subscription limit. An independent Codex release review passed, and a bounded Claude follow-up is scheduled for 12:35 Europe/London today.
+This is a **local candidate validated with desktop Chromium Android/touch emulation**. It is not physical Android certification, a public production release, real Viso connectivity or a validated threat classifier. Claude Code completed a substantive independent baseline audit; its second candidate pass hit its subscription limit. An independent Codex release review passed. The 12:35 follow-up has now run: independent checks passed, but Claude’s corrective review requires renewed personal authentication. Its unsupported additional claims were rejected. See section 23.
 
-Application code is frozen at `1ae4335309c45f990efc63c8a9e7bf4e6aa0e062`; the full tested source including additional independent tests is `bd12deae27cb2c160a26a04f8c905f628208f7fd`. Later commits add evidence, handoff documentation and CI compilation coverage, without changing the tested application.
+Application code is frozen at `1ae4335309c45f990efc63c8a9e7bf4e6aa0e062`; the initial tested source including additional independent tests was `bd12deae27cb2c160a26a04f8c905f628208f7fd`. The follow-up full suite tested `c57034ee84fc108a8989a5b0dc8334eddbb26f36`. Later commits add evidence, handoff documentation, test tooling and CI compilation coverage, without changing the application.
 
 ## 1. Starting repository state
 
@@ -62,7 +62,7 @@ The installed official Claude Code 2.1.267 ran non-interactively in `claude/andr
 
 The [completed Claude audit](docs/engineering/claude-baseline.md) ranked concrete problems including false positive negated states, key-token hijacking, deeply nested legacy input, large responses, inaccurate source provenance, freshness semantics, polling selection churn and mobile/video failures. It added executable attack probes. Its final baseline attack run had four passes, one skip because /api/targets did not yet exist, and twenty strict expected failures; these are historical defect evidence, **not** current passing release tests.
 
-Claude's second job started on candidate `7083a12`, performed setup and tests, then returned the subscription limit. The runner recorded exit 1 and `model_completed: false`; it did not deliver a completed candidate verdict or patch. Reset was reported for 12:30 London. No paid API fallback was provisioned. The app has a one-run thread follow-up scheduled at 12:35 London to review the latest candidate and fix only demonstrated regressions.
+Claude's second job started on candidate `7083a12`, performed setup and tests, then returned the subscription limit. The runner recorded exit 1 and `model_completed: false`; it did not deliver a completed candidate verdict or patch. Reset was reported for 12:30 London. No paid API fallback was provisioned. The scheduled 12:35 follow-up ran; its additional review was challenged for inadequate assertions, and its corrective job then lost authentication. Section 23 records the outcome and exact resume step.
 
 ## 7. Competing approaches where relevant
 
@@ -128,7 +128,7 @@ The original ten Node helper assertions remain intact, reading legacy.html.
 
 ## 12. Complete test results
 
-Final command: `./scripts/test.sh`. Exact tested commit: `bd12dea`. Exit code **0**.
+Initial milestone command: `./scripts/test.sh`. Exact tested commit: `bd12dea`. Exit code **0**.
 
 | Gate | Actual result |
 |---|---:|
@@ -184,7 +184,7 @@ No unresolved defect was reproduced in the new local demo's acceptance matrix. K
 - Sensor data uses the latest bounded observation window, not a persistent multi-sensor track engine. Event idempotency, retention and source-authenticated status lifecycles need a provider contract.
 - No PWA/service-worker installation: an already loaded demo survives sensor API loss, but a cold load/reload needs the local web server.
 - First dependency installation needs internet. Subsequent demo operation uses only local assets.
-- Physical Android and a completed second Claude verdict remain outstanding verification, with the latter scheduled.
+- Physical Android and an accepted corrected Claude final verdict remain outstanding verification. Claude now needs personal sign-in before its correction can resume.
 
 ## 16. Security concerns
 
@@ -278,7 +278,7 @@ Mobile only: `npm run test:mobile`. Backend and Node only: `./scripts/test.sh --
 
 ## 22. Next five highest-value improvements
 
-1. Complete the scheduled final-candidate Claude attack and record a verdict; reproduce any finding before assigning a fix.
+1. Restore Claude subscription login, complete the challenged final-review assertions and record an accepted verdict; reproduce any finding before assigning a fix.
 2. Run the same flow on physical mid-range and lower-end Android phones, including a 30-minute foreground/background and rotation soak.
 3. Validate a real Viso provider contract and signed/authenticated delivery, then add source-aware lifecycle/idempotency tests without fabricating geographic motion.
 4. Protect any future public deployment with authentication, raw-record redaction, retention, rate limits and appropriate host configuration.
@@ -300,3 +300,14 @@ Mobile only: `npm run test:mobile`. Backend and Node only: `./scripts/test.sh --
 | README/startup works | Fresh environment and latest app launch receipt |
 
 The release gate here authorises a credible local synthetic demonstration. It does not authorise public production deployment, calibrated military use or automatic merging of the candidate.
+
+
+## 23. Scheduled follow-up at 12:35: independent checks passed; Claude correction auth-blocked
+
+The starting remote PR head f9c59ad was clean and had successful CI. The official Claude job completed at commit 5503f35, but the manager found that its alleged touch probe used only HTTP and several new tests did not assert their claimed behavior. Those eight weak tests and unsupported report were not integrated. The manager sent a specific evidence challenge back; that corrective job failed because its OAuth login expired and could not be refreshed. CLI status separately confirmed signed out. **There is no accepted completed final Claude verdict.**
+
+The useful exact-identity proposal was strengthened into one coordinator-owned regression. Independent Codex/manager work also verified an observation aging from recent to stale while selected, real Chromium hidden/visible playback transitions and touch after return, and actual backend process termination/restart with retained SQLite data and automatic mobile recovery. No new production defect was reproduced; the application code is unchanged.
+
+The new complete integrated run passed **79 Python tests, 24 Node tests and 128 browser executions**, with 12 deliberate skips, zero failures or flakes. The browser matrix took 61.26 seconds. The real restart and two transition probes are additional separate checks. [Follow-up manifest](docs/evidence/followup/manifest.json), [test log](docs/evidence/followup/tests.txt), [actual restart evidence](docs/evidence/backend-restart/result.json), [manager acceptance assessment and exact resume command](docs/engineering/claude-followup-assessment.md).
+
+Personal action required only for Claude: run `claude auth login --claudeai` and complete its browser sign-in. The one-run automation is paused to avoid repeating an unchanged authentication failure. The candidate remains on the existing draft PR; follow-up CI is visible in [PR checks](https://github.com/retinapeg/dronewatch/pull/1/checks). Main is not merged or force-pushed.

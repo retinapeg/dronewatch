@@ -1,0 +1,2 @@
+{"probe":"freshness crosses threshold with identical payload","result":"PASS","calls":2,"freshness":"Stale observation","selected":"FOLLOWUP-AGE","sourceExpanded":true,"runtimeErrors":[]}
+{"result":"PASS","probe":"actual foreground background and touch return","before":"00:00","hidden":"00:00","after":"00:01","events":[{"v":"hidden","t":"00:00"},{"v":"visible","t":"00:00"}],"selected":"DW-03","sourceOpen":true,"focusPreserved":true,"touchAfterReturn":true,"runtimeErrors":[],"scope":"Chromium at360px, actual hidden and visible states; not physical Android"}

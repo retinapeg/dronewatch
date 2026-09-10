@@ -1,0 +1,239 @@
+........................................................................ [ 91%]
+.......                                                                  [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.11/site-packages/starlette/testclient.py:53
+  /Users/leonardaarons-ditson/Documents/Codex/2026-09-10-you-are-my-autonomous-engineering-manager/dronewatch/.venv/lib/python3.11/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+79 passed, 1 warning in 4.00s
+
+> dronewatch-browser-tests@1.0.0 test
+> node --test tests/*.test.cjs
+
+✔ latest observation follows backend ID 8 instead of preferring genuine Viso event 6 (0.984208ms)
+✔ separate event IDs advance even when both observations classify the same drone (0.095333ms)
+✔ Viso metadata is distinguished from simulations and generic webhook tests (0.18175ms)
+✔ qualitative confidence is not converted into a fabricated percentage (0.255083ms)
+✔ missing positions stay event-derived; qualitative Viso positions are retained (0.516291ms)
+✔ real frame coordinates and bounding boxes preserve zero values (0.241167ms)
+✔ ambiguous bbox arrays and geographic coordinates are not plotted as measured frame data (0.146375ms)
+✔ relative media paths are not invented URLs; simulation media is not sensor evidence (0.214542ms)
+✔ sensor freshness expires after two minutes and rejects invalid or future timestamps (0.8605ms)
+✔ unknown backend events never become clear or incursion through narrative interpretation (0.143042ms)
+✔ scenario snapshots are identical across independent calls and preserve the initial fixture (4.627583ms)
+✔ 3, 5 and 10 targets are distinct with bounded positions, histories and predictions (2.3615ms)
+✔ synthetic producer makes source, status and confidence provenance explicit (0.195125ms)
+✔ scenario completes at its fixed endpoint and invalid inputs cannot create NaN geometry (0.272833ms)
+✔ scenario order is the actual priority order and direction agrees with authored path (0.119292ms)
+✔ predicted movement never exceeds the authored final position (0.104042ms)
+✔ empty canonical sensor response stays empty (0.096708ms)
+✔ malformed full responses and individual records fail closed (0.223042ms)
+✔ independent cameras with the same target ID remain distinct; within-source duplicate coalesces (0.156208ms)
+✔ colon-bearing sources and target IDs cannot alias different identity tuples (0.109125ms)
+✔ synthetic and reported source identity never coalesce (0.2225ms)
+✔ invalid source/evidence types do not become display text or runtime failures (0.072375ms)
+✔ only bounded measured normalized frame positions survive; missing positions are not fabricated (0.108291ms)
+✔ freshness rejects invalid and future dates and expires stale observations (0.138583ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.095333
+
+> dronewatch-browser-tests@1.0.0 test:browser
+> playwright test
+
+[WebServer] INFO:     Started server process [7274]
+[WebServer] INFO:     Waiting for application startup.
+[WebServer] INFO:     Application startup complete.
+[WebServer] INFO:     Uvicorn running on http://127.0.0.1:8012 (Press CTRL+C to quit)
+
+Running 140 tests using 4 workers
+
+(node:7283) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7280) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7281) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7282) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -    4 [android-360] › tests/browser/accessibility.spec.cjs:13:1 › keyboard selection survives scenario updates and focus remains usable
+  ✓    1 [android-360] › tests/browser/mobile-regressions.spec.cjs:3:1 › initial view stays inside viewport and radar remains useful (831ms)
+  ✓    5 [android-360] › tests/browser/mobile-regressions.spec.cjs:22:1 › visible controls provide touch sized hit targets (691ms)
+  ✓    3 [android-360] › tests/browser/accessibility.spec.cjs:4:1 › operator view has no automatic WCAG A or AA violations (1.5s)
+  ✓    6 [android-360] › tests/browser/mobile-regressions.spec.cjs:32:1 › normal load has no runtime, console or failed resource errors (720ms)
+  ✓    9 [android-360] › tests/browser/operator-flow.spec.cjs:61:1 › demo remains usable with event API unavailable (324ms)
+  ✓    2 [android-360] › tests/browser/actual-ingestion.spec.cjs:27:1 › actual webhook normalization retains provenance and event-time uncertainty in the browser (2.1s)
+  ✓    8 [android-360] › tests/browser/operator-flow.spec.cjs:47:1 › three and ten targets stay selectable and readable (729ms)
+  ✓   10 [android-360] › tests/browser/operator-flow.spec.cjs:71:1 › orientation changes preserve selection and all controls (510ms)
+  ✓   11 [android-360] › tests/browser/operator-flow.spec.cjs:86:1 › page reload keeps the demo usable with external internet unavailable (499ms)
+  ✓   12 [android-360] › tests/browser/operator-flow.spec.cjs:108:1 › highest priority target route is visible beyond its touch marker (395ms)
+  ✓   15 [android-360] › tests/browser/release-transitions.spec.cjs:68:1 › empty refresh removes a selected observation and its expanded evidence (456ms)
+  ✓   14 [android-360] › tests/browser/release-transitions.spec.cjs:42:1 › obsolete first sensor request cannot replace a newer sensor generation (669ms)
+  ✓   16 [android-360] › tests/browser/sensor-boundary.spec.cjs:18:1 › empty sensor feed clears synthetic targets and explains the empty state (523ms)
+  ✓   17 [android-360] › tests/browser/sensor-boundary.spec.cjs:28:1 › old mocked Viso observation remains stale when server response is fresh (413ms)
+  ✓   18 [android-360] › tests/browser/sensor-boundary.spec.cjs:37:1 › malformed API response reports a failure without inventing targets (413ms)
+  ✓   20 [android-360] › tests/browser/sensor-boundary.spec.cjs:65:1 › delayed sensor response cannot overwrite a return to synthetic mode (807ms)
+  ✓   21 [android-360] › tests/browser/sensor-boundary.spec.cjs:84:1 › sensor mode deep link and reload never show synthetic fallback targets (267ms)
+  -   22 [android-360] › tests/browser/sensor-boundary.spec.cjs:97:1 › sensor details keep keyboard focus and expanded evidence across polling
+  ✓    7 [android-360] › tests/browser/operator-flow.spec.cjs:9:1 › five target demo can be inspected, focused, paused and reset by touch (5.3s)
+  ✓   23 [android-360] › tests/browser/sensor-boundary.spec.cjs:112:1 › long valid sensor identifiers and literal evidence cannot break the layout or execute HTML (1.8s)
+  ✓   24 [android-360] › tests/browser/source-identity.spec.cjs:8:1 › same target ID from different sources has distinct visible and accessible selection (659ms)
+  ✓   25 [android-360] › tests/browser/source-identity.spec.cjs:22:1 › colon-bearing source identity tuples preserve independently selectable records (308ms)
+  ✓   26 [android-360] › tests/browser/source-identity.spec.cjs:34:1 › unchanged failure retries do not rewrite the screen-reader status announcement (281ms)
+  ✓   27 [android-360] › tests/browser/source-identity.spec.cjs:50:1 › a truncated canonical window is labelled without becoming a connection failure (327ms)
+(node:7340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   29 [android-393] › tests/browser/accessibility.spec.cjs:4:1 › operator view has no automatic WCAG A or AA violations
+  -   30 [android-393] › tests/browser/accessibility.spec.cjs:13:1 › keyboard selection survives scenario updates and focus remains usable
+  ✓   31 [android-393] › tests/browser/actual-ingestion.spec.cjs:27:1 › actual webhook normalization retains provenance and event-time uncertainty in the browser (1.2s)
+  ✓   32 [android-393] › tests/browser/mobile-regressions.spec.cjs:3:1 › initial view stays inside viewport and radar remains useful (246ms)
+  ✓   33 [android-393] › tests/browser/mobile-regressions.spec.cjs:22:1 › visible controls provide touch sized hit targets (698ms)
+  ✓   34 [android-393] › tests/browser/mobile-regressions.spec.cjs:32:1 › normal load has no runtime, console or failed resource errors (677ms)
+  ✓   13 [android-360] › tests/browser/release-transitions.spec.cjs:6:1 › complete ten-target scenario can focus every target and replay without a reload (10.5s)
+  ✓   28 [android-360] › tests/browser/webhook-integration.spec.cjs:3:1 › mock webhook reaches the real API and touch detail with honest provenance and age (5.6s)
+(node:7355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   37 [android-393] › tests/browser/operator-flow.spec.cjs:61:1 › demo remains usable with event API unavailable (547ms)
+  ✓   36 [android-393] › tests/browser/operator-flow.spec.cjs:47:1 › three and ten targets stay selectable and readable (857ms)
+  ✓   19 [android-360] › tests/browser/sensor-boundary.spec.cjs:49:1 › backend outage is explicit and recovers without losing selected target (10.8s)
+  ✓   38 [android-393] › tests/browser/operator-flow.spec.cjs:71:1 › orientation changes preserve selection and all controls (569ms)
+  ✓   39 [android-393] › tests/browser/operator-flow.spec.cjs:86:1 › page reload keeps the demo usable with external internet unavailable (539ms)
+(node:7390) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   41 [android-393] › tests/browser/release-transitions.spec.cjs:42:1 › obsolete first sensor request cannot replace a newer sensor generation (666ms)
+  ✓   42 [android-393] › tests/browser/operator-flow.spec.cjs:108:1 › highest priority target route is visible beyond its touch marker (470ms)
+  ✓   43 [android-393] › tests/browser/release-transitions.spec.cjs:68:1 › empty refresh removes a selected observation and its expanded evidence (412ms)
+  ✓   44 [android-393] › tests/browser/sensor-boundary.spec.cjs:18:1 › empty sensor feed clears synthetic targets and explains the empty state (331ms)
+  ✓   45 [android-393] › tests/browser/sensor-boundary.spec.cjs:28:1 › old mocked Viso observation remains stale when server response is fresh (336ms)
+  ✓   46 [android-393] › tests/browser/sensor-boundary.spec.cjs:37:1 › malformed API response reports a failure without inventing targets (344ms)
+  ✓   35 [android-393] › tests/browser/operator-flow.spec.cjs:9:1 › five target demo can be inspected, focused, paused and reset by touch (5.3s)
+  ✓   49 [android-393] › tests/browser/sensor-boundary.spec.cjs:84:1 › sensor mode deep link and reload never show synthetic fallback targets (308ms)
+  -   50 [android-393] › tests/browser/sensor-boundary.spec.cjs:97:1 › sensor details keep keyboard focus and expanded evidence across polling
+  ✓   48 [android-393] › tests/browser/sensor-boundary.spec.cjs:65:1 › delayed sensor response cannot overwrite a return to synthetic mode (805ms)
+  ✓   52 [android-393] › tests/browser/source-identity.spec.cjs:8:1 › same target ID from different sources has distinct visible and accessible selection (616ms)
+  ✓   53 [android-393] › tests/browser/source-identity.spec.cjs:22:1 › colon-bearing source identity tuples preserve independently selectable records (230ms)
+  ✓   54 [android-393] › tests/browser/source-identity.spec.cjs:34:1 › unchanged failure retries do not rewrite the screen-reader status announcement (242ms)
+  ✓   55 [android-393] › tests/browser/source-identity.spec.cjs:50:1 › a truncated canonical window is labelled without becoming a connection failure (306ms)
+  ✓   51 [android-393] › tests/browser/sensor-boundary.spec.cjs:112:1 › long valid sensor identifiers and literal evidence cannot break the layout or execute HTML (1.7s)
+(node:7412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   57 [android-412] › tests/browser/accessibility.spec.cjs:4:1 › operator view has no automatic WCAG A or AA violations
+  -   58 [android-412] › tests/browser/accessibility.spec.cjs:13:1 › keyboard selection survives scenario updates and focus remains usable
+  ✓   59 [android-412] › tests/browser/actual-ingestion.spec.cjs:27:1 › actual webhook normalization retains provenance and event-time uncertainty in the browser (1.0s)
+  ✓   60 [android-412] › tests/browser/mobile-regressions.spec.cjs:3:1 › initial view stays inside viewport and radar remains useful (210ms)
+  ✓   61 [android-412] › tests/browser/mobile-regressions.spec.cjs:22:1 › visible controls provide touch sized hit targets (663ms)
+  ✓   62 [android-412] › tests/browser/mobile-regressions.spec.cjs:32:1 › normal load has no runtime, console or failed resource errors (647ms)
+  ✓   56 [android-393] › tests/browser/webhook-integration.spec.cjs:3:1 › mock webhook reaches the real API and touch detail with honest provenance and age (5.6s)
+(node:7426) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   64 [android-412] › tests/browser/operator-flow.spec.cjs:47:1 › three and ten targets stay selectable and readable (635ms)
+  ✓   65 [android-412] › tests/browser/operator-flow.spec.cjs:61:1 › demo remains usable with event API unavailable (224ms)
+  ✓   66 [android-412] › tests/browser/operator-flow.spec.cjs:71:1 › orientation changes preserve selection and all controls (324ms)
+  ✓   40 [android-393] › tests/browser/release-transitions.spec.cjs:6:1 › complete ten-target scenario can focus every target and replay without a reload (11.5s)
+  ✓   67 [android-412] › tests/browser/operator-flow.spec.cjs:86:1 › page reload keeps the demo usable with external internet unavailable (356ms)
+(node:7436) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   47 [android-393] › tests/browser/sensor-boundary.spec.cjs:49:1 › backend outage is explicit and recovers without losing selected target (10.5s)
+  ✓   69 [android-412] › tests/browser/operator-flow.spec.cjs:108:1 › highest priority target route is visible beyond its touch marker (356ms)
+(node:7442) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   63 [android-412] › tests/browser/operator-flow.spec.cjs:9:1 › five target demo can be inspected, focused, paused and reset by touch (5.2s)
+  ✓   70 [android-412] › tests/browser/release-transitions.spec.cjs:68:1 › empty refresh removes a selected observation and its expanded evidence (501ms)
+  ✓   72 [android-412] › tests/browser/sensor-boundary.spec.cjs:18:1 › empty sensor feed clears synthetic targets and explains the empty state (368ms)
+  ✓   73 [android-412] › tests/browser/sensor-boundary.spec.cjs:28:1 › old mocked Viso observation remains stale when server response is fresh (331ms)
+  ✓   74 [android-412] › tests/browser/sensor-boundary.spec.cjs:37:1 › malformed API response reports a failure without inventing targets (360ms)
+  ✓   71 [android-412] › tests/browser/release-transitions.spec.cjs:42:1 › obsolete first sensor request cannot replace a newer sensor generation (752ms)
+  ✓   77 [android-412] › tests/browser/sensor-boundary.spec.cjs:84:1 › sensor mode deep link and reload never show synthetic fallback targets (253ms)
+  -   78 [android-412] › tests/browser/sensor-boundary.spec.cjs:97:1 › sensor details keep keyboard focus and expanded evidence across polling
+  ✓   76 [android-412] › tests/browser/sensor-boundary.spec.cjs:65:1 › delayed sensor response cannot overwrite a return to synthetic mode (808ms)
+  ✓   80 [android-412] › tests/browser/source-identity.spec.cjs:8:1 › same target ID from different sources has distinct visible and accessible selection (504ms)
+  ✓   81 [android-412] › tests/browser/source-identity.spec.cjs:22:1 › colon-bearing source identity tuples preserve independently selectable records (254ms)
+  ✓   82 [android-412] › tests/browser/source-identity.spec.cjs:34:1 › unchanged failure retries do not rewrite the screen-reader status announcement (222ms)
+  ✓   83 [android-412] › tests/browser/source-identity.spec.cjs:50:1 › a truncated canonical window is labelled without becoming a connection failure (313ms)
+  ✓   79 [android-412] › tests/browser/sensor-boundary.spec.cjs:112:1 › long valid sensor identifiers and literal evidence cannot break the layout or execute HTML (1.7s)
+(node:7462) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  -   85 [android-landscape] › tests/browser/accessibility.spec.cjs:4:1 › operator view has no automatic WCAG A or AA violations
+  -   86 [android-landscape] › tests/browser/accessibility.spec.cjs:13:1 › keyboard selection survives scenario updates and focus remains usable
+  ✓   87 [android-landscape] › tests/browser/actual-ingestion.spec.cjs:27:1 › actual webhook normalization retains provenance and event-time uncertainty in the browser (870ms)
+  ✓   88 [android-landscape] › tests/browser/mobile-regressions.spec.cjs:3:1 › initial view stays inside viewport and radar remains useful (218ms)
+  ✓   89 [android-landscape] › tests/browser/mobile-regressions.spec.cjs:22:1 › visible controls provide touch sized hit targets (645ms)
+  ✓   90 [android-landscape] › tests/browser/mobile-regressions.spec.cjs:32:1 › normal load has no runtime, console or failed resource errors (633ms)
+  ✓   68 [android-412] › tests/browser/release-transitions.spec.cjs:6:1 › complete ten-target scenario can focus every target and replay without a reload (9.0s)
+(node:7486) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   84 [android-412] › tests/browser/webhook-integration.spec.cjs:3:1 › mock webhook reaches the real API and touch detail with honest provenance and age (5.6s)
+(node:7488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   93 [android-landscape] › tests/browser/operator-flow.spec.cjs:61:1 › demo remains usable with event API unavailable (302ms)
+  ✓   92 [android-landscape] › tests/browser/operator-flow.spec.cjs:47:1 › three and ten targets stay selectable and readable (684ms)
+  ✓   95 [android-landscape] › tests/browser/operator-flow.spec.cjs:86:1 › page reload keeps the demo usable with external internet unavailable (349ms)
+  ✓   94 [android-landscape] › tests/browser/operator-flow.spec.cjs:71:1 › orientation changes preserve selection and all controls (378ms)
+  ✓   96 [android-landscape] › tests/browser/operator-flow.spec.cjs:108:1 › highest priority target route is visible beyond its touch marker (270ms)
+  ✓   91 [android-landscape] › tests/browser/operator-flow.spec.cjs:9:1 › five target demo can be inspected, focused, paused and reset by touch (3.7s)
+  ✓   99 [android-landscape] › tests/browser/release-transitions.spec.cjs:68:1 › empty refresh removes a selected observation and its expanded evidence (417ms)
+  ✓   98 [android-landscape] › tests/browser/release-transitions.spec.cjs:42:1 › obsolete first sensor request cannot replace a newer sensor generation (583ms)
+  ✓  100 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:18:1 › empty sensor feed clears synthetic targets and explains the empty state (380ms)
+  ✓  101 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:28:1 › old mocked Viso observation remains stale when server response is fresh (380ms)
+  ✓   75 [android-412] › tests/browser/sensor-boundary.spec.cjs:49:1 › backend outage is explicit and recovers without losing selected target (10.5s)
+  ✓  102 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:37:1 › malformed API response reports a failure without inventing targets (336ms)
+(node:7506) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  104 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:84:1 › sensor mode deep link and reload never show synthetic fallback targets (258ms)
+  -  105 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:97:1 › sensor details keep keyboard focus and expanded evidence across polling
+  ✓  107 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:112:1 › long valid sensor identifiers and literal evidence cannot break the layout or execute HTML (365ms)
+  ✓  108 [android-landscape] › tests/browser/source-identity.spec.cjs:8:1 › same target ID from different sources has distinct visible and accessible selection (267ms)
+  ✓  109 [android-landscape] › tests/browser/source-identity.spec.cjs:22:1 › colon-bearing source identity tuples preserve independently selectable records (265ms)
+  ✓  106 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:65:1 › delayed sensor response cannot overwrite a return to synthetic mode (885ms)
+  ✓  110 [android-landscape] › tests/browser/source-identity.spec.cjs:34:1 › unchanged failure retries do not rewrite the screen-reader status announcement (395ms)
+  ✓  111 [android-landscape] › tests/browser/source-identity.spec.cjs:50:1 › a truncated canonical window is labelled without becoming a connection failure (414ms)
+  ✓   97 [android-landscape] › tests/browser/release-transitions.spec.cjs:6:1 › complete ten-target scenario can focus every target and replay without a reload (3.5s)
+(node:7531) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7532) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  113 [desktop] › tests/browser/accessibility.spec.cjs:4:1 › operator view has no automatic WCAG A or AA violations (917ms)
+  ✓  115 [desktop] › tests/browser/actual-ingestion.spec.cjs:27:1 › actual webhook normalization retains provenance and event-time uncertainty in the browser (874ms)
+  ✓  114 [desktop] › tests/browser/accessibility.spec.cjs:13:1 › keyboard selection survives scenario updates and focus remains usable (1.8s)
+  ✓  116 [desktop] › tests/browser/mobile-regressions.spec.cjs:3:1 › initial view stays inside viewport and radar remains useful (248ms)
+  ✓  117 [desktop] › tests/browser/mobile-regressions.spec.cjs:22:1 › visible controls provide touch sized hit targets (690ms)
+  ✓  118 [desktop] › tests/browser/mobile-regressions.spec.cjs:32:1 › normal load has no runtime, console or failed resource errors (679ms)
+  ✓  120 [desktop] › tests/browser/operator-flow.spec.cjs:47:1 › three and ten targets stay selectable and readable (577ms)
+  ✓  121 [desktop] › tests/browser/operator-flow.spec.cjs:61:1 › demo remains usable with event API unavailable (264ms)
+  -  122 [desktop] › tests/browser/operator-flow.spec.cjs:71:1 › orientation changes preserve selection and all controls
+  ✓  123 [desktop] › tests/browser/operator-flow.spec.cjs:86:1 › page reload keeps the demo usable with external internet unavailable (694ms)
+  ✓  124 [desktop] › tests/browser/operator-flow.spec.cjs:108:1 › highest priority target route is visible beyond its touch marker (318ms)
+  ✓  112 [android-landscape] › tests/browser/webhook-integration.spec.cjs:3:1 › mock webhook reaches the real API and touch detail with honest provenance and age (5.8s)
+(node:7559) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  126 [desktop] › tests/browser/release-transitions.spec.cjs:42:1 › obsolete first sensor request cannot replace a newer sensor generation (686ms)
+  ✓  119 [desktop] › tests/browser/operator-flow.spec.cjs:9:1 › five target demo can be inspected, focused, paused and reset by touch (4.0s)
+  ✓  127 [desktop] › tests/browser/release-transitions.spec.cjs:68:1 › empty refresh removes a selected observation and its expanded evidence (513ms)
+  ✓  128 [desktop] › tests/browser/sensor-boundary.spec.cjs:18:1 › empty sensor feed clears synthetic targets and explains the empty state (460ms)
+  ✓  129 [desktop] › tests/browser/sensor-boundary.spec.cjs:28:1 › old mocked Viso observation remains stale when server response is fresh (514ms)
+  ✓  130 [desktop] › tests/browser/sensor-boundary.spec.cjs:37:1 › malformed API response reports a failure without inventing targets (463ms)
+  ✓  103 [android-landscape] › tests/browser/sensor-boundary.spec.cjs:49:1 › backend outage is explicit and recovers without losing selected target (10.6s)
+  ✓  125 [desktop] › tests/browser/release-transitions.spec.cjs:6:1 › complete ten-target scenario can focus every target and replay without a reload (3.4s)
+(node:7597) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  132 [desktop] › tests/browser/sensor-boundary.spec.cjs:65:1 › delayed sensor response cannot overwrite a return to synthetic mode (963ms)
+  ✓  134 [desktop] › tests/browser/sensor-boundary.spec.cjs:84:1 › sensor mode deep link and reload never show synthetic fallback targets (435ms)
+  ✓  135 [desktop] › tests/browser/sensor-boundary.spec.cjs:112:1 › long valid sensor identifiers and literal evidence cannot break the layout or execute HTML (415ms)
+  ✓  136 [desktop] › tests/browser/source-identity.spec.cjs:8:1 › same target ID from different sources has distinct visible and accessible selection (348ms)
+  ✓  137 [desktop] › tests/browser/source-identity.spec.cjs:22:1 › colon-bearing source identity tuples preserve independently selectable records (305ms)
+  ✓  138 [desktop] › tests/browser/source-identity.spec.cjs:34:1 › unchanged failure retries do not rewrite the screen-reader status announcement (304ms)
+  ✓  139 [desktop] › tests/browser/source-identity.spec.cjs:50:1 › a truncated canonical window is labelled without becoming a connection failure (370ms)
+  ✓  133 [desktop] › tests/browser/sensor-boundary.spec.cjs:97:1 › sensor details keep keyboard focus and expanded evidence across polling (6.4s)
+  ✓  140 [desktop] › tests/browser/webhook-integration.spec.cjs:3:1 › mock webhook reaches the real API and touch detail with honest provenance and age (5.8s)
+  ✓  131 [desktop] › tests/browser/sensor-boundary.spec.cjs:49:1 › backend outage is explicit and recovers without losing selected target (10.8s)
+
+  12 skipped
+  128 passed (1.0m)
