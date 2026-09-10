@@ -18,3 +18,5 @@ data/synthetic/*.json
 data/synthetic/*.jsonl
 data/synthetic/runs/
 !data/synthetic/README.md
+.viso-demo-secret
+data/viso_synthetic/
