@@ -1,8 +1,10 @@
 """A small tracking baseline for the operator preview.
 
-This is NOT production tracking, validated classification, or multi-sensor
-fusion. It is a constant-velocity filter over one simulated positional sensor,
-built so the preview can show stable contacts instead of a cloud of points.
+This is NOT production tracking, validated classification, or validated
+multi-sensor fusion. It is a constant-velocity Kalman filter over simulated
+sensors only (radar, with optional EO position, bearing-only and cued-camera
+backups), built so the preview can show stable contacts instead of a cloud of
+points.
 
 This package sits inside the M1 import guard, so it cannot reach synthetic
 ground truth. Association and display are driven by observations alone.
