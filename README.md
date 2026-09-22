@@ -27,8 +27,8 @@ shown as evidence; they do not feed positions to the tracker.
 - Full pipeline, six contacts, radar off for 15 s, four held-out seeds:
   position RMSE rises from 8.22 m before the outage to 59.67 m during it, the
   95% ellipse still contains the true position in 0.99 of track-frames, there
-  are no identity switches, and every contact has a fresh position on average
-  1.0 s after the radar returns.
+  are no identity switches, and all six contacts have a fresh position again
+  1.0 s after the radar returns (mean over the four seeds).
 - Failures are reported rather than tuned away: a crossing pair averages one
   identity switch per run, and a 30 s outage outlasts the 25 s track retention,
   so all six contacts come back as new identities.
@@ -42,6 +42,7 @@ API keys are needed for the tracker, the preview or the test suite.
 git clone https://github.com/retinapeg/dronewatch.git
 cd dronewatch
 python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip setuptools
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m pytest -q
 .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
@@ -108,8 +109,8 @@ in [`tests/test_sensor_loss.py`](tests/test_sensor_loss.py), served by
 `GET /api/preview/paths`.
 
 - When a contact stops being observed, sample paths of the tracker's own Itô
-  SDE forward from a draw of the track's estimated state and covariance
-  (Euler-Maruyama, which is exact for this linear model).
+  SDE forward from a draw of the track's estimated state and covariance,
+  stepped with Euler-Maruyama.
 - For this model the closed form exists, so the sampler is used as a check and
   as something an operator can read. `test_monte_carlo_agrees_with_the_closed_form`
   requires the sampled 95% radius to be within 4% of the analytic one and the
@@ -179,7 +180,8 @@ How to read it, from the analysis in `docs/SENSOR_LOSS_MATH.md`:
 - Coverage above the nominal 0.95 means the process noise is conservative on
   straight segments. It was chosen so the filter survives the scenario's
   turns, and is reported as a tuning compromise.
-- The bearing-only backup barely improves RMSE at 1.5 to 2 km with a 2 degree
+- The bearing-only backup does not reduce position RMSE (60.3 m during the
+  outage against 59.67 m with radar alone) at 1.5 to 2 km with a 2 degree
   sensor, because range is unobservable from one fixed bearing sensor.
 - The failures are real: the crossing pair swaps identity, ten contacts
   average one impure reacquisition per run, and a 30 s outage exceeds
@@ -206,8 +208,8 @@ mode: radar off, all positional inputs off, EO or bearing-only backup, degraded
 radar, one contact unobserved, and a 30 s radar outage with or without a
 simulated camera that the tracker cues towards lost contacts. Every lost
 contact is drawn with its behaviour-shaped containment region, and selecting
-one fetches and draws sampled paths from `GET /api/preview/paths`. Everything
-shown is labelled as simulation.
+one fetches and draws sampled paths from `GET /api/preview/paths`. The track
+picture is labelled "SIMULATION · NOT LIVE".
 
 - `/preview?demo=viso` starts the 30 s outage with the cued camera at T+35 at 2x
   speed, with the Viso evidence inset open. The inset shows Viso results
@@ -217,8 +219,9 @@ shown is labelled as simulation.
 - `/preview/diagnostics` is the raw-observation view of the synthetic
   generator (default `mixed_threat_decoy`, seed 42). It draws observations, not
   tracks.
-- `/camera` replays recorded camera media and lists the Viso webhook results
-  this server has received.
+- `/camera` replays synthetic camera clips from `data/generated/camera-media`
+  (rendered locally, not committed) and lists the Viso webhook results this
+  server has received.
 
 If port 8000 is occupied, pass any free port, for example `--port 8010`.
 
@@ -270,7 +273,7 @@ Preview, tracking and camera:
 | --- | --- | --- |
 | `GET` | `/preview` | Operator view (`preview.html`). |
 | `GET` | `/preview/diagnostics` | Raw synthetic observation view (`diagnostics.html`). |
-| `GET` | `/camera` | Camera media replay and received Viso results (`camera.html`). |
+| `GET` | `/camera` | Synthetic camera clip replay and received Viso results (`camera.html`). |
 | `GET` | `/api/preview/scenarios` | Synthetic scenario names and defaults. |
 | `GET` | `/api/preview/scenario` | Generated observations for one scenario and seed. |
 | `GET` | `/api/preview/tracks` | Tracker output over time for an operator scenario and sensor-loss mode. |
@@ -375,8 +378,8 @@ release gates in the roadmap.
   used as Viso input.
 - [data/synthetic/README.md](data/synthetic/README.md): synthetic dataset
   contract and generator architecture.
-- [docs/V0.2_ARCHITECTURE.md](docs/V0.2_ARCHITECTURE.md): V0.2 architecture,
-  domain model, and the SAPIENT integration boundary.
+- [docs/V0.2_ARCHITECTURE.md](docs/V0.2_ARCHITECTURE.md): proposed V0.2
+  architecture, domain model, and the SAPIENT integration boundary.
 - [docs/V0.2_PANOPTES_ROADMAP.md](docs/V0.2_PANOPTES_ROADMAP.md): V0.2
   simulation roadmap and scope boundary.
 - [DATA_SOURCES.md](DATA_SOURCES.md): sensor and data-source research.

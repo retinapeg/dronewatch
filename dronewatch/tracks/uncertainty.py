@@ -117,9 +117,12 @@ def sample_paths(
     of N(x0, p0) rather than from the mean — otherwise the ensemble would
     understate the spread by exactly the filter's own uncertainty at loss.
 
-    Increments use the Euler–Maruyama scheme, which is exact here: the drift
-    is linear and the diffusion is constant, so the discretisation introduces
-    no error beyond floating point at these step sizes.
+    Increments use the Euler–Maruyama scheme. It is first order, not exact:
+    position is advanced with the velocity at the start of each step, so the
+    process-noise part of the position variance is w τ³ (n−1)(2n−1)/(6n²)
+    for n steps rather than the closed-form w τ³/3 (about 6% low at the
+    default 24 steps). `validate()` measures the gap against the analytic
+    radius.
 
     `max_speed_m_s` optionally rejects draws that would require the target to
     exceed a plausible airspeed. White acceleration is unbounded, so without
