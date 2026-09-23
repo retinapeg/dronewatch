@@ -431,7 +431,5 @@ and [AGENTS.md](AGENTS.md).
 
 - `index.html` is intentionally frozen while the event and sensor contracts are
   designed and validated.
-- The repository has no software licence yet. Do not infer third-party reuse
-  rights from its public visibility.
 - Viso workflow configuration, account state, demo footage, credentials, and
   any sensor hardware remain external to this repository.
