@@ -33,6 +33,38 @@ shown as evidence; they do not feed positions to the tracker.
   identity switch per run, and a 30 s outage outlasts the 25 s track retention,
   so all six contacts come back as new identities.
 
+![Operator preview at T+65 s with six synthetic contacts: radar unavailable, four contacts marked lost with their containment regions, and the simulated camera cued to contact DW-003](docs/images/operator-preview-radar-outage.png)
+
+*The operator view (`/preview?demo=viso`) captured from a local run: seed 42, six
+synthetic contacts, radar off from 40 to 70 s, simulated camera (labelled
+VISO-EO) cued by the tracker. All data is synthetic, and no Viso Now results had
+been received.*
+
+## System architecture
+
+![DroneWatch architecture: operator browser, FastAPI server, synthetic sensor generator, Kalman tracker, containment and camera cue planner, optional Viso webhook ingestion into SQLite, and offline evaluation](docs/images/architecture.svg)
+
+*Purple: model call · blue: deterministic code · green: human · amber: evaluation · grey: storage · dashed: external, optional, mocked or planned*
+
+The operator picks a scenario, contact count and sensor-loss mode.
+`GET /api/preview/tracks` then generates seeded synthetic observations and
+sensor heartbeats with those faults, runs the tracker over them once in
+delivery order, and returns 5 Hz frames (estimates, covariances, containment
+regions, rule-based priority levels) that the browser replays. In the cued
+camera mode the tracker runs twice: a radar-only pass decides where the
+simulated camera points, and a second pass adds its synthetic detections. Viso
+Now results enter only through the webhooks, are stored in SQLite and shown as
+non-spatial evidence, and never update a track. Ground truth never reaches the
+server or the browser; only `experiments/sensor_loss.py`, the tests and the
+offline dataset export (`python -m dronewatch.synthetic.generate`) read it.
+
+## Does it use AI at runtime?
+
+No. This repository contains no machine-learning model, LLM or trained
+component: tracking, containment, priority levels and camera cueing are
+deterministic or seeded Monte Carlo code. Visual analysis, when used, happens
+in the external Viso Now service, whose results are kept as evidence only.
+
 ## Quick start
 
 Requires Python 3.11+. Node.js 24+ is needed only for the JavaScript tests. No

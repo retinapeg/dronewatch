@@ -1,0 +1,48 @@
+%% Architecture of dronewatch at commit fc383464d0e27b4e0ac5b5510b83595f11ec2b22
+%% Sources: main.py, preview.html, dronewatch/api/preview.py, dronewatch/api/camera.py, dronewatch/ingest/viso.py, dronewatch/synthetic/generator.py, dronewatch/tracks/frames.py, dronewatch/tracks/tracker.py, dronewatch/tracks/kalman.py, dronewatch/tracks/uncertainty.py, dronewatch/tracks/attention.py, dronewatch/tracks/cueing.py, experiments/sensor_loss.py
+%% Render: npx @mermaid-js/mermaid-cli -i docs/architecture.mmd -o docs/images/architecture.svg -b white
+flowchart TD
+    op["Operator browser<br/>preview.html"]:::human
+    api["FastAPI server<br/>main.py, dronewatch/api"]:::det
+
+    subgraph ingest["Viso ingestion, optional"]
+        direction LR
+        viso["Viso Now<br/>external service"]:::ext
+        adapt["Viso adapter<br/>token auth,<br/>map or quarantine"]:::det
+        db[("SQLite: incidents,<br/>camera evidence")]:::store
+    end
+
+    subgraph pipe["Synthetic tracking pipeline, server-side, cached"]
+        gen["Synthetic sensors<br/>seeded scenarios,<br/>fault injection"]:::mock
+        trk["Kalman tracker<br/>chi-squared gating,<br/>late-report replay"]:::det
+        unc["Containment + priority<br/>Ito SDE Monte Carlo,<br/>rule-based levels"]:::det
+        cue["Camera cue planner<br/>two-pass, Viso mode"]:::det
+    end
+
+    subgraph offline["Offline evaluation"]
+        ev["Experiments + pytest<br/>NEES, NIS, RMSE"]:::eval
+        res[("docs/results<br/>md + json")]:::store
+    end
+
+    op <-->|"mode, track / frames, paths"| api
+    viso -.->|"POST /v2/webhook/viso"| adapt
+    adapt -->|"mapped + receipts"| db
+    viso -.->|"V0.1 /webhook/viso"| db
+    db -->|"non-spatial evidence"| api
+    api -->|"scenario + faults"| gen
+    gen -->|"observations, heartbeats<br/>(no ground truth)"| trk
+    trk -->|"state, covariance"| unc
+    unc -->|"5 Hz track frames"| api
+    unc -.->|"lost tracks, pass 1"| cue
+    cue -.->|"camera pointing, pass 2"| gen
+    gen -->|"ground truth, eval only"| ev
+    trk -->|"track frames"| ev
+    ev --> res
+
+    classDef ai fill:#efe7fb,stroke:#6a4c93,stroke-width:2px,color:#2b1d45;
+    classDef det fill:#eef3f8,stroke:#2f5d8a,stroke-width:1.5px,color:#172c37;
+    classDef human fill:#e8f0ec,stroke:#285b48,stroke-width:1.5px,color:#173f32;
+    classDef eval fill:#f7efdf,stroke:#8b6330,stroke-width:1.5px,color:#4a3413;
+    classDef store fill:#f3f4f1,stroke:#65757b,stroke-width:1.5px,color:#172c37;
+    classDef ext fill:#ffffff,stroke:#2f5d8a,stroke-width:1.5px,stroke-dasharray:4 3,color:#172c37;
+    classDef mock fill:#ffffff,stroke:#9aa5a8,stroke-width:1.5px,stroke-dasharray:6 4,color:#65757b;
