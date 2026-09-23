@@ -36,8 +36,9 @@ shown as evidence; they do not feed positions to the tracker.
 ![Operator preview at T+65 s with six synthetic contacts: radar unavailable, four contacts marked lost with their containment regions, and the simulated camera cued to contact DW-003](docs/images/operator-preview-radar-outage.png)
 
 *The operator view (`/preview?demo=viso`) captured from a local run: seed 42, six
-synthetic contacts, radar off from 40 to 70 s, simulated camera cued by the
-tracker. All data is synthetic, and no Viso results had been received.*
+synthetic contacts, radar off from 40 to 70 s, simulated camera (labelled
+VISO-EO) cued by the tracker. All data is synthetic, and no Viso Now results had
+been received.*
 
 ## System architecture
 
@@ -53,8 +54,9 @@ regions, rule-based priority levels) that the browser replays. In the cued
 camera mode the tracker runs twice: a radar-only pass decides where the
 simulated camera points, and a second pass adds its synthetic detections. Viso
 Now results enter only through the webhooks, are stored in SQLite and shown as
-non-spatial evidence, and never update a track; ground truth reaches only
-`experiments/sensor_loss.py` and the tests.
+non-spatial evidence, and never update a track. Ground truth never reaches the
+server or the browser; only `experiments/sensor_loss.py`, the tests and the
+offline dataset export (`python -m dronewatch.synthetic.generate`) read it.
 
 ## Does it use AI at runtime?
 
