@@ -2,7 +2,7 @@
 
 ## Simple 2D input used by the event demo
 
-The requested schematic is generated with:
+The labelled 2D schematic is generated with:
 
 ```sh
 python scripts/render_viso_schematic.py --output /path/to/viso-feed --clip-id schematic-02
@@ -27,13 +27,13 @@ the built-in process-randomised hash changed the containment shape and therefore
 the camera pointing between restarts. The earlier `schematic-01` files remain
 the immutable source of their already-received Viso response.
 
-The user requested **DRONE** and **MISSILE** labels. These are explicit synthetic
-test artwork, assigned consistently between nearby observations, and are not
-the existing domain's classification values. The tracker receives no renderer
-labels or identities. Viso may read these labels as well as the glyph shapes;
-success is a labelled schematic integration test, not evidence of recognition
-performance on camera footage. The media annotation states **LABELLED TEST
-SYMBOLS**.
+The project owner specified **DRONE** and **MISSILE** labels. These are explicit
+synthetic test artwork, assigned consistently between nearby observations, and
+are not the existing domain's classification values. The tracker receives no
+renderer labels or identities. Viso may read these labels as well as the glyph
+shapes; success is a labelled schematic integration test, not evidence of
+recognition performance on camera footage. The media annotation states
+**LABELLED TEST SYMBOLS**.
 
 The manifest provides scenario, seed, count, mode, simulation window, still time,
 fixed epoch and coordinate calibration for linking a real returned Viso result

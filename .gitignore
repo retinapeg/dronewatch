@@ -20,3 +20,8 @@ data/synthetic/runs/
 !data/synthetic/README.md
 .viso-demo-secret
 data/viso_synthetic/
+
+# Local working notes (not project source)
+/CLAUDE.md
+/AGENTS.md
+/docs/process/
