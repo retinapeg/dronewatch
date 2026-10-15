@@ -20,6 +20,8 @@ import uuid
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
 
+from ..config import read_viso_config
+
 router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parents[2]
 MAX_RESULTS = 50
@@ -72,8 +74,8 @@ def _safe_text(value: Any, limit: int = 2000) -> str | None:
     if not isinstance(value, str) or not value.strip():
         return None
     text = value.strip()
-    secret = os.getenv("DRONEWATCH_WEBHOOK_SECRET", "").strip()
-    if secret:
+    config = read_viso_config()
+    for secret in sorted(filter(None, (config.webhook_secret, config.api_key)), key=len, reverse=True):
         text = text.replace(secret, "[REDACTED]")
     text = _URL_TOKEN.sub(r"\1[REDACTED]", text)
     return text[:limit]
@@ -339,7 +341,7 @@ def camera_status() -> dict[str, Any]:
         item["scenario_context"] = contexts.get(item["filename"])
     return {
         "media": media, "results": results,
-        "configured": bool(os.getenv("DRONEWATCH_WEBHOOK_SECRET", "").strip()),
+        "configured": read_viso_config().inbound_configured,
         "delivery_count": totals[0], "mapped_count": totals[1],
         "probe_count": totals[2], "last_receipt_at": totals[3],
         "webhook": {"path": "/v2/webhook/viso", "processing": "RECORDED_FILE"},

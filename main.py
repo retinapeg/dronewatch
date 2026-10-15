@@ -411,9 +411,12 @@ def preview_diagnostics() -> FileResponse:
 
 @app.get("/health")
 def health() -> Dict[str, Any]:
+    from dronewatch.api.preview import viso_provider_summary
+
     return {
         "status": "ok",
         "received_at": utcnow(),
+        "providers": {"viso": viso_provider_summary()},
     }
 
 

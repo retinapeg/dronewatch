@@ -1,0 +1,162 @@
+{
+  "architecture": "arm64",
+  "bootstrap_pip": "26.2.1 (copied installer only; app/test wheels freshly installed)",
+  "installed": [
+    {
+      "direct": true,
+      "name": "fastapi",
+      "version": "0.141.1",
+      "wheel_sha256": "bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3"
+    },
+    {
+      "direct": true,
+      "name": "uvicorn",
+      "version": "0.52.4",
+      "wheel_sha256": "f86e41a149d7d05a9969337e3946a9c171c06a5d42680896daaba624aeac8da1"
+    },
+    {
+      "direct": true,
+      "name": "pytest",
+      "version": "9.1.1",
+      "wheel_sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
+    },
+    {
+      "direct": true,
+      "name": "pydantic",
+      "version": "2.13.5",
+      "wheel_sha256": "346a034f080da3755d8e9cb5e00e8b07de1d39e4f6e2c87d8ab7cafa0b269a73"
+    },
+    {
+      "direct": true,
+      "name": "starlette",
+      "version": "1.7.0",
+      "wheel_sha256": "67f8e99895493dd2911a03f11314af6ceebeae4e704bb9f43dfc6a9db151c93e"
+    },
+    {
+      "direct": true,
+      "name": "httpx2",
+      "version": "2.12.0",
+      "wheel_sha256": "cc8b6eecb8661c146b8f89a60e97456ee086e91a784ed31ac450c3a9e613dd36"
+    },
+    {
+      "direct": false,
+      "name": "httpcore2",
+      "version": "2.12.0",
+      "wheel_sha256": "7e04258ce01013d7d615e5b910a3b27fac937d7a95038227e79652b4ba3b4ceb"
+    },
+    {
+      "direct": false,
+      "name": "pydantic_core",
+      "version": "2.46.5",
+      "wheel_sha256": "d625a186a65201c23a9e3b8ed9c47e90a026e03256608cc91851c6709096844f"
+    },
+    {
+      "direct": false,
+      "name": "anyio",
+      "version": "4.15.1",
+      "wheel_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"
+    },
+    {
+      "direct": false,
+      "name": "pluggy",
+      "version": "1.6.0",
+      "wheel_sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746"
+    },
+    {
+      "direct": false,
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "wheel_sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
+    },
+    {
+      "direct": false,
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "wheel_sha256": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0"
+    },
+    {
+      "direct": false,
+      "name": "click",
+      "version": "8.5.0",
+      "wheel_sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"
+    },
+    {
+      "direct": false,
+      "name": "h11",
+      "version": "0.16.0",
+      "wheel_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
+    },
+    {
+      "direct": false,
+      "name": "idna",
+      "version": "3.20",
+      "wheel_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c"
+    },
+    {
+      "direct": false,
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "wheel_sha256": "f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12"
+    },
+    {
+      "direct": false,
+      "name": "packaging",
+      "version": "26.3",
+      "wheel_sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+    },
+    {
+      "direct": false,
+      "name": "Pygments",
+      "version": "2.21.0",
+      "wheel_sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9"
+    },
+    {
+      "direct": false,
+      "name": "truststore",
+      "version": "0.10.4",
+      "wheel_sha256": "adaeaecf1cbb5f4de3b1959b42d41f6fab57b2b1666adb59e89cb0b53361d981"
+    },
+    {
+      "direct": false,
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "wheel_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+    },
+    {
+      "direct": false,
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "wheel_sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147"
+    }
+  ],
+  "platform": "darwin",
+  "python": "3.11.5",
+  "requirements_sha256": "5d002fa4486b070da51ba3f0f66f5313fae6c44f0a8b325421742ecb474ea576",
+  "review_date": "2026-10-04",
+  "validation": {
+    "compileall": "passed (main.py, demo_feed.py, dronewatch, tests)",
+    "full_python_report": ".pytest_cache/item3-dependencies-20261004T112126525652Z/python-results.xml",
+    "hosted_ci": "not run",
+    "index_html_sha256": "e1d9be772509789c925ebe30b62a41e1642d5d8f250afa5d1edf484571a0b293",
+    "javascript_tests": {
+      "failed": 0,
+      "node": "26.8.1",
+      "passed": 60,
+      "skipped": 0,
+      "total": 60
+    },
+    "original_venv": "3252 file content hashes unchanged across installation and verification",
+    "pip_check": "passed",
+    "python_tests": {
+      "errors": 0,
+      "failed": 1,
+      "known_policy_failure": "test_observations_can_be_loaded_without_touching_ground_truth",
+      "passed": 290,
+      "seconds": 113.27,
+      "skipped": 0,
+      "total": 291
+    },
+    "strict_testclient_regression": "passed with Starlette 1.7.0; failed on deprecated BlockingPortal import in original 1.6.0 environment (negative control)"
+  },
+  "vulnerability_scan": "not run; CI gate retained"
+}

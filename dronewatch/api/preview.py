@@ -31,6 +31,9 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
+from ..config import (
+    LEGACY_WEBHOOK_SECRET_ENV, VISO_WEBHOOK_SECRET_ENV, VisoConfig, read_viso_config,
+)
 from ..domain.observation import GeoPosition, SensorObservation
 from ..ingest.viso import MappingOutcome, adapt, redact
 from ..synthetic.generator import (
@@ -103,7 +106,7 @@ class _RedactToken(logging.Filter):
 # application is imported, and dictConfig does not clear existing filters.
 logging.getLogger("uvicorn.access").addFilter(_RedactToken())
 
-WEBHOOK_SECRET_ENV = "DRONEWATCH_WEBHOOK_SECRET"
+WEBHOOK_SECRET_ENV = LEGACY_WEBHOOK_SECRET_ENV
 WEBHOOK_HEADER_ENV = "DRONEWATCH_WEBHOOK_HEADER"
 DEFAULT_WEBHOOK_HEADER = "X-DroneWatch-Token"
 MAX_BODY_BYTES = int(os.getenv("DRONEWATCH_MAX_BODY_BYTES", "1048576"))
@@ -229,9 +232,8 @@ def get_scenario(
 class VisoStatus:
     """In-memory connection state.
 
-    Deliberately not persisted and deliberately not touched by synthetic
-    playback or by the legacy V0.1 webhook, so nothing except a genuine
-    authenticated delivery can make Viso appear connected.
+    Deliberately not persisted or touched by synthetic playback or the legacy
+    V0.1 webhook. An authenticated local delivery is not vendor verification.
     """
 
     NOT_CONFIGURED = "NOT CONFIGURED"
@@ -271,7 +273,12 @@ class VisoStatus:
 
     @property
     def state(self) -> str:
-        if not is_ingestion_configured():
+        return self.state_for_configuration(read_viso_config())
+
+    def state_for_configuration(self, config: VisoConfig) -> str:
+        if config.configuration_error:
+            return self.ERROR
+        if not config.inbound_configured:
             return self.NOT_CONFIGURED
         if self.last_error:
             return self.ERROR
@@ -290,7 +297,37 @@ MAX_QUARANTINE = 20
 
 
 def is_ingestion_configured() -> bool:
-    return bool(os.getenv(WEBHOOK_SECRET_ENV, "").strip())
+    return read_viso_config().inbound_configured
+
+
+def viso_provider_summary() -> Dict[str, Any]:
+    """Configuration and local receipt evidence, never vendor verification."""
+    config = read_viso_config()
+    delivery_received = STATUS.mapped_count + STATUS.unmapped_count > 0
+    if config.configuration_error:
+        state, message = "CONFIGURATION_ERROR", "Viso: configuration error"
+    elif not (config.inbound_configured or config.outbound_configured):
+        state, message = "NOT_CONFIGURED", "Viso: not configured"
+    elif config.inbound_configured and delivery_received:
+        state = "DELIVERY_RECEIVED"
+        message = "Viso: authenticated delivery received; vendor unverified"
+    else:
+        state = "CONFIGURED_UNVERIFIED"
+        message = "Viso: configured but unverified"
+    return {
+        "state": state,
+        "message": message,
+        "inbound_configured": config.inbound_configured,
+        "outbound_configured": config.outbound_configured,
+        "configuration_error": config.configuration_error,
+        "delivery_received": delivery_received,
+        "connection_verified": False,
+        "note": (
+            "Receipt is process-local evidence of an authenticated JSON delivery, "
+            "including quarantined input. It does not verify the sender as Viso, "
+            "the vendor contract, outbound processing or live coverage."
+        ),
+    }
 
 
 def _header_name() -> str:
@@ -298,14 +335,18 @@ def _header_name() -> str:
 
 
 def _authorise(request: Request) -> None:
-    secret = os.getenv(WEBHOOK_SECRET_ENV, "").strip()
+    config = read_viso_config()
+    if config.configuration_error:
+        raise HTTPException(status_code=503, detail=config.configuration_error)
+    secret = config.webhook_secret
     if not secret:
         # No configuration means external ingestion is off. The local synthetic
         # preview is unaffected.
         raise HTTPException(
             status_code=503,
             detail=(
-                f"External ingestion disabled. Set {WEBHOOK_SECRET_ENV} to enable "
+                f"External ingestion disabled. Set {VISO_WEBHOOK_SECRET_ENV} "
+                f"(legacy alias {WEBHOOK_SECRET_ENV}) to enable "
                 "the protected webhook."
             ),
         )
@@ -481,9 +522,11 @@ def get_paths(
 @router.get("/api/preview/viso/status")
 def viso_status() -> Dict[str, Any]:
     """Connection state for the panel. Never returns raw payloads or the secret."""
+    config = read_viso_config()
     return {
-        "state": STATUS.state,
-        "configured": is_ingestion_configured(),
+        "state": STATUS.state_for_configuration(config),
+        "configured": config.inbound_configured,
+        "configuration_error": config.configuration_error,
         "header_name": _header_name(),
         "webhook_path": "/v2/webhook/viso",
         "last_receipt_at": STATUS.last_receipt_at,
@@ -497,7 +540,8 @@ def viso_status() -> Dict[str, Any]:
         "max_body_bytes": MAX_BODY_BYTES,
         "quarantine": QUARANTINE[:5],
         "note": (
-            "Receipt of a webhook proves receipt of a recorded-file result. "
+            "Receipt records an authenticated request to this process; local mapping "
+            "does not verify the sender as Viso or the vendor schema. "
             "It does not prove live video or continuous sensor coverage."
         ),
     }
