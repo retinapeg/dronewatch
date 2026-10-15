@@ -4,8 +4,8 @@ DroneWatch is a prototype counter-drone (counter-UAS) tracking and
 incident-awareness system in Python. A FastAPI server runs a Kalman-filter
 tracker over synthetic multi-sensor reports, replays the result in a browser
 operator view, and estimates where a contact could be once its sensor stops
-reporting. It also receives visual-analysis results from Viso Now through a
-webhook.
+reporting. It also has webhook receivers intended for Viso Now visual-analysis
+results; the vendor contract and an end-to-end connection remain unverified.
 
 Everything the tracker sees is synthetic, generated from fixed seeds by
 `dronewatch/synthetic/`. No real radar or RF hardware is connected, there is no
@@ -293,7 +293,7 @@ V0.1:
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/` | Tactical dashboard (`index.html`). |
-| `GET` | `/health` | Liveness check. Returns status and server time only. |
+| `GET` | `/health` | Liveness status/time plus `providers.viso` configuration and local receipt evidence; never proof of vendor connectivity. |
 | `GET` | `/api/events` | Stored events, newest first. `limit` defaults to 20 and is clamped to 200. Returns the derived `status`, `latest`, and `open_incidents`. |
 | `GET` | `/api/config` | Reports whether stored simulation is enabled. |
 | `POST` | `/webhook/viso` | Accepts any JSON payload, normalises it, and stores it. Always returns `{"status": "ok"}`. |
@@ -310,7 +310,7 @@ Preview, tracking and camera:
 | `GET` | `/api/preview/scenario` | Generated observations for one scenario and seed. |
 | `GET` | `/api/preview/tracks` | Tracker output over time for an operator scenario and sensor-loss mode. |
 | `GET` | `/api/preview/paths` | Monte Carlo containment paths for one track at one time. |
-| `GET` | `/api/preview/viso/status` | Viso webhook connection state. Never returns raw payloads or the secret. |
+| `GET` | `/api/preview/viso/status` | Protected webhook configuration and local receipt state. Never returns raw payloads or the secret. |
 | `GET` | `/api/preview/viso/evidence` | Non-spatial Viso evidence matched to a scenario replay. |
 | `GET` | `/api/camera/status` | Camera media list and received Viso results. |
 | `GET` | `/api/camera/media/{filename}` | One camera media file. |
@@ -322,10 +322,13 @@ payloads verbatim, so treat it as sensitive. See
 
 ## Viso Now
 
-Viso Now currently documents discrete image/video processing rather than a
-continuous live stream. Google Drive polling can support a near-real-time file
-replay, but it must not be described as a live camera feed. See
-[DATA_SOURCES.md](DATA_SOURCES.md) and [ROADMAP.md](ROADMAP.md).
+The intended vendor is **viso.ai**, product **Viso Now**. The dated official-source
+review in [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md) confirms the product
+identity but leaves webhook payloads, authentication, file/video submission and
+result-retrieval contracts unresolved. Local fixtures are fabricated `SYNTHETIC`
+examples, not captured vendor deliveries. This prototype targets recorded-file
+analysis; Google Drive file replay does not demonstrate a live camera feed.
+No Viso account connection or outbound processing client is implemented here.
 
 ### File replay
 
@@ -349,24 +352,36 @@ See [DEMO_FEED.md](DEMO_FEED.md) for the exact behaviour.
 
 ### Connecting Viso Now
 
-External ingestion is disabled unless a secret is configured, while the
-synthetic preview keeps working either way.
+The protected `/v2/webhook/viso` receiver is disabled unless an inbound secret is
+configured; the original `/webhook/viso` remains unauthenticated. The synthetic
+preview works without credentials. Settings come from the process environment;
+no `.env` file is loaded. Once a secret is available, set `VISO_WEBHOOK_SECRET`
+before starting the server:
 
 ```bash
-DRONEWATCH_WEBHOOK_SECRET='<your-secret>' \
-  .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
 | Variable | Purpose |
 | --- | --- |
-| `DRONEWATCH_WEBHOOK_SECRET` | Enables `POST /v2/webhook/viso`. Unset means external ingestion is off. |
+| `VISO_WEBHOOK_SECRET` | Enables `POST /v2/webhook/viso`; absent by default. |
+| `DRONEWATCH_WEBHOOK_SECRET` | Compatibility alias. Conflicting nonempty inbound aliases disable the protected receiver with HTTP 503. |
+| `VISO_API_KEY` | Independent outbound configuration only; no outbound client exists yet. Does not enable inbound ingestion. |
 | `DRONEWATCH_WEBHOOK_HEADER` | Header carrying the secret. Default `X-DroneWatch-Token`. |
 | `DRONEWATCH_MAX_BODY_BYTES` | Streaming body ceiling. Default 1048576. |
 
-The secret may be sent either in that header or as `?token=...`, because Viso
-Now's supported authentication headers are not documented publicly and must be
-confirmed against your own account. Prefer the header; the URL token is redacted
-from the access log, but a header keeps it out of intermediate proxy logs too.
+The local receiver accepts that header or the compatibility `?token=...` path.
+These are local choices; Viso-supported authentication remains unverified.
+Prefer the header to avoid placing credentials in URLs. Whitespace-only settings
+are absent; surrounding whitespace is trimmed.
+
+With no credentials, `/health` reports `Viso: not configured`. Configuration
+alone produces `CONFIGURED_UNVERIFIED`; a processed authenticated JSON delivery
+can produce `DELIVERY_RECEIVED`, including quarantined input. Receipt evidence
+is process-local and `connection_verified` always remains false. Conflicting
+inbound aliases produce `CONFIGURATION_ERROR`. Preview and camera readiness
+depend on the inbound secret, even if an outbound key is set. See the
+[integration record](docs/VISO_INTEGRATION.md) for the remaining evidence gates.
 
 `127.0.0.1` is not reachable from the internet. Reaching this endpoint from Viso
 requires an authenticated HTTPS ingress you control, terminating at
@@ -374,7 +389,7 @@ requires an authenticated HTTPS ingress you control, terminating at
 
 The V0.1 `POST /webhook/viso` route keeps its original unauthenticated
 behaviour. Only the new `/v2` route is protected, and only a delivery through it
-can change the connection panel's state. Unrecognised payload shapes are
+can change the receipt panel's state. Unrecognised payload shapes are
 quarantined rather than stored as detections.
 
 ## Test
@@ -388,8 +403,14 @@ node --test tests/*.test.cjs
 ```
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
-the Python tests, `tests/dashboard.test.cjs`, the compile check and a
+the Python tests, all `tests/*.test.cjs` files, the compile check and a
 `pip-audit` dependency audit.
+
+The [2026-10-04 handoff](docs/OVERNIGHT_HANDOFF_2026-10-04.md) records the latest
+local results and limitations: the retained original `.venv` has an older
+Starlette than `requirements.txt`, and the unattended no-deletion rule blocks
+one existing test's fixture setup. Neither local full Python run is fully green;
+hosted CI and the vulnerability audit were not run during that session.
 
 ## Internet exposure
 
@@ -402,6 +423,10 @@ release gates in the roadmap.
 
 ## Documentation
 
+- [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md): configuration, local
+  authentication choices and unresolved official contract evidence.
+- [docs/OVERNIGHT_HANDOFF_2026-10-04.md](docs/OVERNIGHT_HANDOFF_2026-10-04.md):
+  overnight changes, verification and reviewer priorities.
 - [docs/SENSOR_LOSS_MATH.md](docs/SENSOR_LOSS_MATH.md): estimation mathematics,
   parameters, equation-to-test map and known limitations.
 - [docs/results/sensor_loss_quick.md](docs/results/sensor_loss_quick.md):

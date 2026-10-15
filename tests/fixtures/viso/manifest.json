@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "data_mode": "SYNTHETIC",
+  "origin": "FABRICATED_LOCAL",
+  "captured_vendor_delivery": false,
+  "sanitization": "Fabricated placeholders only; no original account, media, personal data or credentials were used.",
+  "contract_evidence": [
+    {
+      "contract": "webhook_payload",
+      "status": "UNRESOLVED",
+      "accessed_on": "2026-10-04",
+      "source_urls": [
+        "https://docs.now.viso.ai/webhook-api",
+        "https://docs.now.viso.ai/custom-output-messages"
+      ],
+      "retrieval": "HTML_METADATA_ONLY",
+      "evidence": "No article body or JSON schema recovered; metadata is not a wire contract.",
+      "supported_mapping": []
+    },
+    {
+      "contract": "webhook_authentication",
+      "status": "UNRESOLVED",
+      "accessed_on": "2026-10-04",
+      "source_urls": [
+        "https://docs.now.viso.ai/webhook-api"
+      ],
+      "retrieval": "HTML_METADATA_ONLY",
+      "evidence": "No supported token/header/signature scheme recovered.",
+      "supported_mapping": []
+    },
+    {
+      "contract": "file_video_submission",
+      "status": "UNRESOLVED",
+      "accessed_on": "2026-10-04",
+      "source_urls": [
+        "https://docs.now.viso.ai/media-processing-model",
+        "https://docs.now.viso.ai/input-connectors"
+      ],
+      "retrieval": "HTML_METADATA_ONLY",
+      "evidence": "File/clip processing metadata recovered, but no method, URL, upload fields, authentication or limits.",
+      "supported_mapping": []
+    },
+    {
+      "contract": "processing_result_retrieval",
+      "status": "UNRESOLVED",
+      "accessed_on": "2026-10-04",
+      "source_urls": [
+        "https://docs.now.viso.ai/reviewing-results",
+        "https://docs.now.viso.ai/webhook-api"
+      ],
+      "retrieval": "HTML_METADATA_ONLY",
+      "evidence": "Board review and webhook metadata recovered, but no retrieval endpoint, result schema, job identifier or polling semantics.",
+      "supported_mapping": []
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "identified_incident.json",
+      "sha256": "5fe6242a1709be381d41d03a5d61f888122462be98c810b9a5d0c4a1c4b83b3b",
+      "based_on": "tests/test_preview_api.py::test_a_valid_delivery_is_mapped_and_reported",
+      "expected_local_outcome": "MAPPED"
+    },
+    {
+      "path": "incident_url.json",
+      "sha256": "4ea11013f7f8982a3b8dbe744c603d3828f5379ff4e27d71000c2be54b21dcf8",
+      "based_on": "tests/test_preview_api.py::test_a_url_query_token_is_accepted",
+      "expected_local_outcome": "MAPPED"
+    },
+    {
+      "path": "narrative_negative.json",
+      "sha256": "78dd583dcec1261884305cb8279a9ddb40290e3b03095c6f9e705d968ed389f8",
+      "based_on": "tests/test_preview_api.py::test_narrative_text_never_produces_a_positive_result",
+      "expected_local_outcome": "UNMAPPED"
+    },
+    {
+      "path": "unknown_payload.json",
+      "sha256": "caa3fe095b0cf47e8bdd7e0c529a7aa21c7916b2d5d9e1a18d33003cae5d3055",
+      "based_on": "tests/test_preview_api.py::test_an_unknown_payload_is_quarantined_not_turned_into_a_detection",
+      "expected_local_outcome": "UNMAPPED"
+    }
+  ]
+}
