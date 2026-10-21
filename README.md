@@ -65,6 +65,17 @@ component: tracking, containment, priority levels and camera cueing are
 deterministic or seeded Monte Carlo code. Visual analysis, when used, happens
 in the external Viso Now service, whose results are kept as evidence only.
 
+## Run it online (nothing to install)
+
+- **Render (free tier):** Render -> *New* -> *Blueprint* -> pick this repo. `render.yaml` and the
+  `Dockerfile` do the rest. The free tier sleeps after 15 minutes idle; the first load after that
+  takes about 30 s. Open `/preview` once it is up.
+- Any Docker host: `docker build -t dronewatch . && docker run -p 8000:8000 dronewatch`.
+
+The hosted instance has no Viso webhook secret set, so `/webhook/viso` is open; it only stores
+evidence rows and never moves a track. Set `DRONEWATCH_WEBHOOK_SECRET` in the service's
+environment to require a signature.
+
 ## Quick start
 
 Requires Python 3.11+. Node.js 24+ is needed only for the JavaScript tests. No
