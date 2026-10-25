@@ -137,3 +137,10 @@ S2 (Claude): read-side. In api_events, group rows by incident key and keep the
 - Clicking a contact shows generated reference art with long-wing/delta-wing/FPV example selection. It is explicitly reference artwork, not a detected aircraft identification.
 - Validation:242 Python tests passed;60 Node tests passed. Desktop1440x960 and mobile393x873 browser QA: no page errors or horizontal overflow, playable synchronized H264, all3 reference choices inspected.
 - Local app127.0.0.1:8020 remains running; authenticated webhook tunnel unchanged. Private callback evidence and feed state remain in this thread work directory.
+
+## 2026-09-12 Local startup (Codex)
+- Cloned GitHub default branch into a separate checkout; local branch codex/local-start.
+- Installed requirements in a Python 3.13 virtual environment and started loopback server on 127.0.0.1:8000 (PID 4894).
+- Verified health, preview and scenario-list HTTP responses; opened operator preview and started synthetic playback in browser.
+- Validation: 242 Python tests and 60 Node tests passed. One dependency deprecation warning.
+- External Viso connection and replay media are not configured in this fresh checkout.
