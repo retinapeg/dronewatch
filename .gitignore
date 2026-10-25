@@ -10,3 +10,20 @@ __pycache__/
 .env
 .env.*
 .DS_Store
+
+# Locally acquired datasets, generated preparation output and optional models
+/data/raw/
+/data/interim/
+/data/processed/
+/models/
+/weights/
+/runs/
+*.pt
+*.onnx
+*.engine
+*.mp4
+*.avi
+*.mov
+
+# Local public-airspace captures (not source assets)
+/captures/

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0d131b"><title>DroneWatch | Synthetic Airspace</title>
+<link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/airspace.css">
+<script defer src="/static/core.js"></script><script defer src="/static/airspace-core.js"></script><script defer src="/static/airspace.js"></script>
+</head>
+<body>
+<main class="airspace-app">
+<header class="air-header"><div class="brand"><h1>DroneWatch</h1><p>COMMON OPERATIONAL LAYER / INDEPENDENT PROTOTYPE</p></div><div class="air-header-actions"><a class="vision-link" href="/vision">VISION / RECORDED BENCHMARK REPLAY</a><select id="air-source" aria-label="Detection source"><option value="SYNTHETIC">SYNTHETIC SENSOR</option><option value="VISO">VISO / VISUAL EVENTS</option></select><span id="air-clock" class="air-clock">--:--:-- UTC</span></div></header>
+<section class="air-banner" id="air-banner" data-severity="NORMAL" aria-label="Airspace state">
+<div><span id="air-provenance" class="air-provenance">DEMO / SYNTHETIC AIRSPACE</span><span id="air-state" class="air-state" aria-live="polite">NORMAL</span><span id="air-state-note">Choose a scenario to populate the simulated world.</span></div>
+<span id="air-position-source" class="position-badge">POSITION: SYNTHETIC GROUND TRUTH</span>
+</section>
+<section class="air-metrics" aria-label="Tracking metrics">
+<div><span>ACTIVE TRACKS</span><strong id="air-active">0</strong></div>
+<div><span>PRIORITY CONTACT</span><strong id="air-primary">NONE</strong></div>
+<div><span>NEAREST GROUND RANGE</span><strong id="air-nearest">--</strong></div>
+<div><span>MAX SEVERITY</span><strong id="air-threat">NORMAL</strong></div>
+<div><span>SENSOR / SCENARIO</span><strong id="air-sensor">SYNTHETIC / READY</strong></div>
+</section>
+<section class="scenario-bar" aria-label="Demo controls">
+<div class="scenario-buttons"><button data-scenario="north_east_approach">NE APPROACH</button><button data-scenario="west_fast_mover">WEST FAST MOVER</button><button data-scenario="south_loiter">SOUTH LOITER</button><button class="showcase" data-scenario="multi_vector">MULTI-VECTOR</button><button id="air-stop">STOP</button><button id="air-reset">CLEAR / RESET</button></div>
+<div class="scenario-clock"><span id="air-scenario">NO SCENARIO</span><strong id="air-elapsed">00:00</strong><span id="air-duration">/ 00:00</span></div>
+</section>
+<section class="air-workspace">
+<article class="panel radar-panel">
+<div class="panel-header"><h2>AIRSPACE TRACK DISPLAY</h2><span id="air-frame-label">LOCAL ENU / METRES</span></div>
+<div class="radar-shell">
+<svg id="air-radar" viewBox="0 0 1000 1000" role="img" aria-label="Synthetic airspace radar: east is right, north is up; each contact uses synthetic ground-truth coordinates">
+<defs><radialGradient id="radar-shade"><stop offset="0" stop-color="#172a32"/><stop offset="1" stop-color="#0c171e"/></radialGradient><clipPath id="radar-clip"><circle cx="500" cy="500" r="430"/></clipPath></defs>
+<circle cx="500" cy="500" r="448" fill="#101e26" stroke="#344b57" stroke-width="2"/>
+<circle cx="500" cy="500" r="430" fill="url(#radar-shade)"/>
+<g id="air-grid"></g>
+<g id="air-zones"></g>
+<g class="decorative-sweep" id="air-sweep"><line x1="500" y1="500" x2="500" y2="70" stroke="#9ac2bb" stroke-width="1.5" opacity=".24"/></g>
+<g clip-path="url(#radar-clip)" id="air-trails"></g>
+<g id="air-markers"></g>
+<circle cx="500" cy="500" r="5" fill="#dce9e7"/><path d="M486 500h28 M500 486v28" stroke="#dce9e7" stroke-width="2"/>
+<text class="radar-origin" x="500" y="535" text-anchor="middle">PROTECTED ORIGIN</text>
+<text class="radar-cardinal" x="500" y="36" text-anchor="middle">N / 000</text><text class="radar-cardinal" x="970" y="507" text-anchor="end">E</text><text class="radar-cardinal" x="500" y="986" text-anchor="middle">S / 180</text><text class="radar-cardinal" x="29" y="507">W</text>
+</svg>
+<div id="air-empty" class="radar-empty"><strong>AIRSPACE CLEAR</strong><span>Select NE APPROACH or MULTI-VECTOR to begin.</span></div>
+<div class="radar-top-note"><span id="air-world-status">SYNTHETIC WORLD / READY</span><span id="air-range-scale">MAX RANGE 2,500 M</span></div>
+<div class="radar-bottom-note"><span>+X EAST / +Y NORTH / +Z UP</span><span>SWEEP IS DECORATIVE</span></div>
+</div>
+<div class="radar-footer"><div class="radar-legend"><span class="normal">OBSERVED</span><span class="watch">WARNING</span><span class="high">RESTRICTED</span></div><button id="air-follow" class="follow-button" aria-pressed="true">FOLLOW PRIORITY: ON</button></div>
+</article>
+<aside class="air-side">
+<section class="panel selected-panel" aria-label="Selected track">
+<div class="panel-header"><h2>SELECTED CONTACT</h2><span id="air-selection-mode">AUTO / HIGHEST PRIORITY</span></div>
+<div id="air-contact-list" class="contact-tabs" aria-label="Select contact"></div>
+<div id="air-contact" class="contact-content"><div class="contact-empty"><strong>NO CURRENT CONTACT</strong><p>Every displayed position will be explicit synthetic ground truth. Real visual events without world coordinates are not plotted.</p></div></div>
+</section>
+<section class="panel operations-panel" aria-label="Operations log">
+<div class="panel-header"><h2>OPERATIONS LOG</h2><select id="air-log-scope" aria-label="Event history scope"><option value="CURRENT">Current scenario</option><option value="ALL">All stored history</option></select></div>
+<div id="air-log" class="air-log"></div>
+<div class="operations-footer"><span id="air-stored">0 STORED OBSERVATIONS</span><span id="air-event-id">NO EVENTS</span></div>
+</section>
+</aside>
+</section>
+<footer class="air-health"><span id="air-backend">BACKEND CONNECTING</span><span id="air-transport">STREAM CONNECTING</span><span id="air-viso">VISO / CHECKING GENUINE ACTIVITY</span><span id="air-log-health">SQLITE / MILESTONES ONLY</span><span>NO PHYSICAL RADAR ATTACHED</span></footer>
+<div class="air-message" id="air-message" role="status" hidden></div>
+</main>
+</body></html>
