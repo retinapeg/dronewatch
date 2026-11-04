@@ -15,7 +15,10 @@
       const f=`api/tracks__${q.get('name')||'operator_demo'}__${q.get('seed')||'42'}__${q.get('count')||'6'}__${q.get('mode')||'normal'}.json`;
       return real(f,opts);
     }
-    if(u.startsWith('/api/preview/paths')) return Promise.resolve(new Response('',{status:404}));
+    if(u.startsWith('/api/preview/paths')){
+      const q=new URL(u,location.origin).searchParams, b=Math.floor(parseFloat(q.get('t')||'0')/2);
+      return real(`api/paths/${q.get('name')}__${q.get('seed')}__${q.get('count')}__${q.get('mode')}__${q.get('track')}__${b}.json`,opts);
+    }
     if(u.startsWith('/api/preview/viso/status')) return real('api/viso_status.json',opts);
     if(u.startsWith('/api/camera/status')) return real('api/camera_status.json',opts);
     if(u.startsWith('/api/preview/viso/evidence')) return stub({results:[],uncorrelated_results:[],pending_count:0,static_demo:true});
