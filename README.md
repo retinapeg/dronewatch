@@ -67,6 +67,10 @@ in the external Viso Now service, whose results are kept as evidence only.
 
 ## Run it online (nothing to install)
 
+- **Live demo, nothing to start:** <https://retinapeg.github.io/dronewatch/> — the operator view replaying the
+  tracker's recorded output for every scenario, contact count and sensor-loss mode (seed 42). Static, so it
+  never sleeps; the Monte Carlo containment cloud, camera clips and live Viso evidence need the server
+  (see [`site/README.md`](site/README.md)).
 - **Render (free tier):** Render -> *New* -> *Blueprint* -> pick this repo. `render.yaml` and the
   `Dockerfile` do the rest. The free tier sleeps after 15 minutes idle; the first load after that
   takes about 30 s. Open `/preview` once it is up.
