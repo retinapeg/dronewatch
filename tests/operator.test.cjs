@@ -349,14 +349,85 @@ test('the camera clip follows the replay: next before its window, live inside it
   assert.deepEqual(op.cameraClip(media, {...REPLAY, mode: 'normal'}, 44), {clip: null, phase: 'none'});
 });
 
-test('real-time clips run one second per replay second; other clips stretch across their window', () => {
-  const realtime = {sim_start_s: 43, sim_end_s: 47, playback: 'realtime'};
-  assert.deepEqual(op.clipTime(realtime, 45, 10, 2), {time: 2, rate: 2});
-  assert.equal(op.clipTime(realtime, 40, 10, 1).time, 0);
-  assert.equal(op.clipTime(realtime, 90, 10, 1).time, 9.95);      // holds on the last frame
+test('recorded footage runs at its own speed whatever the replay does; rendered excerpts stretch across their window', () => {
+  // Recorded footage must never sit on a still frame: it is not held to the replay clock or its speed.
+  const recorded = {sim_start_s: 43, sim_end_s: 47, playback: 'realtime'};
+  for (const [t, speed] of [[45, 2], [40, 1], [90, 0.5]]) {
+    assert.deepEqual(op.clipTime(recorded, t, 10, speed), {free: true, time: null, rate: 1});
+  }
   const stretched = {sim_start_s: 40, sim_end_s: 70};
-  assert.deepEqual(op.clipTime(stretched, 55, 8, 1), {time: 4, rate: 8 / 30});
-  assert.deepEqual(op.clipTime(stretched, 55, NaN, 1), {time: 0, rate: 1});
+  assert.deepEqual(op.clipTime(stretched, 55, 8, 1), {free: false, time: 4, rate: 8 / 30});
+  assert.deepEqual(op.clipTime(stretched, 55, NaN, 1), {free: false, time: 0, rate: 1});
+  assert.equal(op.clipTime(stretched, 90, 8, 1).time, 7.95);      // holds on the last frame
+});
+
+test('the footage clock reads minutes, seconds and tenths', () => {
+  assert.deepEqual([0, 3.44, 9.99, 10.03, 59.99, 75.56].map(op.timecode), ['0:00.0', '0:03.4', '0:09.9', '0:10.0', '0:59.9', '1:15.5']);
+  assert.deepEqual([NaN, -1, undefined].map(op.timecode), ['0:00.0', '0:00.0', '0:00.0']);
+});
+
+test('the camera window is about one contact: live while the camera is on it, afterwards while the camera moves on', () => {
+  const cues = [{t: 0, target: null}, {t: 43, target: 'DW-001'}, {t: 47, target: 'DW-003'}, {t: 51, target: null}];
+  const clip = {scenario_context: {sim_start_s: 43, sim_end_s: 47}};
+  assert.deepEqual(op.cameraSubject(clip, cues, 42.9), {id: null, phase: 'before', now: null});
+  assert.deepEqual(op.cameraSubject(clip, cues, 43), {id: 'DW-001', phase: 'live', now: 'DW-001', since: 43});
+  assert.deepEqual(op.cameraSubject(clip, cues, 46.9), {id: 'DW-001', phase: 'live', now: 'DW-001', since: 43});
+  // The window keeps DW-001's footage and result; the camera itself is now on another contact.
+  assert.deepEqual(op.cameraSubject(clip, cues, 47), {id: 'DW-001', phase: 'after', now: 'DW-003', since: 43});
+  assert.deepEqual(op.cameraSubject(clip, cues, 60), {id: 'DW-001', phase: 'after', now: null, since: 43});
+  // No clip linked: there is no subject, but the camera's own target is still known.
+  assert.deepEqual(op.cameraSubject(null, cues, 45), {id: null, phase: 'none', now: 'DW-001'});
+  assert.deepEqual(op.cameraSubject({scenario_context: {}}, cues, 45), {id: null, phase: 'none', now: 'DW-001'});
+});
+
+test('the line from a contact stops at the nearest edge of the camera window', () => {
+  const win = {left: 400, top: 300, right: 800, bottom: 700};
+  // Level with the window: straight across to its left edge, starting outside the marker.
+  assert.deepEqual(op.leaderLine({px: 100, py: 500}, win, 30), {x1: 130, y1: 500, x2: 400, y2: 500});
+  // Above and to the left: to the window's corner.
+  const diagonal = op.leaderLine({px: 100, py: 100}, win, 0);
+  assert.deepEqual([diagonal.x2, diagonal.y2], [400, 300]);
+  // Under the window, or so close that a line would be a stub: no line.
+  assert.equal(op.leaderLine({px: 500, py: 400}, win, 30), null);
+  assert.equal(op.leaderLine({px: 370, py: 500}, win, 30), null);
+});
+
+test('only a label that names a drone gets the confirmed colour', () => {
+  assert.deepEqual(['drone', 'DRONE', 'Drones', 'UAV', 'quadcopter', 'multirotor UAV'].map(op.verdictTone), Array(6).fill('drone'));
+  assert.deepEqual(['bird', 'helicopter', 'uncertain_detection', 'airplane', 'dronelike', '', null, 7].map(op.verdictTone), Array(8).fill('other'));
+});
+
+test('the map is framed in the corridor between the summary box and the camera window', () => {
+  const site = {x: 0, y: 0, radius_m: 600}, viewport = {w: 1140, h: 800};
+  const tracks = [{x: -700, y: 2000}, {x: 700, y: 1900}];
+  const screen = (camera, x, y) => op.project(camera, viewport).toScreen(x, y);
+  const open = op.operatorCamera(tracks, site, viewport);
+  const framed = op.operatorCamera(tracks, site, viewport, {left: 214, right: 462});
+  // Every contact, and the whole site circle, sits between the two.
+  for (const [x, y] of [[-700, 2000], [700, 1900], [-600, 0], [600, 0]]) {
+    const at = screen(framed, x, y);
+    assert.ok(at.px >= 214 && at.px <= 1140 - 462, `x=${x} lands at ${at.px}`);
+    assert.ok(at.py >= 0 && at.py <= 800);
+  }
+  // Centred in that corridor, and no larger than the open framing.
+  assert.ok(Math.abs(screen(framed, 0, 0).px - (214 + (1140 - 214 - 462) / 2)) < 1e-6);
+  assert.ok(framed.scale <= open.scale);
+  // With nothing to clear, the framing is exactly what it was.
+  assert.deepEqual(op.operatorCamera(tracks, site, viewport, null), open);
+  assert.deepEqual(op.operatorCamera(tracks, site, viewport, {left: 214, right: 0}), open);
+  // Too narrow to hold both: only the camera window is cleared.
+  const narrow = {w: 760, h: 700};
+  assert.deepEqual(op.operatorCamera(tracks, site, narrow, {left: 214, right: 340}), op.operatorCamera(tracks, site, narrow, {right: 340}));
+});
+
+test('a locked contact’s label sits outside its lock brackets, and other labels keep off them', () => {
+  const plain = op.placeLabels([{id: 'a', px: 300, py: 300, w: 60, h: 26}])[0];
+  const locked = op.placeLabels([{id: 'a', px: 300, py: 300, w: 60, h: 26, symbol: 56}])[0];
+  assert.ok(plain.x < 300 + 28, 'an ordinary label hugs its marker');
+  assert.ok(locked.x >= 300 + 28, 'a locked one starts beyond the brackets, 28 px either side');
+  const near = op.placeLabels([{id: 'a', px: 300, py: 300, w: 60, h: 26, symbol: 56, rank: 1}, {id: 'b', px: 262, py: 300, w: 60, h: 26}]);
+  const b = near.find(label => label.id === 'b');
+  assert.ok(b.x + b.w < 300 - 28 || b.x > 300 + 28 || b.y + b.h < 300 - 28 || b.y > 300 + 28, 'the neighbour’s label is off the brackets');
 });
 
 test('a camera finding is attached to the contact the camera was cued at when the clip began', () => {
@@ -364,7 +435,8 @@ test('a camera finding is attached to the contact the camera was cued at when th
   assert.equal(op.cueTargetAt(cues, 42.9), null);
   assert.equal(op.cueTargetAt(cues, 46.9), 'DW-001');
   const result = {scenario_context: {sim_start_s: 43, sim_end_s: 47}, verdict: {label: 'drone', confidence: 0.95}};
-  assert.deepEqual(op.cameraFindings([result, {verdict: {label: 'drone'}}], cues), {'DW-001': {label: 'DRONE', pct: 95}});
+  assert.deepEqual(op.cameraFindings([result, {verdict: {label: 'drone'}}], cues), {'DW-001': {label: 'DRONE', pct: 95, tone: 'drone'}});
+  assert.deepEqual(op.cameraFindings([{...result, verdict: {label: 'bird', confidence: 0.8}}], cues), {'DW-001': {label: 'BIRD', pct: 80, tone: 'other'}});
   assert.deepEqual(op.cameraFindings([{...result, verdict: null}], cues), {});
 });
 
@@ -388,4 +460,23 @@ test('the page is pinned to the window width, so a long top bar cannot push the 
   // wider than the window and the right-hand panel was cut off. Checked in a browser from 900 to 1728 px.
   assert.match(html, /\.app\{display:grid;grid-template-columns:minmax\(0,1fr\);/);
   assert.match(html, /\.top\{gap:10px;min-width:0\}/);
+});
+
+test('labels keep off the boxes that sit on top of the map', () => {
+  const item = {id: 'a', px: 300, py: 300, w: 80, h: 26};
+  const free = op.placeLabels([item])[0];
+  assert.equal(free.anchor, 'start');                          // by default the label goes to the right
+  // A camera window covering everything to the right: the label has to go somewhere else.
+  const win = {left: 318, top: 0, right: 900, bottom: 900};
+  const moved = op.placeLabels([item], {avoid: [win]})[0];
+  assert.ok(moved.x + moved.w < win.left, `label spans ${moved.x}..${moved.x + moved.w}`);
+});
+
+test('every element id on the page is used once', () => {
+  // Two elements shared id="mode": the sensor-loss menu and the map's view badge. Code meant for the badge
+  // reached the menu instead, so Reset hid the menu and dragging the map emptied it.
+  const ids = [...html.matchAll(/<[a-z][^>]*\sid="([^"]+)"/g)].map(match => match[1]);
+  const repeated = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+  assert.deepEqual(repeated, []);
+  assert.ok(ids.includes('mode') && ids.includes('view-mode'));
 });

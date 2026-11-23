@@ -95,6 +95,13 @@ python3 -m venv .venv
 ```
 
 Open <http://127.0.0.1:8000/preview>, pick a sensor-loss mode and press Play.
+
+Once it is set up, `./run` starts it with one command from any folder (for
+example `~/Projects/dronewatch/run`): it fetches the latest code, stops a
+server already on the port, starts the server and opens the camera demo in the
+browser. It reads the Viso Now webhook secret from the environment or from a
+private `.env.local` file beside it, which Git ignores, and never prints it.
+
 To regenerate the results tables:
 
 ```bash
@@ -258,11 +265,15 @@ one fetches and draws sampled paths from `GET /api/preview/paths`. The track
 picture is labelled "SIMULATION · NOT LIVE".
 
 - `/preview?demo=viso` starts the 30 s outage with the cued camera at T+35 at 2x
-  speed, with the camera check panel open. While the camera is cued at a lost
-  contact, the panel plays the clip linked to that moment and then shows the
-  Viso Now result for it as one line (label, confidence, a short reason), and
-  marks the contact on the map and in the list. Results are shown, not fused:
-  they do not update tracks. Link a clip with
+  speed, with the camera window open. When the camera is cued at a lost
+  contact, that contact gets lock brackets on the map and a line runs from it
+  to the camera window, which names the contact in large type and plays the
+  clip linked to that moment. Recorded footage plays at its own speed and
+  loops, so it is never a still frame. The Viso Now verdict for the clip then
+  lands in the window (label, confidence, a short reason), the brackets and the
+  contact's tag turn green if the label is a drone, and the window stays tied
+  to that contact while the camera moves on. Results are shown, not fused: they
+  do not update tracks. Link a clip with
   `python scripts/link_camera_clip.py clip.mp4 --cue DW-001` (see `--help`);
   [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) covers the rendered
   synthetic clips.

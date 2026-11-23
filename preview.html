@@ -139,6 +139,64 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 .pill{display:inline-block;font:700 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:3px;border:1px solid var(--line-2);color:var(--ink-dim)}
 .viso-evidence{position:absolute;right:14px;bottom:44px;width:310px;max-width:calc(100% - 28px);border:1px solid #31534f;border-radius:6px;background:#0c161ef2;box-shadow:0 10px 30px #0006;z-index:2;color:var(--ink);font-size:12px}.viso-evidence>summary{list-style:none;padding:11px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;font:600 10px var(--mono);letter-spacing:.06em;color:#8de1d7}.viso-evidence>summary:before{content:"▸"}.viso-evidence[open]>summary:before{content:"▾"}.viso-evidence>summary .ev-badge{margin-left:auto;font:9px var(--mono);color:var(--ink-dim);letter-spacing:0}.ev-body{padding:0 12px 12px;max-height:400px;overflow:auto}.ev-body video{display:block;position:static;width:100%;aspect-ratio:16/9;background:#03080c;border:1px solid var(--line);border-radius:3px;object-fit:contain}.ev-caption{font:9px/1.6 var(--mono);color:var(--ink-faint);margin:5px 0 11px;overflow-wrap:anywhere}.ev-labels{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}.ev-label{border:1px solid #31534f;background:#132c29;color:#9be4dc;padding:4px 6px;border-radius:3px;font:10px var(--mono);overflow-wrap:anywhere}.ev-summary{font-size:11px;line-height:1.6;color:var(--ink-dim);margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}.ev-note{font:9px/1.6 var(--mono);color:var(--ink-faint);margin:9px 0}.ev-more{display:block;border-top:1px solid var(--line);padding-top:9px;color:#8de1d7;text-decoration:none;font:10px var(--mono)}.ev-pending{font:10px/1.5 var(--mono);color:var(--watch);margin:7px 0}.ev-media-empty{font:11px/1.7 var(--mono);color:var(--ink-faint);padding:15px 0}.ev-target{font:600 11px/1.5 var(--mono);letter-spacing:.04em;color:#49c9d9;margin:0 0 8px}.ev-verdict{display:flex;align-items:baseline;gap:10px;margin:11px 0 2px}.ev-verdict[hidden],.ev-summary[hidden],.ev-note[hidden],.ev-caption:empty,.ev-body video[hidden],.ev-media-empty[hidden]{display:none}.ev-headline{font:700 22px/1 var(--mono);letter-spacing:.04em;color:#fff}.ev-confidence{font:600 12px var(--mono);color:#4ad27a}.row .id .cam{display:block;margin:2px 0 0;color:#7ddbd0}.viso-evidence[hidden]{display:none}@media(max-height:760px){.ev-body{max-height:315px}.viso-evidence{width:275px}}@media(max-width:900px){.viso-evidence{width:245px;right:9px;bottom:42px}.ev-body{max-height:280px}.camera-link{font-size:9px;padding:6px}}
 
+/* camera window: large while it has footage for this replay, compact otherwise */
+.viso-evidence{max-height:calc(100% - 56px);overflow:auto}
+.viso-evidence.has-feed{--feed-h:min(clamp(130px,min(calc(100vh - 512px),calc((100vw - 300px)*.28)),323px),calc(404px/var(--ev-ratio,1.7778)));width:calc(var(--feed-h)*var(--ev-ratio,1.7778) + 26px);border-color:#2b6a72}
+.viso-evidence.has-feed.live{border-color:#5fe3f0;box-shadow:0 0 0 1px #5fe3f066,0 0 26px #5fe3f026,0 10px 30px #0008}
+.viso-evidence.has-feed.confirmed:not(.live){border-color:#3f9a63}
+.viso-evidence.has-feed .ev-body{max-height:none;overflow:visible}
+.ev-target{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 9px}
+.ev-subject{font:700 21px/1 var(--mono);letter-spacing:.03em;color:#fff}.ev-subject:empty{display:none}
+.ev-state{font:700 10px/1 var(--mono);letter-spacing:.09em;color:#49c9d9}
+.viso-evidence.live .ev-state{color:#06161a;background:#5fe3f0;padding:4px 7px;border-radius:3px}
+.viso-evidence.live .ev-state::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#06161a;margin-right:6px;vertical-align:1px;animation:camlock 1.1s ease-in-out infinite}
+.ev-moved{margin-left:auto;font:10px/1.4 var(--mono);color:var(--ink-faint);text-align:right}.ev-moved:empty{display:none}
+.ev-screen{position:relative;aspect-ratio:var(--ev-ratio,1.7778);background:#03080c;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.ev-screen[hidden],.ev-standby[hidden],.ev-osd[hidden],.ev-progress[hidden],.ev-result[hidden],.ev-bar[hidden],.ev-source[hidden]{display:none}
+.ev-body .ev-screen video{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;object-fit:contain}
+.ev-standby{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:0 34px;text-align:center;font:700 12px var(--mono);letter-spacing:.24em;color:#48667a;background:repeating-linear-gradient(0deg,#050b10 0 2px,#07111a 2px 4px)}
+.ev-standby span{font:10px/1.5 var(--mono);letter-spacing:.02em;color:#35505f}
+.ev-osd{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:9px 28px;font:700 10px var(--mono);letter-spacing:.08em;color:#f2fbfc;text-shadow:0 1px 3px #000,0 0 6px #000a;pointer-events:none}
+.ev-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:#ffffff26}.ev-progress i{display:block;height:100%;width:0;background:#5fe3f0}
+.ev-corner{position:absolute;width:13px;height:13px;border:2px solid #5fe3f0;opacity:.9;pointer-events:none}
+.ev-corner.tl{left:7px;top:7px;border-right:0;border-bottom:0}.ev-corner.tr{right:7px;top:7px;border-left:0;border-bottom:0}
+.ev-corner.bl{left:7px;bottom:9px;border-right:0;border-top:0}.ev-corner.br{right:7px;bottom:9px;border-left:0;border-top:0}
+.ev-result{border:1px solid #2f4a57;background:#0d1a22;border-radius:4px;padding:10px 12px 9px;margin:10px 0 10px}
+.ev-result .ev-pending{margin:0;color:var(--ink-faint)}
+.ev-result.awaiting .ev-pending{position:relative;padding-bottom:9px;color:var(--watch)}
+.ev-result.awaiting .ev-pending::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#f2b53a,transparent);background-size:45% 100%;background-repeat:no-repeat;animation:evscan 1.2s linear infinite}
+/* the zoom buttons lie in a row while the camera window is up, so a tall window never covers them */
+.map.feed .viewctl{flex-direction:row}
+/* with footage, every part keeps its place and height: nothing shifts when the camera is cued or the verdict lands */
+.viso-evidence.has-feed .ev-target{height:31px;flex-wrap:nowrap;overflow:hidden}
+.viso-evidence.has-feed .ev-subject,.viso-evidence.has-feed .ev-state{flex:none;white-space:nowrap}
+.viso-evidence.has-feed .ev-moved{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viso-evidence.has-feed .ev-caption,.viso-evidence.has-feed .ev-caption:empty{display:block;height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viso-evidence.has-feed .ev-result{height:164px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.viso-evidence.has-feed .ev-result[hidden]{display:none}
+.viso-evidence.has-feed .ev-labels{flex-wrap:nowrap;overflow:hidden}.viso-evidence.has-feed .ev-label{flex:none;white-space:nowrap}
+.viso-evidence.has-feed .ev-summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal}
+.ev-result.drone{border-color:#3f9a63;background:#0c2118}
+.ev-result.ev-in{animation:evin .55s cubic-bezier(.2,.9,.3,1.2)}
+.ev-source{font:700 9.5px/1 var(--mono);letter-spacing:.14em;color:#8fb3c4;margin:0 0 8px}.ev-result.drone .ev-source{color:#7fe0a2}
+.ev-result .ev-verdict{margin:0 0 7px}.ev-result .ev-headline{font-size:27px}.ev-result .ev-confidence{font-size:13px}
+.ev-bar{height:4px;background:#ffffff1c;border-radius:2px;overflow:hidden;margin:0 0 9px}.ev-bar i{display:block;height:100%;background:#4ad27a;border-radius:2px}
+.ev-result .ev-labels{margin:0 0 6px}.ev-result .ev-summary{margin:0}
+.row.cam-on{border-left-color:#5fe3f0;background:#0d2228}
+.row .fr.c{color:#5fe3f0}
+.row .id .cam{display:block;width:max-content;max-width:100%;margin:4px 0 1px;padding:2px 6px;border:1px solid #2c7f78;background:#0e332f;color:#aef3ea;border-radius:3px;font:700 10px/1.3 var(--mono);letter-spacing:.05em}
+.row .id .cam.drone{border-color:#3f9a63;background:#0e2b1c;color:#9df0bb}
+@keyframes camlock{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes evscan{0%{background-position:-45% 0}100%{background-position:145% 0}}
+@keyframes evin{0%{opacity:0;transform:scale(.93)}100%{opacity:1;transform:scale(1)}}
+.cam-lock{fill:none;stroke:#5fe3f0;stroke-width:2;stroke-linecap:square}
+.cam-lock.live{stroke-width:2.6;filter:drop-shadow(0 0 5px #5fe3f0);animation:camlock 1.1s ease-in-out infinite}
+.cam-lock.done{stroke:#7ddbd0;stroke-width:1.6;stroke-opacity:.85}
+.cam-lock.done.drone{stroke:#4ad27a;stroke-opacity:1;filter:drop-shadow(0 0 4px #4ad27a88)}
+.cam-leader{fill:none;stroke:#5fe3f0;stroke-width:1.4;stroke-opacity:.9}
+.cam-leader.done{stroke:#7ddbd0;stroke-opacity:.6;stroke-dasharray:5 4}.cam-leader.done.drone{stroke:#4ad27a;stroke-opacity:.75}
+@media (max-height:780px),(max-width:1200px){.ev-result .ev-headline{font-size:23px}.ev-subject{font-size:18px}}
+@media (prefers-reduced-motion:reduce){.cam-lock.live,.ev-result.ev-in,.ev-result.awaiting .ev-pending::after,.viso-evidence.live .ev-state::before{animation:none}}
 @media (max-width:1500px){
   .main{grid-template-columns:minmax(0,1fr) 300px}
   .row{padding:7px 12px}
@@ -181,7 +239,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
     <section class="map" id="map">
       <svg id="stage" xmlns="http://www.w3.org/2000/svg" aria-label="Tactical picture"></svg>
       <div class="summary" id="summary" aria-live="polite"></div>
-      <div class="mode" id="mode" hidden>FOCUS</div>
+      <div class="mode" id="view-mode" hidden>FOCUS</div>
       <div class="viewctl">
         <button id="zoom-in" title="Zoom in">+</button>
         <button id="zoom-out" title="Zoom out">−</button>
@@ -192,15 +250,24 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
       <details class="viso-evidence" id="viso-evidence" open>
         <summary>CAMERA CHECK <span class="ev-badge" id="ev-badge">Waiting</span></summary>
         <div class="ev-body">
-          <div class="ev-target" id="ev-target">Camera at rest</div>
-          <video id="ev-video" muted playsinline preload="metadata" aria-label="Camera clip synchronised with the replay clock" hidden></video>
-          <div class="ev-media-empty" id="ev-media-empty">The camera clip appears here when the camera is cued at a lost contact.</div>
+          <div class="ev-target" id="ev-target"><b class="ev-subject" id="ev-subject"></b><span class="ev-state" id="ev-state">Camera at rest</span><span class="ev-moved" id="ev-moved"></span></div>
+          <div class="ev-screen" id="ev-screen" hidden>
+            <video id="ev-video" muted playsinline preload="metadata" aria-label="Camera footage of the contact" hidden></video>
+            <div class="ev-standby" id="ev-standby">STANDBY<span>The footage starts when the camera is cued at a lost contact</span></div>
+            <div class="ev-osd" id="ev-osd" hidden><span id="ev-play">PLAYING</span><span id="ev-time"></span></div>
+            <div class="ev-progress" id="ev-progress" hidden><i></i></div>
+            <i class="ev-corner tl"></i><i class="ev-corner tr"></i><i class="ev-corner bl"></i><i class="ev-corner br"></i>
+          </div>
+          <div class="ev-media-empty" id="ev-media-empty">No camera clip is linked to this replay. The map still shows where the camera is cued.</div>
           <div class="ev-caption" id="ev-caption"></div>
-          <div class="ev-verdict" id="ev-verdict" hidden><span class="ev-headline" id="ev-headline"></span><span class="ev-confidence" id="ev-confidence"></span></div>
-          <div class="ev-labels" id="ev-labels"></div>
-          <p class="ev-summary" id="ev-summary" hidden></p>
-          <p class="ev-pending" id="ev-pending" hidden></p>
-          <p class="ev-note" id="ev-note" hidden></p>
+          <div class="ev-result" id="ev-result" hidden>
+            <p class="ev-pending" id="ev-pending" hidden></p>
+            <div class="ev-source" id="ev-note" hidden></div>
+            <div class="ev-verdict" id="ev-verdict" hidden><span class="ev-headline" id="ev-headline"></span><span class="ev-confidence" id="ev-confidence"></span></div>
+            <div class="ev-bar" id="ev-bar" hidden><i></i></div>
+            <div class="ev-labels" id="ev-labels"></div>
+            <p class="ev-summary" id="ev-summary" hidden></p>
+          </div>
           <a class="ev-more" href="/camera">All camera results ↗</a>
         </div>
       </details>
@@ -276,18 +343,26 @@ const OP=(()=>{
   // the group must clear the top, the boundary must clear the bottom, and the
   // whole thing must fit the width.
   const SITE_ANCHOR=0.70;         // site's screen y as a fraction of height
-  function operatorCamera(tracks,site,viewport){
+  // `clear.left` and `clear.right` are screen pixels kept empty at the sides:
+  // the camera window sits on the right and the summary box on the left, and
+  // the picture is framed in the corridor between them so no contact ends up
+  // underneath either. If that corridor would be too narrow to read, only the
+  // camera window is cleared.
+  function operatorCamera(tracks,site,viewport,clear){
     if(!site) return null;
-    const r=site.radius_m||600, {w,h}=viewport, m=Math.max(34,h*0.05);
+    const right=Math.min(Math.max(0,(clear&&clear.right)||0),viewport.w*0.5);
+    let left=Math.max(0,(clear&&clear.left)||0);
+    if(!right||viewport.w-left-right<360) left=0;
+    const r=site.radius_m||600, h=viewport.h, w=viewport.w-left-right, m=Math.max(34,h*0.05);
     const live=(tracks||[]).filter(t=>Number.isFinite(t.x)&&Number.isFinite(t.y));
     const xs=[site.x-r,site.x+r,...live.map(t=>t.x)];
     const minX=Math.min(...xs), maxX=Math.max(...xs);
     const topY=Math.max(site.y+r, ...live.map(t=>t.y));
-    const byWidth=(w-2*m)/Math.max(maxX-minX,2*r);
+    const byWidth=(w-2*(left||right?16:m))/Math.max(maxX-minX,2*r);
     const byTop=(SITE_ANCHOR*h-m)/Math.max(topY-site.y,r);
     const byBottom=((1-SITE_ANCHOR)*h-m)/r;
     const scale=clampScale(Math.min(byWidth,byTop,byBottom,0.6));
-    return {cx:(minX+maxX)/2, cy:site.y+(SITE_ANCHOR-0.5)*h/scale, scale};
+    return {cx:(minX+maxX)/2+(right-left)/(2*scale), cy:site.y+(SITE_ANCHOR-0.5)*h/scale, scale};
   }
 
   // Focus: close enough to inspect the contact, but the site stays on screen
@@ -361,25 +436,29 @@ const OP=(()=>{
   // its symbol and takes the first that overlaps neither an already-placed
   // label nor any symbol. Symbols never move, so the map stays truthful; only
   // the text finds room. Returns {id, x, y, w, h, anchor} in screen space.
-  const OFFSETS=[[14,-6],[14,8],[-14,-6],[-14,8],[0,-22],[0,20],[22,-16],[-22,-16],[22,16],[-22,16],[0,-38],[0,36]];
+  const OFFSETS=[[14,-6],[14,8],[-14,-6],[-14,8],[0,-22],[0,20],[22,-16],[-22,-16],[22,16],[-22,16],[0,-38],[0,36],
+                 [26,-34],[-26,-34],[26,34],[-26,34],[0,-56],[0,54]];
   function placeLabels(items,opts){
     const o=Object.assign({w:52,h:26,symbol:22,gap:3},opts||{});
     const boxes=[];
-    for(const it of items) boxes.push({x:it.px-o.symbol/2,y:it.py-o.symbol/2,w:o.symbol,h:o.symbol,sym:true});
+    const room=it=>Math.max(o.symbol,it.symbol||0);
+    for(const it of items) boxes.push({x:it.px-room(it)/2,y:it.py-room(it)/2,w:room(it),h:room(it),sym:true});
+    for(const r of o.avoid||[]) boxes.push({x:r.left,y:r.top,w:r.right-r.left,h:r.bottom-r.top});
     const hit=(a,b)=>!(a.x+a.w+o.gap<b.x||b.x+b.w+o.gap<a.x||a.y+a.h+o.gap<b.y||b.y+b.h+o.gap<a.y);
     const out=[];
     const order=[...items].sort((a,b)=>(b.rank||0)-(a.rank||0)||a.py-b.py);
     for(const it of order){
-      const w=it.w||o.w, h=it.h||o.h;
+      const w=it.w||o.w, h=it.h||o.h, push=(room(it)-o.symbol)/2;
       let chosen=null;
-      for(const [dx,dy] of OFFSETS){
+      for(const [ox,oy] of OFFSETS){
+        const dx=ox+Math.sign(ox)*push, dy=oy+(ox===0?Math.sign(oy)*push:0);
         const anchor=dx>0?'start':dx<0?'end':'middle';
         const x=dx>0?it.px+dx:dx<0?it.px+dx-w:it.px-w/2;
         const y=it.py+dy-h/2;
         const box={x,y,w,h};
         if(!boxes.some(b=>hit(box,b))){chosen={x,y,w,h,anchor,dx,dy};break}
       }
-      if(!chosen){const x=it.px+14,y=it.py-6-h/2;chosen={x,y,w,h,anchor:'start',dx:14,dy:-6}}
+      if(!chosen){const x=it.px+14+push,y=it.py-6-h/2;chosen={x,y,w,h,anchor:'start',dx:14+push,dy:-6}}
       boxes.push(chosen);
       out.push({id:it.id,...chosen});
     }
@@ -443,20 +522,52 @@ const OP=(()=>{
     return next?{clip:next,phase:'before'}:{clip:null,phase:'none'};
   }
   // Where the video should be, and how fast it should run, at replay time t.
-  // "realtime" clips run one video second per simulation second; the default
-  // stretches the whole clip across its window (the 2D sensor excerpt).
+  // Recorded footage ("realtime") is not tied to the replay clock: it starts
+  // when the camera is cued and then plays at its own speed, looping, so it is
+  // never left on a still frame. A rendered excerpt of the simulation shows the
+  // same scene as the map, so it is stretched across its window instead.
   function clipTime(context,t,duration,speed){
+    if(context.playback==='realtime') return {free:true,time:null,rate:1};
     const start=context.sim_start_s, span=context.sim_end_s-start, rate=Number.isFinite(speed)&&speed>0?speed:1;
-    if(!(duration>0)||!(span>0)) return {time:0,rate:1};
+    if(!(duration>0)||!(span>0)) return {free:false,time:0,rate:1};
     const last=Math.max(0,duration-0.05);
-    if(context.playback==='realtime') return {time:Math.min(last,Math.max(0,t-start)),rate:Math.min(4,Math.max(0.0625,rate))};
-    return {time:Math.min(last,Math.max(0,(t-start)/span*duration)),rate:Math.min(4,Math.max(0.0625,rate*duration/span))};
+    return {free:false,time:Math.min(last,Math.max(0,(t-start)/span*duration)),rate:Math.min(4,Math.max(0.0625,rate*duration/span))};
+  }
+  // Minutes, seconds and tenths for the footage clock: 3.44 -> "0:03.4".
+  function timecode(seconds){
+    const s=Number.isFinite(seconds)&&seconds>0?seconds:0, tenths=Math.floor(s*10+1e-6);
+    const m=Math.floor(tenths/600), rest=tenths-m*600;
+    return m+':'+(rest<100?'0':'')+(rest/10).toFixed(1);
   }
   // Which contact the camera was cued at when a clip's window opened.
   function cueTargetAt(cues,t){
     let target=null;
     for(const cue of Array.isArray(cues)?cues:[]){ if(cue.t<=t) target=cue.target||null; else break; }
     return target;
+  }
+  // What the camera window is about at replay time t. `id` is the contact its
+  // clip was taken of, once that clip's window has opened: "live" while the
+  // camera is still on it, "after" once the camera has moved on. `now` is the
+  // contact the camera is pointed at this instant, which can be a different one.
+  function cameraSubject(clip,cues,t){
+    const c=clip&&clip.scenario_context, now=cueTargetAt(cues,t);
+    if(!c||!Number.isFinite(c.sim_start_s)) return {id:null,phase:'none',now};
+    if(!(t>=c.sim_start_s)) return {id:null,phase:'before',now};
+    return {id:cueTargetAt(cues,c.sim_start_s),phase:t<c.sim_end_s?'live':'after',now,since:c.sim_start_s};
+  }
+  // The line that ties a contact on the map to the camera window: from just
+  // outside the contact's marker (`gap` pixels) to the nearest point on the
+  // window's edge. Null when the contact is under the window or touching it.
+  function leaderLine(point,rect,gap){
+    const x=Math.min(rect.right,Math.max(rect.left,point.px)), y=Math.min(rect.bottom,Math.max(rect.top,point.py));
+    const d=Math.hypot(x-point.px,y-point.py), g=gap||0;
+    if(!(d>g+10)) return null;
+    return {x1:point.px+(x-point.px)*g/d,y1:point.py+(y-point.py)*g/d,x2:x,y2:y};
+  }
+  // Whether the sender's label says the object is a drone. Only this decides
+  // the "confirmed" colour; any other label is shown in a neutral one.
+  function verdictTone(label){
+    return typeof label==='string'&&/\b(drone|uav|uas|quadcopter|multirotor|multicopter)s?\b/i.test(label)?'drone':'other';
   }
   // Sender text with report markup removed: no headings, emphasis marks, code ticks or table rows.
   function plainText(value,limit){
@@ -486,14 +597,14 @@ const OP=(()=>{
       const c=result&&result.scenario_context, view=verdictView(result);
       if(!c||!view||!Number.isFinite(c.sim_start_s)) continue;
       const target=cueTargetAt(cues,c.sim_start_s);
-      if(target&&!found[target]) found[target]={label:view.headline,pct:view.pct};
+      if(target&&!found[target]) found[target]={label:view.headline,pct:view.pct,tone:verdictTone(view.headline)};
     }
     return found;
   }
 
   return {project,fitCamera,scenarioEnvelope,operatorCamera,focusCamera,stepCamera,zoomAt,niceScale,
           sortTracks,resolveSelection,declutter,placeLabels,priorityClass,closingSpeed,createPlayback,
-          cameraClip,clipTime,cueTargetAt,plainText,verdictView,cameraFindings,
+          cameraClip,clipTime,timecode,cueTargetAt,cameraSubject,leaderLine,verdictTone,plainText,verdictView,cameraFindings,
           PRIORITY_RANK,MIN_SCALE,MAX_SCALE,SITE_ANCHOR};
 })();
 if(typeof module!=='undefined') module.exports=OP;
@@ -536,7 +647,7 @@ if(typeof module!=='undefined') module.exports=OP;
     }
     resizeViewport();
     state.mode='operator'; state.target=null;
-    state.camera=OP.operatorCamera(firstPopulatedFrame().tracks,state.site,state.viewport)||state.camera;
+    state.camera=OP.operatorCamera(firstPopulatedFrame().tracks,state.site,state.viewport,cameraClearance())||state.camera;
     $('clock').innerHTML=`T+00.0 <span class="of">/ ${Math.round(data.duration_s||90)} s</span>`;
     render();
   }
@@ -560,7 +671,7 @@ if(typeof module!=='undefined') module.exports=OP;
     syncTransport();
   }
   function stop(){ clearInterval(state.timer); state.timer=null; state.playback.pause(); syncTransport(); }
-  function reset(){ stop(); state.playback.reset(); state.lastFrame=-1; overview(); render(); clearEvidence(); refreshEvidence(); }
+  function reset(){ stop(); state.playback.reset(); state.lastFrame=-1; overview(); clearEvidence(true); render(); refreshEvidence(); }
 
   /* ---------------- camera ---------------- */
   function resizeViewport(){
@@ -569,16 +680,16 @@ if(typeof module!=='undefined') module.exports=OP;
   }
   function currentTracks(){ const f=state.playback.frame(); return f?f.tracks:[]; }
 
-  function overview(){ state.mode='operator'; state.target=null; $('mode').hidden=true; syncViewButtons(); }
+  function overview(){ state.mode='operator'; state.target=null; $('view-mode').hidden=true; syncViewButtons(); }
   function focusSelected(follow){
     const t=OP.resolveSelection(state.selectedId,currentTracks());
     if(!t) return;
     state.mode=follow?'follow':'focus';
     state.target=OP.focusCamera(t,state.site,state.viewport);
-    $('mode').hidden=false; $('mode').textContent=follow?'FOLLOWING '+t.id:'FOCUS '+t.id;
+    $('view-mode').hidden=false; $('view-mode').textContent=follow?'FOLLOWING '+t.id:'FOCUS '+t.id;
     syncViewButtons();
   }
-  function manual(){ if(state.mode!=='manual'){ state.mode='manual'; state.target=null; $('mode').hidden=false; $('mode').textContent='MANUAL VIEW'; syncViewButtons(); } }
+  function manual(){ if(state.mode!=='manual'){ state.mode='manual'; state.target=null; $('view-mode').hidden=false; $('view-mode').textContent='MANUAL VIEW'; syncViewButtons(); } }
   function syncViewButtons(){
     $('v-overview').setAttribute('aria-pressed',String(state.mode==='operator'));
     renderCard();
@@ -587,13 +698,18 @@ if(typeof module!=='undefined') module.exports=OP;
   // Operator framing re-targets only when the ideal has drifted materially,
   // so the camera reads as an occasional deliberate adjustment.
   function steerOperator(){
-    const want=OP.operatorCamera(currentTracks(),state.site,state.viewport);
+    const clear=cameraClearance(), tracks=currentTracks();
+    const want=OP.operatorCamera(tracks,state.site,state.viewport,clear);
     if(!want) return;
     const ref=state.target||state.camera;
     const dScale=Math.abs(want.scale-ref.scale)/Math.max(ref.scale,1e-6);
     const span=Math.max(state.viewport.w,state.viewport.h)/Math.max(want.scale,1e-6);
     const dMove=Math.hypot(want.cx-ref.cx,want.cy-ref.cy)/span;
-    if(dScale>0.12||dMove>0.07) state.target=want;
+    // With the camera window up there is no slack at the sides: a contact about to slide under
+    // the window or the summary box re-frames at once instead of waiting for a larger drift.
+    const P=clear?OP.project(ref,state.viewport):null;
+    const hidden=!!P&&tracks.some(t=>{const x=P.toScreen(t.x,t.y).px;return x<(clear.left||0)+6||x>state.viewport.w-clear.right-6;});
+    if(dScale>0.12||dMove>0.07||(hidden&&(dScale>0.004||dMove>0.004))) state.target=want;
   }
 
   function tick(now){
@@ -615,7 +731,7 @@ if(typeof module!=='undefined') module.exports=OP;
   }
 
   /* ---------------- rendering ---------------- */
-  function render(){ draw(); renderRows(); renderCard(); renderClock(); renderSummary(); syncTransport(); }
+  function render(){ cameraView(); draw(); renderRows(); renderCard(); renderClock(); renderSummary(); syncTransport(); }
 
   const svg=(tag,attrs)=>{const e=document.createElementNS(NS,tag);for(const k in attrs) e.setAttribute(k,attrs[k]);return e};
   const fmtRange=m=>m>=1000?`${(m/1000).toFixed(2)} km`:`${Math.round(m)} m`;
@@ -681,11 +797,18 @@ if(typeof module!=='undefined') module.exports=OP;
       // centreline of the cue
       const ang=centre*Math.PI/180, L=cam.max_range_m*sc;
       g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+L*Math.cos(ang),y2:c.py-L*Math.sin(ang),stroke:'#49c9d9','stroke-opacity':0.5,'stroke-width':1}));
+      // and a solid line to the contact itself, so the eye can follow the camera to it
+      const aimed=cue&&cue.target?tracks.find(k=>k.id===cue.target):null;
+      if(aimed){
+        const q=P.toScreen(aimed.x,aimed.y), d=Math.hypot(q.px-c.px,q.py-c.py);
+        if(d>40) g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+(q.px-c.px)*(d-26)/d,y2:c.py+(q.py-c.py)*(d-26)/d,stroke:'#5fe3f0','stroke-opacity':0.95,'stroke-width':2}));
+      }
       stage.append(g);
     }
 
     // trails, vectors, symbols
     const selected=state.selectedId, focus=state.mode==='focus'||state.mode==='follow';
+    const cv=state.camView||{};
     const items=[];
     for(const t of tracks){
       const col=COLOR[t.priority]||'#9aa', isSel=t.id===selected, high=t.priority==='HIGH PRIORITY';
@@ -780,14 +903,45 @@ if(typeof module!=='undefined') module.exports=OP;
         transform:`translate(${p.px} ${p.py}) rotate(${-(t.heading||0)})`,'data-id':t.id,style:'cursor:pointer'});
       sym.addEventListener('click',ev=>{ev.stopPropagation();select(t.id)});
       stage.append(sym);
-      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:(t.fresh!=='U')?92:56,h:(t.fresh!=='U')?38:26,track:t,col});
+      const tagged=!!(state.cameraFound||{})[t.id];
+      const locked=cv.now===t.id||(cv.feed&&cv.id===t.id);
+      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:tagged?128:(t.fresh!=='U')?114:56,h:((t.fresh!=='U')?38:26)+(tagged?18:0),symbol:locked?56:0,track:t,col});
     }
 
-    // labels, decluttered
-    for(const L of OP.placeLabels(items)){
+    // Camera lock. Corner brackets mark the contact the camera is on; the contact shown in the
+    // camera window is tied to that window by a line, so nobody has to read a label to match them.
+    const phase=`animation-delay:-${(performance.now()%1100).toFixed(0)}ms`;
+    const bracket=(it,cls,k)=>{
+      const g=svg('g',{class:cls,style:phase}), a=8;
+      for(const [sx,sy] of [[-1,-1],[1,-1],[1,1],[-1,1]])
+        g.append(svg('path',{d:`M ${it.px+sx*k} ${it.py+sy*(k-a)} L ${it.px+sx*k} ${it.py+sy*k} L ${it.px+sx*(k-a)} ${it.py+sy*k}`}));
+      stage.append(g);
+    };
+    const shown=cv.feed&&cv.id?items.find(i=>i.id===cv.id):null, aimedAt=cv.now?items.find(i=>i.id===cv.now):null;
+    const tone=cv.found&&cv.found.tone==='drone'?' drone':'';
+    if(aimedAt&&!(shown&&shown.id===aimedAt.id&&cv.phase==='live')) bracket(aimedAt,'cam-lock',21);
+    if(shown){
+      const live=cv.phase==='live';
+      bracket(shown,live?'cam-lock live':'cam-lock done'+tone,live?24:21);
+      const panel=$('viso-evidence');
+      if(panel.open){
+        const pr=panel.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+        const line=OP.leaderLine(shown,{left:pr.left-sr.left,top:pr.top-sr.top,right:pr.right-sr.left,bottom:pr.bottom-sr.top},live?30:27);
+        if(line){
+          stage.append(svg('line',{class:live?'cam-leader':'cam-leader done'+tone,x1:line.x1,y1:line.y1,x2:line.x2,y2:line.y2}));
+          stage.append(svg('circle',{cx:line.x2,cy:line.y2,r:3.5,fill:live?'#5fe3f0':tone?'#4ad27a':'#7ddbd0'}));
+        }
+      }
+    }
+
+    // labels, decluttered, and kept off the boxes that sit on top of the map
+    const sr0=stage.getBoundingClientRect();
+    const covered=['summary','viso-evidence'].map(id=>$(id)).filter(el=>el&&!el.hidden&&el.offsetParent)
+      .map(el=>{const r=el.getBoundingClientRect();return {left:r.left-sr0.left,top:r.top-sr0.top,right:r.right-sr0.left,bottom:r.bottom-sr0.top};});
+    for(const L of OP.placeLabels(items,{avoid:covered})){
       const it=items.find(i=>i.id===L.id), t=it.track;
       const x=L.anchor==='start'?L.x:L.anchor==='end'?L.x+L.w:L.x+L.w/2;
-      const g=svg('g',{'font-family':'var(--mono)','pointer-events':'none'});
+      const g=svg('g',{'font-family':'var(--mono)','pointer-events':'none',stroke:'#0b1016','stroke-width':3,'stroke-linejoin':'round','paint-order':'stroke'});
       const a=svg('text',{x,y:L.y+11,'text-anchor':L.anchor,fill:t.id===selected?'#fff':it.col,'font-size':11.5,'font-weight':700});
       a.textContent=t.id; g.append(a);
       const b=svg('text',{x,y:L.y+23,'text-anchor':L.anchor,fill:'#9aa9b6','font-size':10.5});
@@ -795,7 +949,12 @@ if(typeof module!=='undefined') module.exports=OP;
       if(t.fresh==='S'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:it.col,'font-size':9.5,'letter-spacing':'.08em'});c.textContent=`LAST KNOWN · ${t.age_s.toFixed(0)} s`;g.append(c)}
       else if(t.fresh==='P'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:'#f2b53a','font-size':9.5,'letter-spacing':'.08em'});c.textContent=`PREDICTED · ${t.age_s.toFixed(1)} s`;g.append(c)}
       const seen=(state.cameraFound||{})[t.id];
-      if(seen){const c=svg('text',{x,y:L.y+(t.fresh==='S'||t.fresh==='P'?47:35),'text-anchor':L.anchor,fill:'#7ddbd0','font-size':9.5,'letter-spacing':'.08em'});c.textContent='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%');g.append(c)}
+      if(seen){
+        const text='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%'), cw=text.length*6.7+12, cy=L.y+(t.fresh==='S'||t.fresh==='P'?40:28);
+        const cx=L.anchor==='start'?x-3:L.anchor==='end'?x-cw+3:x-cw/2, drone=seen.tone==='drone';
+        g.append(svg('rect',{x:cx,y:cy,width:cw,height:15,rx:3,fill:drone?'#0e2b1c':'#0e332f',stroke:drone?'#4ad27a':'#2c7f78','stroke-width':1}));
+        const c=svg('text',{x:cx+cw/2,y:cy+11,'text-anchor':'middle',fill:drone?'#9df0bb':'#aef3ea',stroke:'none','font-size':10,'font-weight':700,'letter-spacing':'.05em'});c.textContent=text;g.append(c);
+      }
       stage.append(g);
     }
 
@@ -848,8 +1007,11 @@ if(typeof module!=='undefined') module.exports=OP;
       el.innerHTML=`<div class="id">${t.id}${fr}</div>
         <div class="pr ${OP.priorityClass(t.priority)}">${SHORT[t.priority]||t.priority}</div>
         <div class="rg">${fmtRange(t.range_m)}</div><div class="mv">${mv}</div>`;
+      const cv=state.camView||{};
+      if(cv.now===t.id){const on=document.createElement('span');on.className='fr c';on.textContent='CAMERA ON';el.querySelector('.id').append(on);}
+      if(cv.feed&&cv.id===t.id&&cv.phase==='live') el.classList.add('cam-on');
       const seen=(state.cameraFound||{})[t.id];
-      if(seen){const tag=document.createElement('span');tag.className='st cam';tag.textContent='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%');el.querySelector('.id').append(tag);}
+      if(seen){const tag=document.createElement('span');tag.className='st cam'+(seen.tone==='drone'?' drone':'');tag.textContent='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%');el.querySelector('.id').append(tag);}
       el.addEventListener('click',()=>select(t.id));
       rows.append(el);
     }
@@ -957,6 +1119,8 @@ identity   tracker-assigned, not ground truth</div></details>`;
   /* ---------------- input ---------------- */
   function bind(){
     for(const event of ['mousedown','wheel','dblclick']) $('viso-evidence').addEventListener(event,e=>e.stopPropagation());
+    $('viso-evidence').addEventListener('toggle',render);
+    for(const event of ['timeupdate','seeked','loadeddata']) $('ev-video').addEventListener(event,syncFootageClock);
     $('play').addEventListener('click',start);
     $('pause').addEventListener('click',stop);
     $('reset').addEventListener('click',reset);
@@ -1011,34 +1175,72 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     }catch(e){ $('viso-text').textContent='VISO · UNAVAILABLE'; }
   }
 
-  let evidencePolling=false, evidenceSignature='', evidenceMedia='', evidenceClip=null;
+  let evidencePolling=false, evidenceSignature='', evidenceMedia='', evidenceClip=null, feedKey='';
   const replayKey=()=>({scenario:state.scenario,seed:state.seed,count:state.count,mode:state.lossMode});
   const camSensor=()=>((state.data&&state.data.sensors)||[]).find(s=>s.kind==='eo-camera')||null;
+  // Which contact the camera window is about right now. Worked out before each draw so the map,
+  // the list and the window always agree.
+  function cameraView(){
+    const f=state.playback.frame(), cam=camSensor();
+    const view=OP.cameraSubject(evidenceClip,cam?cam.cues:[],f?f.t:0);
+    view.feed=!!evidenceMedia&&view.phase!=='none';
+    view.found=view.id?(state.cameraFound||{})[view.id]||null:null;
+    state.camView=view;
+    return view;
+  }
+  // Screen pixels on the right that the camera window covers while it has footage.
+  function cameraClearance(){
+    const panel=$('viso-evidence');
+    if(!panel.open||!panel.classList.contains('has-feed')) return null;
+    const pr=panel.getBoundingClientRect(), sr=$('stage').getBoundingClientRect(), box=$('summary').getBoundingClientRect();
+    return {left:Math.max(0,box.right-sr.left+14),right:Math.max(0,sr.right-pr.left+18)};
+  }
   function syncEvidenceVideo(){
-    const video=$('ev-video'), f=state.playback.frame(), t=f?f.t:0, cam=camSensor();
-    const c=evidenceClip&&evidenceClip.scenario_context;
-    // The contact the clip was taken of once its window has opened; before that, where the camera points now.
-    const started=!!c&&t>=c.sim_start_s, live=started&&t<c.sim_end_s;
-    const target=cam?OP.cueTargetAt(cam.cues,started?c.sim_start_s:t):null;
-    $('ev-target').textContent=target?(started&&!live?'Camera check: ':'Camera on ')+target:cam?'Camera at rest':'No camera in this replay';
-    // Nothing from the clip is shown before the camera is cued there.
-    video.hidden=!started||!evidenceMedia;$('ev-media-empty').hidden=!video.hidden;
-    if(!started){$('ev-caption').textContent='';video.pause();return;}
+    const video=$('ev-video'), panel=$('viso-evidence'), f=state.playback.frame(), t=f?f.t:0, cam=camSensor();
+    const c=evidenceClip&&evidenceClip.scenario_context, v=state.camView||cameraView();
+    const feed=v.feed&&!!c, started=feed&&v.phase!=='before', live=started&&v.phase==='live';
+    panel.classList.toggle('has-feed',feed);panel.classList.toggle('live',live);$('map').classList.toggle('feed',feed&&panel.open);
+    // The contact first, in large type: the one in the footage, or failing that the one the camera is on.
+    const subject=started?v.id:v.now;
+    $('ev-subject').textContent=subject||'';
+    $('ev-state').textContent=!cam?'No camera in this replay':started?(live?'CAMERA ON':'CHECKED AT T+'+c.sim_start_s+' s'):v.now?'CAMERA ON':'Camera at rest';
+    $('ev-moved').textContent=started&&!live&&v.now&&v.now!==v.id?'camera now on '+v.now:'';
+    $('ev-screen').hidden=!feed;$('ev-media-empty').hidden=feed;
+    video.hidden=!started;$('ev-standby').hidden=started;$('ev-osd').hidden=!started;$('ev-progress').hidden=!started;
+    if(!started){$('ev-caption').textContent='';video.pause();feedKey='';return;}
     const what=c.synthetic===false?(c.provenance||'Recorded footage'):'Simulated sensor view';
     $('ev-caption').textContent=what+' · camera cue at T+'+c.sim_start_s+' s';
+    $('ev-play').textContent=live?'▶ PLAYING':'↻ REPLAY';
     if(!f||!Number.isFinite(video.duration)) return;
     const at=OP.clipTime(c,t,video.duration,parseFloat($('speed').value)||1);
+    if(at.free){
+      // Recorded footage: start from the top when the camera is cued, then keep it moving.
+      const key=evidenceMedia+'@'+c.sim_start_s;
+      if(feedKey!==key){feedKey=key;video.currentTime=0;}
+      video.loop=true;video.playbackRate=1;
+      if(panel.open){if(video.paused)video.play().catch(()=>{});}else video.pause();
+      return;
+    }
+    video.loop=false;
     if(Math.abs(video.currentTime-at.time)>.3) video.currentTime=at.time;
     video.playbackRate=at.rate;
-    const inWindow=c.playback==='realtime'?t>=c.sim_start_s:(t>=c.sim_start_s&&t<c.sim_end_s);
-    const running=inWindow&&at.time<video.duration-.06&&state.playback.playing&&$('viso-evidence').open;
+    const running=t>=c.sim_start_s&&t<c.sim_end_s&&at.time<video.duration-.06&&state.playback.playing&&panel.open;
     if(running){if(video.paused)video.play().catch(()=>{});}
     else video.pause();
   }
-  function clearEvidence(){
-    evidenceSignature='';evidenceClip=null;state.cameraFound={};
-    $('ev-verdict').hidden=true;$('ev-labels').replaceChildren();
-    $('ev-summary').textContent='';$('ev-summary').hidden=true;$('ev-pending').hidden=true;$('ev-note').hidden=true;
+  function syncFootageClock(){
+    const video=$('ev-video'), d=video.duration;
+    if(!Number.isFinite(d)||d<=0) return;
+    $('ev-time').textContent=OP.timecode(video.currentTime)+' / '+OP.timecode(d);
+    $('ev-progress').firstElementChild.style.width=(Math.min(1,video.currentTime/d)*100).toFixed(1)+'%';
+  }
+  function clearEvidence(keepClip){
+    evidenceSignature='';feedKey='';state.cameraFound={};state.camView=null;
+    if(!keepClip) evidenceClip=null;
+    $('ev-result').hidden=!(keepClip&&evidenceClip);$('ev-result').className='ev-result';$('ev-verdict').hidden=true;$('ev-bar').hidden=true;$('ev-labels').replaceChildren();
+    $('ev-summary').textContent='';$('ev-summary').hidden=true;$('ev-note').hidden=true;
+    $('ev-pending').hidden=!(keepClip&&evidenceClip);$('ev-pending').textContent='Viso Now’s verdict on the clip appears here.';
+    $('viso-evidence').classList.remove('confirmed');
     $('ev-badge').textContent='Waiting';
   }
   async function refreshEvidence(){
@@ -1058,11 +1260,14 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
         if(picked.clip.url!==evidenceMedia){
           evidenceMedia=picked.clip.url;video.src=picked.clip.url;
           if(picked.clip.poster_url&&picked.clip.poster_url.startsWith('/api/camera/media/')) video.poster=picked.clip.poster_url; else video.removeAttribute('poster');
-          video.addEventListener('loadedmetadata',syncEvidenceVideo,{once:true});
+          video.addEventListener('loadedmetadata',()=>{
+            if(video.videoWidth&&video.videoHeight) $('viso-evidence').style.setProperty('--ev-ratio',(video.videoWidth/video.videoHeight).toFixed(4));
+            syncEvidenceVideo();syncFootageClock();
+          },{once:true});
           video.load();
         }
       }else if(evidenceMedia){evidenceMedia='';video.pause();video.removeAttribute('src');video.load();}
-      syncEvidenceVideo();
+      cameraView();syncEvidenceVideo();
       const real=list=>Array.isArray(list)?list.filter(item=>item.outcome==='MAPPED'&&item.synthetic_sender!==true):[];
       const correlated=real(data.results), other=real(data.uncorrelated_results), cam=camSensor();
       const mine=picked.clip?correlated.find(item=>item.matched_clip===picked.clip.filename)||null:null;
@@ -1071,19 +1276,27 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
       const signature=JSON.stringify({id:item&&item.id,clip:picked.clip&&picked.clip.filename,phase:picked.phase,pending:data.pending_count,found});
       if(signature!==evidenceSignature){
         evidenceSignature=signature;state.cameraFound=found;
-        const view=OP.verdictView(item);
+        const view=OP.verdictView(item), tone=view?OP.verdictTone(view.headline):'other', box=$('ev-result');
+        const awaiting=!!picked.clip&&!item&&picked.phase!=='before';
+        // With footage linked the verdict's slot is always there, waiting; otherwise it only appears with a result.
+        const arrived=!!item&&(box.hidden||!$('ev-pending').hidden);
+        box.hidden=!item&&!picked.clip;
+        box.className='ev-result'+(view&&tone==='drone'?' drone':'')+(awaiting&&data.pending_count?' awaiting':'');
+        $('viso-evidence').classList.toggle('confirmed',!!mine&&!!view&&tone==='drone');
         $('ev-verdict').hidden=!view;
         $('ev-headline').textContent=view?view.headline:'';$('ev-confidence').textContent=view?view.confidence:'';
+        $('ev-bar').hidden=!view||view.pct===null;$('ev-bar').firstElementChild.style.width=(view&&view.pct!==null?view.pct:0)+'%';
         const labels=$('ev-labels');labels.replaceChildren();
         for(const text of (view?view.chips:[])){const chip=document.createElement('span');chip.className='ev-label';chip.textContent=text;labels.appendChild(chip);}
         const detail=view?view.detail:item?OP.plainText(item.summary,160):'';
         $('ev-summary').textContent=detail;$('ev-summary').hidden=!detail;
-        const awaiting=!!picked.clip&&!item&&picked.phase!=='before';
-        $('ev-pending').hidden=!awaiting;
-        $('ev-pending').textContent=data.pending_count?'Awaiting the Viso Now result…':'No Viso Now result for this clip yet.';
+        $('ev-pending').hidden=!!item||!picked.clip;
+        $('ev-pending').textContent=!awaiting?'Viso Now’s verdict on the clip appears here.':data.pending_count?'Awaiting the Viso Now result…':'No Viso Now result for this clip yet.';
         $('ev-note').hidden=!item;
-        $('ev-note').textContent=mine?'Analysed by Viso Now':'Latest Viso Now result · not linked to this replay';
+        $('ev-note').textContent=mine?'VISO NOW VERDICT':'LATEST VISO NOW RESULT · NOT LINKED TO THIS REPLAY';
         $('ev-badge').textContent=item?'Result in':awaiting&&data.pending_count?'Checking':picked.clip?'Standing by':'Waiting';
+        // The verdict arriving is the moment: bring it in visibly, once.
+        if(arrived){void box.offsetWidth;box.classList.add('ev-in');}
         render();
       }
     }catch(e){$('ev-badge').textContent='Reconnecting';}

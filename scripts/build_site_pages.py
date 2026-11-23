@@ -67,7 +67,7 @@ EDITS: list[tuple[str, str]] = [
      'title="The camera check runs with the server; see the repository">CAMERA CHECK ↗</a>'),
     ('<a class="diag" href="/preview/diagnostics">Diagnostics</a>',
      f'<a class="diag" href="{REPOSITORY}" target="_blank" rel="noopener">Source ↗</a>'),
-    ('The camera clip appears here when the camera is cued at a lost contact.',
+    ('No camera clip is linked to this replay. The map still shows where the camera is cued.',
      'Camera clips and Viso Now results need the Python server. This hosted demo replays the tracker only.'),
     ('<a class="ev-more" href="/camera">All camera results ↗</a>',
      f'<a class="ev-more" href="{REPOSITORY}#operator-preview" target="_blank" rel="noopener">How the camera check works ↗</a>'),
