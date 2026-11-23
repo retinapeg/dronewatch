@@ -450,7 +450,10 @@ const OP=(()=>{
     const order=[...items].sort((a,b)=>(b.rank||0)-(a.rank||0)||a.py-b.py);
     for(const it of order){
       const w=it.w||o.w, h=it.h||o.h, push=(room(it)-o.symbol)/2;
-      let chosen=null;
+      // The first position that touches nothing; failing that, the one that covers the least.
+      let chosen=null, least=Infinity;
+      const covered=box=>boxes.reduce((sum,b)=>sum+Math.max(0,Math.min(box.x+box.w,b.x+b.w)-Math.max(box.x,b.x)+o.gap)
+        *Math.max(0,Math.min(box.y+box.h,b.y+b.h)-Math.max(box.y,b.y)+o.gap)*(b.sym?3:1),0);
       for(const [ox,oy] of OFFSETS){
         const dx=ox+Math.sign(ox)*push, dy=oy+(ox===0?Math.sign(oy)*push:0);
         const anchor=dx>0?'start':dx<0?'end':'middle';
@@ -458,8 +461,9 @@ const OP=(()=>{
         const y=it.py+dy-h/2;
         const box={x,y,w,h};
         if(!boxes.some(b=>hit(box,b))){chosen={x,y,w,h,anchor,dx,dy};break}
+        const area=covered(box);
+        if(area<least){least=area;chosen={x,y,w,h,anchor,dx,dy}}
       }
-      if(!chosen){const x=it.px+14+push,y=it.py-6-h/2;chosen={x,y,w,h,anchor:'start',dx:14+push,dy:-6}}
       boxes.push(chosen);
       out.push({id:it.id,...chosen});
     }
@@ -1415,7 +1419,7 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
         // A verdict shown in the replay is a real result received earlier; say when.
         const day=item?OP.receivedOn(item.received_at):'';
         $('ev-note').textContent=mine?'VISO NOW VERDICT'+(day?' · RECEIVED '+day:''):'LATEST VISO NOW RESULT · NOT LINKED TO THIS REPLAY';
-        $('ev-badge').textContent=item?'Result in':awaiting&&data.pending_count?'Checking':picked.clip?'Standing by':'Waiting';
+        $('ev-badge').textContent=item?'Result in':awaiting?(data.pending_count?'Checking':'No result yet'):picked.clip?'Standing by':'Waiting';
         // The verdict arriving is the moment: bring it in visibly, once.
         if(arrived){void box.offsetWidth;box.classList.add('ev-in');}
         render();

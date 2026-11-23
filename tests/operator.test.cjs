@@ -473,6 +473,20 @@ test('a label with a camera tag is given the room the tag takes', () => {
   assert.equal(a.w, tag.width);
 });
 
+test('a label with no free place takes the one that covers least, not a fixed corner', () => {
+  // A ring of neighbours leaves no clear position round the middle contact.
+  const ring = [];
+  for (let i = 0; i < 16; i++) ring.push({ id: 'N' + i, px: 400 + 60 * Math.cos(i * Math.PI / 8), py: 300 + 60 * Math.sin(i * Math.PI / 8), w: 56, h: 26, rank: 1 });
+  const placed = op.placeLabels([...ring, { id: 'MID', px: 400, py: 300, w: 114, h: 38 }]);
+  const boxes = placed.filter(l => l.id !== 'MID'), mid = placed.find(l => l.id === 'MID');
+  const symbols = ring.map(r => ({ x: r.px - 11, y: r.py - 11, w: 22, h: 22 }));
+  const area = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const cover = box => [...boxes, ...symbols].reduce((sum, b) => sum + area(box, b), 0);
+  const fixedCorner = { x: 400 + 14, y: 300 - 6 - 19, w: 114, h: 38 };
+  assert.ok(cover(mid) <= cover(fixedCorner), `${cover(mid)} > ${cover(fixedCorner)}`);
+  assert.ok(Number.isFinite(mid.x) && Number.isFinite(mid.y) && ['start', 'end', 'middle'].includes(mid.anchor));
+});
+
 test('a verdict says the day it was received', () => {
   assert.equal(op.receivedOn('2026-11-23T19:07:44.512+00:00'), '23 NOV');
   assert.equal(op.receivedOn('2026-01-05T00:30:00Z'), '5 JAN');
