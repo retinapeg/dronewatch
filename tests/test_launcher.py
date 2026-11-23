@@ -125,3 +125,34 @@ def test_viso_without_cloudflared_says_how_to_install_it_and_starts_nothing(chec
     assert result.returncode == 1 and "brew install cloudflared" in result.stdout
     assert not (checkout / "secret-seen.txt").exists() and not (checkout / ".env.local").exists()
 
+
+def test_ctrl_c_stops_the_server_and_the_tunnel_together(checkout, tools):
+    import signal
+    import time
+    # A server that stays up, as the real one does, and says who it is.
+    server = checkout / ".venv" / "bin" / "uvicorn"
+    server.write_text('#!/bin/sh\necho "$$" > "$SEEN/server.pid"\nexec sleep 30\n')
+    clean = {k: v for k, v in os.environ.items() if k not in ("DRONEWATCH_WEBHOOK_SECRET", "VISO_WEBHOOK_SECRET", "PORT")}
+    launcher = subprocess.Popen([str(checkout / "run"), "--no-pull", "--no-open", "--viso"], cwd=checkout, text=True,
+                                env={**clean, "PATH": f"{tools}{os.pathsep}{os.environ['PATH']}", "SEEN": str(tools)},
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    try:
+        deadline = time.time() + 20
+        while not all((tools / name).exists() for name in ("clipboard", "server.pid", "tunnel.pid")):
+            assert time.time() < deadline and launcher.poll() is None, "the launcher never got as far as the clipboard"
+            time.sleep(0.1)
+        pids = [int((tools / name).read_text()) for name in ("server.pid", "tunnel.pid")]
+        launcher.send_signal(signal.SIGINT)
+        assert launcher.wait(timeout=15) == 130
+    finally:
+        launcher.kill()
+    deadline = time.time() + 5
+    for pid in pids:
+        while True:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                break
+            assert time.time() < deadline, f"process {pid} was left running"
+            time.sleep(0.1)
+
