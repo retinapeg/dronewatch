@@ -1,7 +1,9 @@
 # Viso Now integration evidence
 
-Access/review date: **2026-10-04**. This is a disconnected prototype's contract
-record, not evidence of an account connection or vendor-compliant integration.
+Documentation review: **2026-10-04**. First delivery from a real Viso Now agent:
+**2026-11-23** (see [below](#2026-11-23-first-delivery-from-a-real-agent)). This is a
+prototype's evidence record. It shows what one agent sent on one day; it is not a
+vendor-verified contract.
 
 The intended vendor is **viso.ai**, product **Viso Now**, as confirmed by its
 [official product page](https://viso.ai/viso-now/), which links the
@@ -14,6 +16,8 @@ separate product; its APIs must not be substituted for a Viso Now contract.
 All URLs below were accessed on **2026-10-04**, without credentials, account
 requests, uploads or production API calls. VERIFIED means only the stated fact
 was readable; UNRESOLVED means no implementable wire contract was recovered.
+The table is kept as the record of that review. What has been observed since is
+in the next section.
 
 | Area | Status | Official sources and observed evidence | Supported mapping / unresolved requirements |
 | --- | --- | --- | --- |
@@ -39,13 +43,67 @@ Older statements in `DATA_SOURCES.md` and the adapter docstring that public docs
 “define no” schema must be read as earlier evidence limitations, not proof of
 vendor absence. This dated record is the current evidence assessment.
 
+## 2026-11-23: first delivery from a real agent
+
+On 2026-11-23 the owner's Viso Now agent ("Drone Restricted Zone Monitor")
+analysed a recorded clip that was uploaded by hand, and delivered its result to
+`POST /v2/webhook/viso` on a local server reached through a temporary HTTPS
+tunnel. It is the first evidence here that comes from Viso Now itself.
+
+The clip was `V_DRONE_001` from the Halmstad Drone Detection Dataset (CC0), a
+public research recording of a small quadcopter. No sensitive media was sent to
+the service.
+
+| Area | What the delivery shows | What it does not show |
+| --- | --- | --- |
+| Webhook payload shape | One JSON object with the top-level keys `activities`, `appId`, `appName`, `category`, `confidence`, `decision`, `fileName`, `fileType`, `findings`, `incidentId`, `incidentNumber`, `incidentUrl`, `labels`, `mediaLink`, `severity`, `source`, `status`, `summary` and `timestamp`. Each entry of `labels` had `label`, `confidence`, `approximate_position`, `motion_state`, `tracking_status`, `structure`, `first_visible_time`, `zone_state_sequence` and `intrusion_events`. | A fixed vendor schema. The documentation says the payload follows the agent's output configuration, so this is the shape of this agent's output on that day. |
+| Recognition | The existing rule (`appId` with `incidentId`, or an `incidentUrl` on `now.viso.ai`) accepted the delivery unchanged, on both counts: outcome `MAPPED`. | Who sent it. The rule recognises a shape, not a signature. |
+| Authentication | The delivery was accepted with DroneWatch's own shared token, which the owner entered in the agent's webhook connection. | Any signing, timestamping or replay protection on Viso's side. None was examined. |
+| File submission | The clip was uploaded in the Viso Now web app. Viso stored it under its own name, so `fileName` was `<uuid>-<epoch ms>.mp4`. The original name appeared only in the report text ("Media sourced from `fx05.mp4`"). | An upload API. None is used here. |
+| Result delivery | A webhook arrived for the clip the agent classed as a zone intrusion (label `drone`, confidence 0.95, severity `high`). A helicopter clip uploaded the same evening finished as an uncertain detection and produced no delivery. | Retries, ordering or duplicate handling. A missing delivery does not mean a clip was not analysed: a webhook is sent only when the agent's trigger rule matches. |
+| Times and positions | `timestamp` held the item number, not a time. `approximate_position` and the "zone" describe a region of the image; this agent treats the central third of the frame as the zone. | An observation time or a map position. DroneWatch records the time of receipt and no position. |
+
+What DroneWatch does with a delivery like this:
+
+- `dronewatch/api/camera.py` reads the top label for display (`verdict`) and
+  links the result to a local clip: by `fileName` when it matches a clip in the
+  manifest, otherwise by the one known clip name quoted in the report
+  (`source_match: "named_in_report"`). A report that names no known clip, or
+  more than one, is linked to nothing.
+- The operator view shows the verdict on the contact the camera was cued at
+  when the clip began. It is shown, not fused: tracks do not change.
+- A redacted copy of the delivery is kept at
+  `tests/fixtures/viso/captured/drone_detected_2026-11-23.json`, with account
+  and incident identifiers replaced by zeros. It sits outside the synthetic
+  manifest, which still describes only fabricated fixtures. It is exercised by
+  `tests/test_camera_api.py` and `tests/operator.test.cjs`.
+
+Product facts read in the Viso Now documentation in a browser on the same day
+(the articles are drawn by script, which is why the October fetch recovered
+only page titles). Check the current documentation before relying on a limit
+or a price:
+
+- Viso Now analyses uploaded files: JPG, JPEG, PNG, MP4, MOV and MKV, images up
+  to 5 MB and videos up to 200 MB. The documentation describes file-by-file
+  analysis, not a live stream. The camera and live-feed wording on the product
+  page, noted in October, has not been tested here.
+- Each item is analysed on its own. Nothing is tracked from one upload to the
+  next.
+- A webhook is sent when the agent's trigger rule matches (severity, impact,
+  board column or a custom rule). Any response other than 2xx counts as a
+  failed delivery.
+- Credits: building an agent 0.4, refining one 0.1, an image or short video 0.2
+  to 1, a large video 2 to 3. Measured here: two 10-second clips cost 1.0
+  credit each.
+
 ## Local fixtures and compatibility boundary
 
 [manifest.json](../tests/fixtures/viso/manifest.json) identifies four tiny
 **SYNTHETIC**, **FABRICATED_LOCAL** JSON fixtures, their SHA-256 hashes, source test
 names, expected local outcomes and unresolved contract evidence. They were
 authored from existing regression examples, with fabricated identifiers only;
-they are neither captured nor redacted copies of real vendor deliveries. No
+they are neither captured nor redacted copies of real vendor deliveries (the one
+captured delivery is kept apart from them, as described above). No
 account, personal data, real media or credentials were used. The example incident
 URL is a string tested offline, never a URL to fetch.
 
@@ -60,7 +118,7 @@ claims a supported mapping.
 
 ## Current implementation and next evidence gate
 
-Updated 2026-10-04 for backlog item 5. Settings are read from the process
+Updated 2026-10-04. Settings are read from the process
 environment; no `.env` file is loaded and all credentials are absent by default.
 
 | Setting | Local behaviour |
@@ -97,19 +155,19 @@ in-memory counters.
 Without an inbound secret it reports `NOT CONFIGURED`, even with an outbound key.
 Alias conflicts report `ERROR`, `configured: false` and a secret-free
 `configuration_error`; ingestion returns 503 before processing the body. The
-camera status uses the same inbound configuration reader. The legacy
-`POST /webhook/viso` remains unauthenticated and does not affect the provider
-receipt summary. No credential was enabled for real use in this run.
+camera status uses the same inbound configuration reader. The unauthenticated
+V0.1 route `POST /webhook/viso` was removed on 2026-11-23; `/v2/webhook/viso` is
+the only route that accepts a delivery. No credential was enabled for real use
+in the October run.
 
-Before enabling a real integration, obtain official account-applicable
-specifications for all four unresolved rows, then record an authorised, redacted
-delivery separately from these synthetic fixtures. Verify authentication support
-and permitted media handling before any real upload. Outbound refusal, ingress
-hardening and the final setup runbook belong to later backlog items.
+The October gate asked for an authorised, redacted delivery recorded separately
+from the synthetic fixtures. That now exists (see the 2026-11-23 section). Still
+open: an official specification for the payload and its authentication, what
+happens on retry or duplicate delivery, and an upload route that does not
+depend on the web app. Media sent to the service must stay within the rule in
+`ROADMAP.md`: nothing classified, export-controlled, customer-confidential, from
+an operational site or otherwise sensitive.
 
-Offline evidence checks: `python -m pytest tests/test_viso_evidence.py` plus the
-existing narrative-negative/unknown-payload regressions in
-`tests/test_preview_api.py` and `tests/test_main.py`. Use the repository virtual
-environment and the run's required retained-scratch/no-deletion harness when
-operating under that restriction; full-run results are in `BUILD_LOG.md` and
-`ERROR_LOG.md`.
+Offline evidence checks: `python -m pytest tests/test_viso_evidence.py
+tests/test_camera_api.py`, plus the narrative-negative and unknown-payload
+regressions in `tests/test_preview_api.py`.

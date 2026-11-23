@@ -232,8 +232,8 @@ def get_scenario(
 class VisoStatus:
     """In-memory connection state.
 
-    Deliberately not persisted or touched by synthetic playback or the legacy
-    V0.1 webhook. An authenticated local delivery is not vendor verification.
+    Deliberately not persisted or touched by synthetic playback. An
+    authenticated local delivery is not vendor verification.
     """
 
     NOT_CONFIGURED = "NOT CONFIGURED"

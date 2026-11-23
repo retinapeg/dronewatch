@@ -11,8 +11,9 @@ recognises only shapes already evidenced inside this repository:
   * `appId` together with `incidentId` or `incidentNumber`
   * an `incidentUrl` whose host is `now.viso.ai`
 
-Both come from the V0.1 dashboard's own provenance test (index.html) and the
-existing webhook test fixture. Nothing else is invented.
+Both come from the V0.1 dashboard's own provenance test (since removed with
+that dashboard) and the existing webhook test fixture. A delivery captured from
+a real agent on 2026-11-23 satisfies both. Nothing else is invented.
 
 Anything unrecognised is QUARANTINED as UNMAPPED. It is never silently turned
 into a detection.

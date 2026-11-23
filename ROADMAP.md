@@ -23,8 +23,10 @@ The existing frontend remains unchanged until the upstream data model is stable.
   converters, fixtures, and result summaries.
 - No classified, export-controlled, customer-confidential, operational-site, or
   otherwise sensitive defence media is uploaded to a cloud vision service.
-- `index.html` remains frozen through V0.4 unless a proven data-contract gap
-  requires an earlier decision by the project owner.
+- `index.html`, the V0.1 dashboard, was to remain frozen through V0.4 unless a
+  proven data-contract gap required an earlier decision by the project owner.
+  The owner retired it on 23 November 2026; the operator view (`preview.html`)
+  is now the only interface.
 
 ## Target data path
 

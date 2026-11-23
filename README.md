@@ -68,9 +68,9 @@ in the external Viso Now service, whose results are kept as evidence only.
 ## Run it online (nothing to install)
 
 - **Live demo, nothing to start:** <https://retinapeg.github.io/dronewatch/> — the operator view replaying the
-  tracker's recorded output for every scenario, contact count and sensor-loss mode (seed 42). Static, so it
-  never sleeps; the Monte Carlo containment cloud, camera clips and live Viso evidence need the server
-  (see [`site/README.md`](site/README.md)).
+  tracker's recorded output for every scenario, contact count and sensor-loss mode (seed 42), including the
+  Monte Carlo containment cloud for each lost contact. Static, so it never sleeps; camera clips and Viso Now
+  results need the server (see [`site/README.md`](site/README.md)).
 - **Render (free tier):** Render -> *New* -> *Blueprint* -> pick this repo. `render.yaml` and the
   `Dockerfile` do the rest. The free tier sleeps after 15 minutes idle; the first load after that
   takes about 30 s. Open `/` once it is up.
@@ -301,14 +301,22 @@ The only route that accepts external data is the authenticated
 
 ## Viso Now
 
-The intended vendor is **viso.ai**, product **Viso Now**. The dated official-source
-review in [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md) confirms the product
-identity but leaves webhook payloads, authentication, file/video submission and
-result-retrieval contracts unresolved. Most local fixtures are fabricated
-`SYNTHETIC` examples. One redacted delivery from a real Viso Now agent, captured
-on 2026-11-23, is kept separately in `tests/fixtures/viso/captured/`. This prototype targets recorded-file
-analysis; Google Drive file replay does not demonstrate a live camera feed.
-No Viso account connection or outbound processing client is implemented here.
+The vendor is **viso.ai**, product **Viso Now**. As used here, Viso Now
+analyses uploaded images and short clips one at a time. This prototype sends it
+recorded files and makes no live-camera claim.
+
+On 2026-11-23 a Viso Now agent analysed a recorded clip of a small quadcopter
+(public research footage) and delivered its result to this server's
+`/v2/webhook/viso` receiver: label `drone`, confidence 0.95. With the clip
+linked to a moment in the replay, the operator view shows that verdict on the
+contact the camera was cued at. A redacted copy of the delivery is kept in
+`tests/fixtures/viso/captured/`, apart from the fabricated `SYNTHETIC` fixtures.
+
+What that does and does not establish is recorded in
+[docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md): one delivery shows the
+shape of one agent's output, not a fixed vendor contract. Clips are uploaded in
+the Viso Now web app; no upload client is implemented here, and results are
+displayed, not fused into tracks.
 
 ### Connecting Viso Now
 
@@ -341,7 +349,7 @@ can produce `DELIVERY_RECEIVED`, including quarantined input. Receipt evidence
 is process-local and `connection_verified` always remains false. Conflicting
 inbound aliases produce `CONFIGURATION_ERROR`. Preview and camera readiness
 depend on the inbound secret, even if an outbound key is set. See the
-[integration record](docs/VISO_INTEGRATION.md) for the remaining evidence gates.
+[integration record](docs/VISO_INTEGRATION.md) for what remains unverified.
 
 `127.0.0.1` is not reachable from the internet. Reaching this endpoint from Viso
 requires an authenticated HTTPS ingress you control, terminating at
@@ -373,7 +381,8 @@ deployment, keep the secret set and expose only that route to Viso.
 ## Documentation
 
 - [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md): configuration, local
-  authentication choices and unresolved official contract evidence.
+  authentication choices, the first delivery from a real agent and what is
+  still unverified.
 - [docs/SENSOR_LOSS_MATH.md](docs/SENSOR_LOSS_MATH.md): estimation mathematics,
   parameters, equation-to-test map and known limitations.
 - [docs/results/sensor_loss_quick.md](docs/results/sensor_loss_quick.md):
