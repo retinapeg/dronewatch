@@ -17,6 +17,7 @@ for name in p.OPERATOR_SCENARIOS:
             d = p.get_tracks(name=name, seed=42, count=count, duration_s=p.OPERATOR_DEMO_DURATION_S, mode=mode)
             (OUT / f"tracks__{name}__42__{count}__{mode}.json").write_text(json.dumps(d, separators=(",", ":")))
             n += 1
-(OUT / "viso_status.json").write_text(json.dumps({"state": "not_configured", "configured": False, "header_name": None, "static_demo": True}))
+# Same wording the server reports with no secret set, so the page shows "VISO · OFFLINE" rather than a raw state name.
+(OUT / "viso_status.json").write_text(json.dumps({"state": p.VisoStatus.NOT_CONFIGURED, "configured": False, "header_name": None, "static_demo": True}))
 (OUT / "camera_status.json").write_text(json.dumps({"delivery_count": 0, "mapped_count": 0, "probe_count": 0, "last_receipt_at": None, "results": [], "static_demo": True}))
 print(f"wrote {n} replays to {OUT}")

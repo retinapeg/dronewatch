@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DroneWatch Operator Preview</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='none' stroke='%236fb3ff' stroke-width='2'/%3E%3Ccircle cx='8' cy='8' r='2' fill='%236fb3ff'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#0b1016; --panel:#0f161e; --panel-2:#131c26; --line:#1c2833; --line-2:#26343f;
@@ -16,7 +17,7 @@
 html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.35 var(--sans);overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);border-radius:4px;padding:4px 8px}
-.app{display:grid;grid-template-rows:50px minmax(0,1fr) 50px;height:100vh}
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:50px minmax(0,1fr) 50px;height:100vh}
 
 /* top bar */
 .top{display:flex;align-items:center;gap:18px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
@@ -35,7 +36,7 @@ select{font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid 
 .diag{font-size:12px;color:var(--ink-faint);text-decoration:none}
 .diag:hover{color:var(--ink-dim)}
 .camera-link{font:600 11px var(--mono);letter-spacing:.03em;white-space:nowrap;color:#7ddbd0;text-decoration:none;border:1px solid #315a58;background:#102421;padding:7px 10px;border-radius:4px}.camera-link:hover{background:#193b36;color:#c4fff8}
-.top{gap:10px}.top .brand,.top .seg,.top .viso,.top .camera-link{flex-shrink:0}.top .sim{white-space:nowrap;font-size:10px}.top .viso{white-space:nowrap;letter-spacing:.02em}.top .seg button{min-width:32px;padding:5px 9px}.top #scenario{width:180px;min-width:120px}.top select[id="mode"]{max-width:330px;min-width:175px;flex:1}.top .spacer{display:none}@media(max-width:1300px){.top .diag{display:none}.top .lbl{display:none}.top{gap:8px}.top #scenario{width:150px}.top .sim{font-size:9px}.top .camera-link{font-size:10px}}@media(max-width:1100px){.top .sim{display:none}.top select[id="mode"]{max-width:280px}}
+.top{gap:10px;min-width:0}.top .brand,.top .seg,.top .viso,.top .camera-link{flex-shrink:0}.top .sim{white-space:nowrap;font-size:10px}.top .viso{white-space:nowrap;letter-spacing:.02em}.top .seg button{min-width:32px;padding:5px 9px}.top #scenario{width:180px;min-width:120px}.top select[id="mode"]{max-width:330px;min-width:175px;flex:1}.top .spacer{display:none}@media(max-width:1300px){.top .diag{display:none}.top .lbl{display:none}.top{gap:8px}.top #scenario{width:150px}.top .sim{font-size:9px}.top .camera-link{font-size:10px}}@media(max-width:1100px){.top .sim{display:none}.top select[id="mode"]{max-width:280px}}
 .lbl{font-size:12px;color:var(--ink-faint)}
 
 /* main */

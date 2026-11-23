@@ -382,3 +382,10 @@ test('the verdict is the sender’s own label in one line, with report markup re
   assert.ok(!/[#*`|]/.test(plain) && plain.length <= 161);
   assert.equal(op.plainText(null), '');
 });
+
+test('the page is pinned to the window width, so a long top bar cannot push the contact list off screen', () => {
+  // Without an explicit column the grid takes the top bar's natural width. On a 1366 px laptop that was
+  // wider than the window and the right-hand panel was cut off. Checked in a browser from 900 to 1728 px.
+  assert.match(html, /\.app\{display:grid;grid-template-columns:minmax\(0,1fr\);/);
+  assert.match(html, /\.top\{gap:10px;min-width:0\}/);
+});
