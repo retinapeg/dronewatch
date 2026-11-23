@@ -134,7 +134,6 @@ def test_conflicting_aliases_reject_both_secrets_without_writes(config_client, m
     assert response.json()["detail"] == ALIAS_CONFLICT
     assert preview.STATUS.delivery_count == 0
     assert preview.QUARANTINE == []
-    assert client.get("/api/events").json()["events"] == []
     assert client.get("/api/camera/status").json()["delivery_count"] == 0
 
 
@@ -168,7 +167,7 @@ def test_bad_auth_malformed_json_and_legacy_route_do_not_verify_connection(confi
     assert client.post("/v2/webhook/viso", content=b"invalid-json",
                        headers={"X-DroneWatch-Token": INBOUND}).status_code == 400
     assert client.get("/api/preview/viso/status").json()["state"] == "ERROR"
-    assert client.post("/webhook/viso", json=PAYLOAD).status_code == 200
+    assert client.post("/webhook/viso", json=PAYLOAD).status_code == 404  # removed route
     provider = client.get("/health").json()["providers"]["viso"]
     assert provider["state"] == "CONFIGURED_UNVERIFIED"
     assert provider["connection_verified"] is False

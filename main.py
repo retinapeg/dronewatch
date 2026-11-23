@@ -11,13 +11,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / os.getenv("DRONEWATCH_DB_PATH", "dronewatch.db")
-SIMULATION_ENABLED = os.getenv("DRONEWATCH_SIMULATION", "0") not in {"0", "false", "off", "no"}
 LOGGER = logging.getLogger("dronewatch")
 
 
@@ -347,54 +345,10 @@ def _write_incident(incident: Dict[str, Any]) -> None:
         conn.commit()
 
 
-def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
-    return {
-        "id": row["id"],
-        "event_id": row["event_id"],
-        "received_at": row["received_at"],
-        "detection_type": row["detection_type"],
-        "drone_detected": bool(row["drone_detected"]),
-        "confidence": row["confidence"],
-        "state": row["state"],
-        "severity": row["severity"],
-        "source": row["source"],
-        "media_url": row["media_url"],
-        "raw_payload": json.loads(row["raw_payload"]),
-        "is_simulated": bool(row["is_simulated"]),
-    }
-
-
-def _query_events(limit: int = 20):
-    if limit < 1:
-        limit = 1
-    if limit > 200:
-        limit = 200
-
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.execute(
-            """
-            SELECT * FROM incidents
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-            (limit,),
-        )
-        return [_row_to_dict(row) for row in cursor.fetchall()]
-
-
-class SimulatePayload(BaseModel):
-    scenario: str
-
-
 @app.get("/")
-def root() -> FileResponse:
-    return FileResponse(BASE_DIR / "index.html")
-
-
 @app.get("/preview")
 def preview() -> FileResponse:
-    """Track-centric operator preview. The V0.1 dashboard at / is unchanged."""
+    """The operator view. /preview is kept so existing links keep working."""
     return FileResponse(BASE_DIR / "preview.html")
 
 
@@ -420,109 +374,8 @@ def health() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/config")
-def config() -> Dict[str, bool]:
-    return {"simulation_enabled": SIMULATION_ENABLED}
-
-
-@app.get("/api/events")
-def api_events(limit: int = 20) -> Dict[str, Any]:
-    events = _query_events(limit=limit)
-    latest = events[0] if events else None
-    # UNKNOWN means the state could not be determined, not that an incident is
-    # open. Counting it lets undecodable input inflate the operator-facing count.
-    open_incidents = [evt for evt in events if evt["state"] not in {"EXITED", "UNKNOWN"}]
-    status = "SAFE"
-    if any(evt["state"] == "RESTRICTED_ZONE" for evt in open_incidents):
-        status = "CRITICAL"
-    elif any(evt["state"] == "APPROACHING" for evt in open_incidents):
-        status = "WARNING"
-    elif any(evt["state"] == "DETECTED" for evt in open_incidents):
-        status = "ALERT"
-
-    return {
-        "status": status,
-        "latest": latest,
-        "open_incidents": open_incidents,
-        "open_count": len(open_incidents),
-        "events": events,
-        "received_at": utcnow(),
-    }
-
-
-@app.post("/webhook/viso")
-async def viso_webhook(request: Request):
-    body_bytes = await request.body()
-    try:
-        if not body_bytes:
-            payload = {}
-        else:
-            payload = json.loads(body_bytes.decode("utf-8"))
-    except json.JSONDecodeError:
-        payload = {"raw_body": body_bytes.decode("utf-8", errors="replace"), "_payload_decode_failed": True}
-
-    incident = _normalize_incident(payload if isinstance(payload, dict) else {"value": payload}, "VISO", simulated=False)
-    _write_incident(incident)
-    LOGGER.info(
-        "Webhook event stored event_id=%s state=%s simulated=%s",
-        incident["event_id"],
-        incident["state"],
-        incident["is_simulated"],
-    )
-    return {"status": "ok"}
-
-
-SIMULATION_TEMPLATES = {
-    "detected": {
-        "label": "drone",
-        "confidence": 0.83,
-        "state": "DETECTED",
-        "media_url": "https://example.com/simulations/drone_detected.mp4",
-        "source": "SIMULATED",
-    },
-    "restricted": {
-        "label": "drone",
-        "confidence": 0.96,
-        "state": "RESTRICTED_ZONE",
-        "media_url": "https://example.com/simulations/drone_restricted_zone.mp4",
-        "source": "SIMULATED",
-    },
-    "left": {
-        "label": "drone",
-        "confidence": 0.79,
-        "state": "EXITED",
-        "media_url": "https://example.com/simulations/drone_left_zone.mp4",
-        "source": "SIMULATED",
-    },
-}
-
-
-@app.post("/dev/simulate")
-def simulate_event(payload: SimulatePayload):
-    if not SIMULATION_ENABLED:
-        raise HTTPException(status_code=404, detail="Simulation endpoint unavailable")
-
-    scenario = (payload.scenario or "").strip().lower()
-    if scenario not in SIMULATION_TEMPLATES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported scenario '{scenario}'. Use detected, restricted, or left.",
-        )
-
-    template = dict(SIMULATION_TEMPLATES[scenario])
-    template["timestamp"] = utcnow()
-    template["event_id"] = f"sim-{uuid.uuid4()}"
-    template["source"] = "SIMULATED"
-    template["SIMULATED"] = True
-
-    incident = _normalize_incident(template, source_default="SIMULATED", simulated=True)
-    _write_incident(incident)
-    return incident
-
-
 # --- V0.2 preview surface --------------------------------------------------
-# Additive only. Every route above keeps its V0.1 behaviour, including the
-# unauthenticated /webhook/viso path that existing deployments rely on.
+# Viso results arrive only through the authenticated POST /v2/webhook/viso.
 from dronewatch.api.preview import router as _preview_router  # noqa: E402
 
 app.include_router(_preview_router)

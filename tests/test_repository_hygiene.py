@@ -51,7 +51,7 @@ EVIDENCE_PATHS = (
     "docs/images/operator-preview-radar-outage.png",
     "static/drone-types.png",
     "dronewatch/synthetic/generate.py",
-    "index.html",
+    "preview.html",
 )
 
 
@@ -118,6 +118,6 @@ def test_tracked_artifact_policy_detects_prohibited_paths(filename):
 
 def test_git_tracks_no_prohibited_artifacts():
     tracked = git_paths("ls-files", "-z")
-    assert "index.html" in tracked, "Expected the DroneWatch index, not an empty repository"
+    assert "preview.html" in tracked, "Expected the DroneWatch operator view, not an empty repository"
     prohibited = {name: reason for name in sorted(tracked) if (reason := artifact_reason(name))}
     assert not prohibited, f"Proposed removals require owner review: {prohibited}"

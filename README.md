@@ -73,12 +73,11 @@ in the external Viso Now service, whose results are kept as evidence only.
   (see [`site/README.md`](site/README.md)).
 - **Render (free tier):** Render -> *New* -> *Blueprint* -> pick this repo. `render.yaml` and the
   `Dockerfile` do the rest. The free tier sleeps after 15 minutes idle; the first load after that
-  takes about 30 s. Open `/preview` once it is up.
+  takes about 30 s. Open `/` once it is up.
 - Any Docker host: `docker build -t dronewatch . && docker run -p 8000:8000 dronewatch`.
 
-The hosted instance has no Viso webhook secret set, so `/webhook/viso` is open; it only stores
-evidence rows and never moves a track. Set `DRONEWATCH_WEBHOOK_SECRET` in the service's
-environment to require a signature.
+The hosted instance has no Viso webhook secret set, so it accepts no Viso deliveries. Set `DRONEWATCH_WEBHOOK_SECRET` in the service's
+environment to enable the authenticated `/v2/webhook/viso` receiver.
 
 ## Quick start
 
@@ -272,53 +271,16 @@ picture is labelled "SIMULATION · NOT LIVE".
 
 If port 8000 is occupied, pass any free port, for example `--port 8010`.
 
-## V0.1 incident dashboard
-
-The original incident dashboard at `/` is still served and intentionally frozen:
-
-- FastAPI webhook receiver at `POST /webhook/viso`.
-- SQLite event history and `GET /api/events`.
-- Tactical dashboard served at `/` ([TACTICAL_UI.md](TACTICAL_UI.md)).
-- Explicitly labelled browser-only and stored simulation modes.
-- A local MP4 server and optional Google Drive watched-folder replay helper.
-
-Its radar-style view is schematic. It does not contain measured range, bearing,
-speed, heading, or geographic position. The local video panel is independent of
-the Viso webhook path; playing a video does not prove Viso processed it.
-
-Stored simulation is disabled by default. Enable it only for a supervised local
-demo:
-
-```bash
-DRONEWATCH_SIMULATION=1 .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
-```
-
-Optional configuration:
+## Configuration
 
 - `DRONEWATCH_DB_PATH`: SQLite path. Relative values resolve from the repository.
-- `DRONEWATCH_SIMULATION`: set to `1` to enable `POST /dev/simulate`.
-- `DRONEWATCH_DRIVE_FOLDER`: existing local folder watched by Viso Now.
-- `DRONEWATCH_DEMO_SOURCE`: source MP4 used by `start-drive-copy.command`.
-- `DRONEWATCH_PYTHON`: Python executable used by `start-drive-copy.command`.
 
 ## HTTP endpoints
 
-V0.1:
-
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/` | Tactical dashboard (`index.html`). |
+| `GET` | `/` and `/preview` | Operator view (`preview.html`). |
 | `GET` | `/health` | Liveness status/time plus `providers.viso` configuration and local receipt evidence; never proof of vendor connectivity. |
-| `GET` | `/api/events` | Stored events, newest first. `limit` defaults to 20 and is clamped to 200. Returns the derived `status`, `latest`, and `open_incidents`. |
-| `GET` | `/api/config` | Reports whether stored simulation is enabled. |
-| `POST` | `/webhook/viso` | Accepts any JSON payload, normalises it, and stores it. Always returns `{"status": "ok"}`. |
-| `POST` | `/dev/simulate` | Stores a labelled synthetic event. Body: `{"scenario": "detected"}`, `"restricted"`, or `"left"`. Returns 404 unless `DRONEWATCH_SIMULATION=1`. |
-
-Preview, tracking and camera:
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/preview` | Operator view (`preview.html`). |
 | `GET` | `/preview/diagnostics` | Raw synthetic observation view (`diagnostics.html`). |
 | `GET` | `/camera` | Synthetic camera clip replay and received Viso results (`camera.html`). |
 | `GET` | `/api/preview/scenarios` | Synthetic scenario names and defaults. |
@@ -331,9 +293,8 @@ Preview, tracking and camera:
 | `GET` | `/api/camera/media/{filename}` | One camera media file. |
 | `POST` | `/v2/webhook/viso` | Authenticated Viso ingestion; see [Connecting Viso Now](#connecting-viso-now). |
 
-The V0.1 endpoints are unauthenticated. `GET /api/events` returns stored raw
-payloads verbatim, so treat it as sensitive. See
-[Internet exposure](#internet-exposure).
+The only route that accepts external data is the authenticated
+`/v2/webhook/viso`. See [Internet exposure](#internet-exposure).
 
 ## Viso Now
 
@@ -345,30 +306,10 @@ examples, not captured vendor deliveries. This prototype targets recorded-file
 analysis; Google Drive file replay does not demonstrate a live camera feed.
 No Viso account connection or outbound processing client is implemented here.
 
-### File replay
-
-The source media is deliberately not stored in Git. Use only footage that you
-own or are licensed to process and demonstrate.
-
-```bash
-.venv/bin/python demo_feed.py \
-  --source '/absolute/path/to/demo.mp4' \
-  --watch-dir '/absolute/path/to/Viso watched folder' \
-  --interval 25
-```
-
-This serves the selected video on loopback for the local dashboard and copies a
-complete, uniquely named file into the watched folder every 20–30 seconds. It
-does not verify Google Drive sync, Viso processing, or webhook delivery. Stop it
-with Ctrl+C. Completed copies are retained, so use a bounded supervised session
-and clean up the watched folder manually when appropriate.
-
-See [DEMO_FEED.md](DEMO_FEED.md) for the exact behaviour.
-
 ### Connecting Viso Now
 
 The protected `/v2/webhook/viso` receiver is disabled unless an inbound secret is
-configured; the original `/webhook/viso` remains unauthenticated. The synthetic
+configured. The synthetic
 preview works without credentials. Settings come from the process environment;
 no `.env` file is loaded. Once a secret is available, set `VISO_WEBHOOK_SECRET`
 before starting the server:
@@ -402,10 +343,8 @@ depend on the inbound secret, even if an outbound key is set. See the
 requires an authenticated HTTPS ingress you control, terminating at
 `/v2/webhook/viso` only.
 
-The V0.1 `POST /webhook/viso` route keeps its original unauthenticated
-behaviour. Only the new `/v2` route is protected, and only a delivery through it
-can change the receipt panel's state. Unrecognised payload shapes are
-quarantined rather than stored as detections.
+Only a delivery through this route can change the receipt panel's state.
+Unrecognised payload shapes are quarantined rather than stored as detections.
 
 ## Test
 
@@ -414,34 +353,23 @@ Run all checks from the repository root:
 ```bash
 .venv/bin/python -m pytest -q
 node --test tests/*.test.cjs
-.venv/bin/python -m compileall -q main.py demo_feed.py
+.venv/bin/python -m compileall -q main.py dronewatch
 ```
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs
 the Python tests, all `tests/*.test.cjs` files, the compile check and a
 `pip-audit` dependency audit.
 
-The [2026-10-04 handoff](docs/OVERNIGHT_HANDOFF_2026-10-04.md) records the latest
-local results and limitations: the retained original `.venv` has an older
-Starlette than `requirements.txt`, and the unattended no-deletion rule blocks
-one existing test's fixture setup. Neither local full Python run is fully green;
-hosted CI and the vulnerability audit were not run during that session.
-
 ## Internet exposure
 
-The V0.1 webhook and event API are unauthenticated, and the event API returns
-stored raw payloads. Do not expose this version as a persistent public service.
-A temporary tunnel may be used only for a supervised integration test where the
-URL is treated as sensitive and the process is stopped immediately afterwards.
-Authentication, request limits, deduplication, and sanitised API projections are
-release gates in the roadmap.
+External data is accepted only at `/v2/webhook/viso`, and only with the configured
+secret. The pages and replay APIs are read-only and synthetic. For a public
+deployment, keep the secret set and expose only that route to Viso.
 
 ## Documentation
 
 - [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md): configuration, local
   authentication choices and unresolved official contract evidence.
-- [docs/OVERNIGHT_HANDOFF_2026-10-04.md](docs/OVERNIGHT_HANDOFF_2026-10-04.md):
-  overnight changes, verification and reviewer priorities.
 - [docs/SENSOR_LOSS_MATH.md](docs/SENSOR_LOSS_MATH.md): estimation mathematics,
   parameters, equation-to-test map and known limitations.
 - [docs/results/sensor_loss_quick.md](docs/results/sensor_loss_quick.md):
@@ -455,9 +383,7 @@ release gates in the roadmap.
 - [docs/V0.2_PANOPTES_ROADMAP.md](docs/V0.2_PANOPTES_ROADMAP.md): V0.2
   simulation roadmap and scope boundary.
 - [DATA_SOURCES.md](DATA_SOURCES.md): sensor and data-source research.
-- [ROADMAP.md](ROADMAP.md): V0.1 delivery roadmap.
-- [TACTICAL_UI.md](TACTICAL_UI.md) and [DEMO_FEED.md](DEMO_FEED.md): V0.1
-  dashboard and file-replay helper.
+- [ROADMAP.md](ROADMAP.md): delivery roadmap.
 
 ## Development process
 
@@ -470,7 +396,5 @@ regenerated by `experiments/sensor_loss.py`.
 
 ## Repository notes
 
-- `index.html` is intentionally frozen while the event and sensor contracts are
-  designed and validated.
 - Viso workflow configuration, account state, demo footage, credentials, and
   any sensor hardware remain external to this repository.

@@ -4,6 +4,7 @@ import hashlib
 import importlib
 import json
 from pathlib import Path
+import sqlite3
 from urllib.parse import urlsplit
 
 from fastapi.testclient import TestClient
@@ -50,6 +51,16 @@ def test_manifest_identifies_only_fabricated_synthetic_fixtures():
     assert {p.name for p in FIXTURES.glob("*.json")} == {
         "manifest.json", *SAFE_PAYLOADS,
     }
+
+
+def _stored_events(app_module):
+    connection = sqlite3.connect(app_module.DB_PATH)
+    connection.row_factory = sqlite3.Row
+    try:
+        return [dict(row) for row in connection.execute("SELECT * FROM incidents ORDER BY id DESC")]
+    finally:
+        connection.close()
+
 
 
 @pytest.mark.parametrize("entry", MANIFEST["fixtures"], ids=lambda e: e["path"])
@@ -112,7 +123,6 @@ def test_synthetic_compatibility_fixtures_never_infer_detection(entry):
 def test_manifest_fixtures_through_protected_webhook(entry, tmp_path, monkeypatch):
     monkeypatch.setenv("DRONEWATCH_DB_PATH", str(tmp_path / "synthetic-viso.db"))
     monkeypatch.setenv("DRONEWATCH_WEBHOOK_SECRET", "synthetic-test-only")
-    monkeypatch.delenv("DRONEWATCH_SIMULATION", raising=False)
     import main
     import dronewatch.api.preview as preview
     importlib.reload(preview)
@@ -123,11 +133,11 @@ def test_manifest_fixtures_through_protected_webhook(entry, tmp_path, monkeypatc
                                headers={"X-DroneWatch-Token": "synthetic-test-only"})
         assert response.status_code == 200
         assert response.json()["outcome"] == entry["expected_local_outcome"]
-        events = client.get("/api/events").json()["events"]
+        events = _stored_events(main)
         if entry["expected_local_outcome"] == "UNMAPPED":
             assert response.json()["status"] == "quarantined"
             assert events == []
         else:
             assert len(events) == 1
-            assert events[0]["drone_detected"] is False
+            assert not events[0]["drone_detected"]
             assert events[0]["state"] == "UNKNOWN"

@@ -9,7 +9,6 @@ from __future__ import annotations
 import importlib
 import json
 import sqlite3
-import subprocess
 import sys
 from pathlib import Path
 
@@ -48,24 +47,17 @@ def secured_client(app_client, monkeypatch):
 
 # --- the preview page and scenario listing ---------------------------------
 
-def test_preview_page_is_served_and_the_v1_dashboard_is_untouched(app_client):
+def test_operator_view_is_served_at_root_and_preview_and_old_routes_are_gone(app_client):
     client, _, _ = app_client
     preview = client.get("/preview")
     assert preview.status_code == 200
     assert "DroneWatch Operator Preview" in preview.text
     assert "SIMULATION" in preview.text
 
-    dashboard = client.get("/")
-    assert dashboard.status_code == 200
-    assert dashboard.text == (REPO_ROOT / "index.html").read_text(encoding="utf-8")
-
-
-def test_index_html_is_byte_identical_to_the_committed_version():
-    committed = subprocess.run(
-        ["git", "show", "HEAD:index.html"], cwd=REPO_ROOT,
-        capture_output=True, check=True,
-    ).stdout
-    assert (REPO_ROOT / "index.html").read_bytes() == committed
+    assert client.get("/").text == preview.text
+    assert client.post("/webhook/viso", json={}).status_code == 404
+    assert client.get("/api/events").status_code == 404
+    assert client.post("/dev/simulate", json={"scenario": "detected"}).status_code == 404
 
 
 def test_featured_scenarios_are_all_real_registry_entries(app_client):
@@ -362,24 +354,6 @@ def test_raw_payload_values_are_never_returned_to_a_browser(secured_client):
 
 # --- the legacy route and synthetic data cannot fake a connection ----------
 
-def test_legacy_webhook_keeps_its_v1_behaviour(app_client):
-    client, app_module, _ = app_client
-    response = client.post("/webhook/viso", json={"label": "drone", "confidence": 0.9})
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
-    assert _incident_count(app_module) == 1
-
-
-def test_legacy_webhook_and_simulation_never_make_viso_appear_connected(secured_client):
-    client, _, _ = secured_client
-    client.post("/webhook/viso", json={"appId": "a", "incidentId": "i"})
-    client.get("/api/preview/scenario?name=mixed_threat_decoy&seed=42")
-
-    status = client.get("/api/preview/viso/status").json()
-    assert status["state"] == "WAITING FOR DELIVERY"
-    assert status["delivery_count"] == 0
-
-
 # --- hardening -------------------------------------------------------------
 
 def test_a_url_token_is_redacted_from_the_access_log():
@@ -442,23 +416,6 @@ def test_the_scenario_cache_is_bounded(app_client):
     for seed in range(preview_module.MAX_CACHED_SCENARIOS + 6):
         client.get(f"/api/preview/scenario?name=single_threat&seed={seed}&duration_s=20")
     assert len(preview_module._CACHE) <= preview_module.MAX_CACHED_SCENARIOS
-
-
-def test_manual_simulation_requests_never_make_viso_appear_connected(secured_client, monkeypatch):
-    """`/dev/simulate` is a manual test path; it must not touch the connection."""
-    client, app_module, _ = secured_client
-    monkeypatch.setenv("DRONEWATCH_SIMULATION", "1")
-    importlib.reload(app_module)
-    import dronewatch.api.preview as preview_module
-    app_module.app.include_router(preview_module.router)
-
-    with TestClient(app_module.app) as simulation_client:
-        assert simulation_client.post(
-            "/dev/simulate", json={"scenario": "detected"}
-        ).status_code == 200
-        status = simulation_client.get("/api/preview/viso/status").json()
-        assert status["delivery_count"] == 0
-        assert status["state"] != "VALID DELIVERY RECEIVED"
 
 
 # --- operator track view ---------------------------------------------------

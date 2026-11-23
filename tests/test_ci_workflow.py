@@ -37,7 +37,7 @@ def test_ci_runs_all_javascript_test_files():
 
 @pytest.mark.parametrize("command", [
     "python -m pytest -q",
-    "python -m compileall -q main.py demo_feed.py",
+    "python -m compileall -q main.py dronewatch",
     "python -m pip_audit -r requirements.txt",
 ])
 def test_ci_retains_python_validation_gates(command):
