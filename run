@@ -1,0 +1,77 @@
+#!/bin/bash
+# Start DroneWatch on this computer. Works from any folder:
+#
+#     ~/Projects/dronewatch/run
+#
+# It gets the latest code, stops whatever is already using the port, starts the
+# server and opens the demo in the browser. Stop it with Ctrl+C.
+#
+#   ./run --no-pull     start what is here, without fetching new code
+#   ./run --no-open     do not open the browser
+#   PORT=8010 ./run     use another port
+#
+# The Viso Now webhook secret is read from the environment or, failing that,
+# from a private file next to this script called .env.local (never committed):
+#
+#     DRONEWATCH_WEBHOOK_SECRET=the-token
+#
+# Without a secret the page still works and shows results already received;
+# new deliveries from Viso Now are refused.
+set -u
+cd "$(dirname "$0")" || exit 1
+
+PORT="${PORT:-8000}"
+PULL=1
+OPEN=1
+for arg in "$@"; do
+  case "$arg" in
+    --no-pull) PULL=0 ;;
+    --no-open) OPEN=0 ;;
+    *) echo "run: unknown option $arg (see the top of this file)"; exit 2 ;;
+  esac
+done
+
+if [ ! -x .venv/bin/uvicorn ]; then
+  echo "No Python environment here yet. Set it up once with:"
+  echo "  python3 -m venv .venv && .venv/bin/python -m pip install -r requirements.txt"
+  exit 1
+fi
+
+if [ "$PULL" = 1 ]; then
+  if git pull --ff-only --quiet 2>/dev/null; then
+    echo "Code is up to date ($(git log -1 --format='%h %s' | cut -c1-70))."
+  else
+    echo "Could not fetch new code (offline, or local changes). Starting what is here."
+  fi
+fi
+
+# The secret: an exported value wins; otherwise the private file.
+if [ -z "${DRONEWATCH_WEBHOOK_SECRET:-}" ] && [ -z "${VISO_WEBHOOK_SECRET:-}" ] && [ -f .env.local ]; then
+  secret="$(sed -n 's/^[[:space:]]*DRONEWATCH_WEBHOOK_SECRET=//p' .env.local | head -n 1 | tr -d '\r' | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'\$//")"
+  if [ -n "$secret" ]; then
+    export DRONEWATCH_WEBHOOK_SECRET="$secret"
+  fi
+  unset secret
+fi
+if [ -n "${DRONEWATCH_WEBHOOK_SECRET:-}${VISO_WEBHOOK_SECRET:-}" ]; then
+  echo "Viso Now secret: set. New deliveries will be accepted."
+else
+  echo "Viso Now secret: not set. Results already received still show; new deliveries are refused."
+fi
+
+# Free the port if an earlier server still holds it.
+if command -v lsof >/dev/null 2>&1; then
+  old="$(lsof -ti "tcp:$PORT" 2>/dev/null)"
+  if [ -n "$old" ]; then
+    echo "Stopping the server already on port $PORT."
+    echo "$old" | xargs kill 2>/dev/null
+    sleep 1
+  fi
+fi
+
+URL="http://127.0.0.1:$PORT/preview?demo=viso"
+echo "Starting DroneWatch at $URL  (Ctrl+C to stop)"
+if [ "$OPEN" = 1 ] && command -v open >/dev/null 2>&1; then
+  ( sleep 2; open "$URL" ) &
+fi
+exec .venv/bin/uvicorn main:app --host 127.0.0.1 --port "$PORT"
