@@ -58,3 +58,13 @@ test('long report surfaces the sender’s own Summary without inferring a detect
   assert.equal(view.hasMore, true);
   assert.equal(camera.summaryView('<script>alert(1)</script>').excerpt, '<script>alert(1)</script>');
 });
+
+test('a result card leads with the sender’s label and shows the report without its markup', () => {
+  assert.deepEqual(camera.verdictLine({verdict: {label: 'drone', confidence: 0.95, detail: 'Four-rotor **multirotor** UAV'}}),
+    {title: 'Drone · 95% confidence', detail: 'Four-rotor multirotor UAV'});
+  assert.equal(camera.verdictLine({summary: 'Drone seen'}), null);
+  assert.equal(camera.verdictLine({verdict: {label: 'bird', confidence: 95}}).title, 'Bird');
+  const report = '### Zone State\n\n| Time | Zone |\n|------|------|\n| 0.0s | OUTSIDE |\n\nThe drone is **moving** in `fx05.mp4`.';
+  assert.equal(camera.readable(report), 'Zone State\n\nTime · Zone\n0.0s · OUTSIDE\n\nThe drone is moving in fx05.mp4.');
+  assert.equal(camera.readable('<script>alert(1)</script>'), '<script>alert(1)</script>');
+});

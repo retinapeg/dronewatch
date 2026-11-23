@@ -251,10 +251,38 @@ def _sender_fields(payload: dict[str, Any]) -> dict[str, Any]:
                 "label": label, "confidence": confidence,
                 **{key: _safe_text(item.get(key), 200) for key in (
                     "approximate_position", "motion_state", "tracking_status", "zone_state", "zone_intrusion_event",
+                    "structure",
                 )},
             })
     return {"labels": labels, "decision": _safe_text(payload.get("decision"), 200),
             "severity": _safe_text(payload.get("severity"), 100)}
+
+
+def _verdict(result: dict[str, Any]) -> dict[str, Any] | None:
+    """The sender's own top label as a one-line answer. Nothing is inferred from prose."""
+    labels = [item for item in result.get("labels") or [] if isinstance(item, dict) and item.get("label")]
+    if not labels:
+        return None
+    scored = [item for item in labels if isinstance(item.get("confidence"), (int, float))]
+    best = max(scored, key=lambda item: item["confidence"]) if scored else labels[0]
+    return {"label": best["label"], "confidence": best.get("confidence"),
+            "detail": best.get("structure"), "motion": best.get("motion_state"),
+            "tracking": best.get("tracking_status")}
+
+
+def _clip_named_in_report(evidence: Any, known: set[str]) -> str | None:
+    """A known clip named verbatim in the sender's own report text.
+
+    Viso renames a file uploaded by hand, so its `fileName` is a storage name.
+    The report still names the original. Only a filename already listed in the
+    local manifest can match, and only when exactly one is named.
+    """
+    if not isinstance(evidence, dict) or not known:
+        return None
+    text = " ".join(value for key in ("summary", "findings") if isinstance(value := evidence.get(key), str))
+    found = {name for name in known
+             if re.search(r"(?<![\w.-])" + re.escape(name) + r"(?![\w-])", text)}
+    return found.pop() if len(found) == 1 else None
 
 
 def _scenario_contexts() -> dict[str, dict[str, Any]]:
@@ -287,6 +315,14 @@ def _scenario_contexts() -> dict[str, dict[str, Any]]:
         duration = clip.get("duration_seconds")
         if isinstance(duration, (int, float)) and not isinstance(duration, bool) and math.isfinite(duration) and 0 < duration <= 300:
             context["duration_seconds"] = duration
+        # Real-time clips play one video second per simulation second from the
+        # window start; the default stretches the whole clip across the window.
+        if clip.get("playback") == "realtime":
+            context["playback"] = "realtime"
+        # Recorded footage must never be presented as rendered from the scene.
+        context["synthetic"] = clip.get("synthetic") is not False
+        if provenance := _safe_text(clip.get("provenance"), 120):
+            context["provenance"] = provenance
         for key in ("file", "still"):
             name = clip.get(key)
             if not isinstance(name, str):
@@ -334,11 +370,19 @@ def camera_status() -> dict[str, Any]:
         # evidence is truncated. Older stored receipts are enriched on read.
         for key, value in _sender_fields(evidence).items():
             result.setdefault(key, value)
-        result["scenario_context"] = contexts.get(result.get("source_filename"))
+        clip = result.get("source_filename") if result.get("source_filename") in contexts else None
+        result["source_match"] = "filename" if clip else None
+        if clip is None and (clip := _clip_named_in_report(evidence, set(contexts))):
+            result["source_match"] = "named_in_report"
+        result["matched_clip"] = clip
+        result["scenario_context"] = contexts.get(clip) if clip else None
+        result["verdict"] = _verdict(result)
         results.append(result)
     media = _media()
     for item in media:
         item["scenario_context"] = contexts.get(item["filename"])
+        if item["scenario_context"] is not None:
+            item["synthetic"] = item["scenario_context"]["synthetic"]
     return {
         "media": media, "results": results,
         "configured": read_viso_config().inbound_configured,

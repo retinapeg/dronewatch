@@ -22,41 +22,39 @@ main{max-width:1760px;margin:auto;padding:30px 32px 25px}.page-heading{display:f
 <body>
 <header class="header">
   <a class="brand" href="/preview"><span class="mark" aria-hidden="true"></span>DroneWatch</a>
-  <nav class="nav" aria-label="Main navigation"><a href="/preview">Track picture</a><a class="active" aria-current="page" href="/camera">Evidence</a></nav>
+  <nav class="nav" aria-label="Main navigation"><a href="/preview">Track picture</a><a class="active" aria-current="page" href="/camera">Camera results</a></nav>
   <div class="header-right"><span class="utc" id="clock"></span><span class="pill" id="receiver-pill"><span class="dot"></span><span id="receiver-label">Checking receiver</span></span></div>
 </header>
 <main>
-  <div class="page-heading"><div><div class="eyebrow">Visual intelligence / Event demo</div><h1 id="page-title">Sensor evidence</h1><p>Synthetic replay. Viso analysis. Results as they arrive.</p></div><div class="session">Sensor source<br><strong>Recorded simulation · 01</strong></div></div>
+  <div class="page-heading"><div><div class="eyebrow">Camera check</div><h1 id="page-title">Camera results</h1><p>Clips sent to Viso Now, and what it found.</p></div><div class="session">Analysed by<br><strong>Viso Now</strong></div></div>
   <div class="workspace">
     <div>
-      <section class="panel" aria-label="Synthetic camera replay">
-        <div class="panel-head"><div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7h12v10H3zM15 10l6-3v10l-6-3z"/></svg><span id="source-title">Synthetic camera</span></div><span class="small-label" id="source-type">Synthetic camera replay</span></div>
+      <section class="panel" aria-label="Camera clip">
+        <div class="panel-head"><div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7h12v10H3zM15 10l6-3v10l-6-3z"/></svg><span id="source-title">Camera clip</span></div><span class="small-label" id="source-type"></span></div>
         <div class="video-wrap" id="video-wrap">
-          <video id="camera-video" muted autoplay loop playsinline controls preload="metadata" hidden aria-label="Synthetic drone camera video"></video>
-          <img id="camera-image" alt="Synthetic camera scene prepared for Viso analysis" hidden>
-          <div class="media-empty" id="media-empty"><div class="reticle" aria-hidden="true"></div><strong id="media-empty-title">Preparing camera footage</strong><p id="media-empty-copy">Your synthetic scene will appear here when it is ready.</p></div>
-          <div class="video-label" id="video-label" hidden><span class="dot"></span>SYNTHETIC INPUT · RECORDED</div>
+          <video id="camera-video" muted autoplay loop playsinline controls preload="metadata" hidden aria-label="Camera clip"></video>
+          <img id="camera-image" alt="Camera image prepared for Viso Now" hidden>
+          <div class="media-empty" id="media-empty"><div class="reticle" aria-hidden="true"></div><strong id="media-empty-title">No camera clips yet</strong><p id="media-empty-copy">Clips linked to the replay appear here.</p></div>
+          <div class="video-label" id="video-label" hidden><span class="dot"></span><span id="video-label-text">SYNTHETIC INPUT · RECORDED</span></div>
           <div class="media-error" id="media-error" role="status" hidden>Playback is unavailable. Download the clip to view or upload it to Viso.</div>
         </div>
-        <div class="media-footer"><div class="source-meta"><div class="small-label">Source file</div><div class="filename" id="filename">Waiting for footage</div></div><span class="play-state"><span class="dot" aria-hidden="true"></span><span id="play-state">Preparing</span></span></div>
+        <div class="media-footer"><div class="source-meta"><div class="small-label">Source file</div><div class="filename" id="filename">—</div></div><span class="play-state"><span class="dot" aria-hidden="true"></span><span id="play-state">Preparing</span></span></div>
         <div class="media-actions">
-          <select id="media-select" aria-label="Choose camera footage" disabled><option>Preparing footage…</option></select>
-          <a class="button primary" id="download-clip" aria-disabled="true" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span id="download-label">Get clip for Viso</span></a>
+          <select id="media-select" aria-label="Choose camera footage" disabled><option>No clips yet</option></select>
+          <a class="button primary" id="download-clip" aria-disabled="true" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span id="download-label">Download clip</span></a>
           <a class="button" id="download-still" download hidden>Get still image</a>
           <button class="button" id="fullscreen" type="button" disabled aria-label="View camera fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg>Expand</button>
         </div>
         <p class="instruction" id="upload-instruction">Upload this footage to <strong>Drone Restricted Zone Monitor</strong> in Viso, or place it in the application's watched Google Drive folder.</p>
       </section>
       <div class="drive-feed" id="drive-feed" hidden><span class="drive-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7h7l2 2h9v11H3zM3 7V4h7l2 3h6v2"/></svg></span><div class="drive-copy"><div class="drive-title" id="drive-title">Google Drive input</div><div class="drive-detail" id="drive-detail">Preparing clips for Viso</div></div><span class="pill wait" id="drive-pill"><span class="dot"></span><span id="drive-label">Preparing</span></span></div>
-      <div class="pipeline" aria-label="Analysis process"><div class="step active"><div class="step-top"><span class="step-num">01</span>Synthetic footage</div><p id="flow-source">Preparing the source</p></div><div class="step"><div class="step-top"><span class="step-num">02</span>Viso analysis</div><p>Processes uploaded files</p></div><div class="step" id="flow-results-step"><div class="step-top"><span class="step-num">03</span>Live result feed</div><p id="flow-results">Waiting for a result</p></div></div>
-      <p class="source-note">The video is a replay. Analysis arrives separately after Viso processes a file.</p>
+      <div class="pipeline" aria-label="Analysis process"><div class="step active"><div class="step-top"><span class="step-num">01</span>Camera clip</div><p id="flow-source">Waiting for a clip</p></div><div class="step"><div class="step-top"><span class="step-num">02</span>Viso Now analysis</div><p>Describes what it sees</p></div><div class="step" id="flow-results-step"><div class="step-top"><span class="step-num">03</span>Live result feed</div><p id="flow-results">Waiting for a result</p></div></div>
     </div>
-    <aside class="panel" aria-label="Viso analysis results">
-      <div class="result-heading"><div class="eyebrow">Viso → DroneWatch</div><div class="result-title"><h2>Analysis feed</h2><span class="pill wait" id="feed-pill"><span class="dot"></span><span id="feed-label">Waiting</span></span></div><p>Actual results received through the connected Viso webhook.</p></div>
-      <div class="stats"><div><div class="stat-value" id="result-count">0</div><div class="stat-label">Viso incident results</div><div class="stat-meta" id="unmapped-count">No results yet</div></div><div><div class="stat-value" id="last-receipt" style="font-size:19px">—</div><div class="stat-label">Last delivery</div><div class="stat-meta" id="delivery-count">0 received</div></div></div>
+    <aside class="panel" aria-label="Viso Now results">
+      <div class="result-heading"><div class="eyebrow">Viso Now → DroneWatch</div><div class="result-title"><h2>Results</h2><span class="pill wait" id="feed-pill"><span class="dot"></span><span id="feed-label">Waiting</span></span></div><p>What Viso Now reported for each clip.</p></div>
+      <div class="stats"><div><div class="stat-value" id="result-count">0</div><div class="stat-label">Viso Now results</div><div class="stat-meta" id="unmapped-count">No results yet</div></div><div><div class="stat-value" id="last-receipt" style="font-size:19px">—</div><div class="stat-label">Last delivery</div><div class="stat-meta" id="delivery-count">0 received</div></div></div>
       <div class="results-error" id="results-error" role="status" hidden>Cannot reach the receiver. Retrying automatically; previous results remain visible.</div>
-      <div class="results" id="results" aria-live="polite" aria-relevant="additions text"><div class="waiting"><div class="waiting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></div><h3>Waiting for analysis</h3><p>Process the camera footage in Viso.<br>Its incident results will appear here.</p></div></div>
-      <div class="receiver-note" id="receiver-note">Connection tests establish delivery. <strong>They are not detections.</strong></div>
+      <div class="results" id="results" aria-live="polite" aria-relevant="additions text"><div class="waiting"><div class="waiting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></div><h3>Waiting for a result</h3><p>Send a camera clip to Viso Now.<br>Its result appears here.</p></div></div>
     </aside>
   </div>
   <footer class="footer"><span>DRONEWATCH / CAMERA INTELLIGENCE</span><span>Results update every 2 seconds · <a href="/preview">Open track picture ↗</a></span></footer>
@@ -104,7 +102,23 @@ const CAMERA = (() => {
     const excerpt = summary.length > 500 ? summary.slice(0, 500).trimEnd() + '…' : summary;
     return {full,excerpt,hasMore:full !== excerpt};
   }
-  return {ageLabel,sourceUrl,mediaItems,visibleResults,feedState,summaryView};
+  // Sender report text with its markup removed, line breaks kept.
+  function readable(value) {
+    if (typeof value !== 'string') return '';
+    return value.split('\n')
+      .filter(line => !/^\s*\|?\s*:?-{2,}/.test(line))
+      .map(line => line.replace(/^\s*#{1,6}\s+/, '').replace(/^\s*\|\s*|\s*\|\s*$/g, '').replace(/\s*\|\s*/g, ' · ').replace(/[*_`]+/g, ''))
+      .join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  // The sender's own top label as a headline. Nothing is read out of prose.
+  function verdictLine(item) {
+    const verdict = item && item.verdict;
+    if (!verdict || typeof verdict.label !== 'string' || !verdict.label.trim()) return null;
+    const label = readable(verdict.label).slice(0, 40);
+    const percent = typeof verdict.confidence === 'number' && verdict.confidence >= 0 && verdict.confidence <= 1 ? Math.round(verdict.confidence * 100) + '% confidence' : '';
+    return {title: label.charAt(0).toUpperCase() + label.slice(1) + (percent ? ' · ' + percent : ''), detail: readable(verdict.detail || '').slice(0, 200)};
+  }
+  return {ageLabel,sourceUrl,mediaItems,visibleResults,feedState,summaryView,readable,verdictLine};
 })();
 </script>
 <script>
@@ -126,9 +140,11 @@ const CAMERA = (() => {
     byId('media-select').value = selected;
     const isVideo = /\.mp4$/i.test(item.filename), url = CAMERA.sourceUrl(item.url);
     const schematic = item.filename.startsWith('schematic-');
-    text('source-title', schematic ? '2D sensor replay' : 'Synthetic camera');
-    text('source-type', schematic ? 'Synthetic sensor input' : 'Synthetic camera replay');
-    video.setAttribute('aria-label', schematic ? 'Synthetic 2D sensor replay' : 'Synthetic drone camera video');
+    const recorded = item.synthetic === false, context = item.scenario_context || {};
+    text('source-title', schematic ? '2D sensor replay' : recorded ? 'Camera clip' : 'Synthetic camera');
+    text('source-type', schematic ? 'Synthetic sensor input' : recorded ? (context.provenance || 'Recorded footage') : 'Synthetic camera replay');
+    text('video-label-text', recorded ? 'RECORDED FOOTAGE' : 'SYNTHETIC INPUT · RECORDED');
+    video.setAttribute('aria-label', schematic ? 'Synthetic 2D sensor replay' : recorded ? 'Recorded camera clip' : 'Synthetic drone camera video');
     video.pause();
     video.hidden = !isVideo;
     still.hidden = isVideo;
@@ -143,14 +159,14 @@ const CAMERA = (() => {
     byId('media-empty').hidden = true;
     byId('video-label').hidden = false;
     text('filename', item.filename);
-    text('download-label', isVideo ? 'Get clip for Viso' : 'Get image for Viso');
+    text('download-label', isVideo ? 'Download clip' : 'Download image');
     const download = byId('download-clip');
     download.href = url; download.download = item.filename; download.removeAttribute('aria-disabled');
     const poster = CAMERA.sourceUrl(item.poster_url);
     byId('download-still').hidden = !poster;
     if (poster) { byId('download-still').href = poster; byId('download-still').download = poster.split('/').pop(); }
     byId('fullscreen').disabled = false;
-    text('flow-source', isVideo ? 'Video ready for Viso' : 'Image ready for Viso');
+    text('flow-source', isVideo ? 'Clip ready' : 'Image ready');
   }
   function renderMedia(items) {
     const next = CAMERA.mediaItems(items), signature = JSON.stringify(next);
@@ -170,21 +186,22 @@ const CAMERA = (() => {
     const mapped = item.outcome === 'MAPPED';
     const card = element('article', 'event' + (mapped ? '' : ' unmapped'));
     const top = element('div', 'event-top');
-    top.appendChild(element('span', 'event-status', mapped ? 'Viso incident' : 'Unmapped delivery'));
+    top.appendChild(element('span', 'event-status', mapped ? 'Viso Now result' : 'Unrecognised delivery'));
     const timestamp = Date.parse(item.received_at);
     const time = element('time', '', Number.isFinite(timestamp) ? new Date(timestamp).toLocaleTimeString('en-GB', {timeZone:'UTC',hour12:false}) + ' UTC' : 'Time unavailable');
     if (Number.isFinite(timestamp)) time.dateTime = item.received_at;
     top.appendChild(time); card.appendChild(top);
-    card.appendChild(element('h3', '', item.incident_reference || (mapped ? 'Incident result received' : 'Result received · format unrecognised')));
-    const summary = CAMERA.summaryView(item.summary);
-    card.appendChild(element('p', '', summary.excerpt || (mapped ? 'Viso returned an incident without a description.' : 'A non-empty delivery arrived. Its format has not yet been mapped to a Viso incident.')));
-    card.appendChild(element('div', 'event-source', item.source_filename ? 'SOURCE / ' + item.source_filename : 'SOURCE / File name not supplied'));
-    card.appendChild(element('div', 'event-note', mapped ? 'Incident result — no box coordinates supplied.' : 'This delivery is not counted as a detection.'));
-    if (!item.source_filename) card.appendChild(element('div', 'event-note', 'This result has not been matched to the video on screen.'));
-    if (summary.hasMore) {
+    const verdict = mapped ? CAMERA.verdictLine(item) : null, summary = CAMERA.summaryView(item.summary);
+    card.appendChild(element('h3', '', verdict ? verdict.title : mapped ? 'Result received' : 'Result received · format unrecognised'));
+    const lead = verdict && verdict.detail ? verdict.detail : CAMERA.readable(summary.excerpt);
+    card.appendChild(element('p', '', lead || (mapped ? 'Viso Now returned a result without a description.' : 'A delivery arrived in a format DroneWatch does not recognise.')));
+    const clip = item.matched_clip || item.source_filename;
+    if (clip) card.appendChild(element('div', 'event-source', 'CLIP / ' + clip));
+    if (!mapped) card.appendChild(element('div', 'event-note', 'Not counted as a result.'));
+    if (summary.full) {
       const details = element('details');
-      details.appendChild(element('summary', '', 'Full Viso analysis'));
-      details.appendChild(element('p', '', summary.full));
+      details.appendChild(element('summary', '', 'Full Viso Now report'));
+      details.appendChild(element('p', '', CAMERA.readable(summary.full)));
       card.appendChild(details);
     }
     return card;
@@ -192,9 +209,9 @@ const CAMERA = (() => {
   function renderResults(data) {
     const results = CAMERA.visibleResults(data.results), feed = CAMERA.feedState(data);
     text('result-count', feed.mapped);
-    text('unmapped-count', feed.unmapped ? `${feed.unmapped} unmapped ${feed.unmapped === 1 ? 'delivery' : 'deliveries'}` : feed.mapped ? 'Recognised Viso incidents' : 'No results yet');
+    text('unmapped-count', feed.unmapped ? `${feed.unmapped} unmapped ${feed.unmapped === 1 ? 'delivery' : 'deliveries'}` : feed.mapped ? 'From your Viso Now agent' : 'No results yet');
     setPill('feed-pill', 'feed-label', feed.label, feed.tone);
-    text('flow-results', feed.mapped ? `${feed.mapped} ${feed.mapped === 1 ? 'incident received' : 'incidents received'}` : feed.unmapped ? 'Delivery needs mapping' : 'Waiting for a result');
+    text('flow-results', feed.mapped ? `${feed.mapped} ${feed.mapped === 1 ? 'result received' : 'results received'}` : feed.unmapped ? 'Delivery needs mapping' : 'Waiting for a result');
     byId('flow-results-step').className = 'step' + (feed.mapped ? ' active' : '');
     const signature = JSON.stringify(results);
     if (signature === resultSignature) return;

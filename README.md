@@ -258,16 +258,19 @@ one fetches and draws sampled paths from `GET /api/preview/paths`. The track
 picture is labelled "SIMULATION · NOT LIVE".
 
 - `/preview?demo=viso` starts the 30 s outage with the cued camera at T+35 at 2x
-  speed, with the Viso evidence inset open. The inset shows Viso results
-  received by this server, if any; they are non-spatial evidence and do not
-  update tracks. See [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) for
-  how the synthetic camera clips sent to Viso are rendered.
+  speed, with the camera check panel open. While the camera is cued at a lost
+  contact, the panel plays the clip linked to that moment and then shows the
+  Viso Now result for it as one line (label, confidence, a short reason), and
+  marks the contact on the map and in the list. Results are shown, not fused:
+  they do not update tracks. Link a clip with
+  `python scripts/link_camera_clip.py clip.mp4 --cue DW-001` (see `--help`);
+  [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) covers the rendered
+  synthetic clips.
 - `/preview/diagnostics` is the raw-observation view of the synthetic
   generator (default `mixed_threat_decoy`, seed 42). It draws observations, not
   tracks.
-- `/camera` replays synthetic camera clips from `data/generated/camera-media`
-  (rendered locally, not committed) and lists the Viso webhook results this
-  server has received.
+- `/camera` plays the camera clips in `data/generated/camera-media` (local,
+  not committed) and lists the Viso Now results this server has received.
 
 If port 8000 is occupied, pass any free port, for example `--port 8010`.
 
@@ -282,7 +285,7 @@ If port 8000 is occupied, pass any free port, for example `--port 8010`.
 | `GET` | `/` and `/preview` | Operator view (`preview.html`). |
 | `GET` | `/health` | Liveness status/time plus `providers.viso` configuration and local receipt evidence; never proof of vendor connectivity. |
 | `GET` | `/preview/diagnostics` | Raw synthetic observation view (`diagnostics.html`). |
-| `GET` | `/camera` | Synthetic camera clip replay and received Viso results (`camera.html`). |
+| `GET` | `/camera` | Camera clips and received Viso Now results (`camera.html`). |
 | `GET` | `/api/preview/scenarios` | Synthetic scenario names and defaults. |
 | `GET` | `/api/preview/scenario` | Generated observations for one scenario and seed. |
 | `GET` | `/api/preview/tracks` | Tracker output over time for an operator scenario and sensor-loss mode. |
@@ -301,8 +304,9 @@ The only route that accepts external data is the authenticated
 The intended vendor is **viso.ai**, product **Viso Now**. The dated official-source
 review in [docs/VISO_INTEGRATION.md](docs/VISO_INTEGRATION.md) confirms the product
 identity but leaves webhook payloads, authentication, file/video submission and
-result-retrieval contracts unresolved. Local fixtures are fabricated `SYNTHETIC`
-examples, not captured vendor deliveries. This prototype targets recorded-file
+result-retrieval contracts unresolved. Most local fixtures are fabricated
+`SYNTHETIC` examples. One redacted delivery from a real Viso Now agent, captured
+on 2026-11-23, is kept separately in `tests/fixtures/viso/captured/`. This prototype targets recorded-file
 analysis; Google Drive file replay does not demonstrate a live camera feed.
 No Viso account connection or outbound processing client is implemented here.
 

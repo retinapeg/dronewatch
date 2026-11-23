@@ -1,6 +1,7 @@
 """Camera evidence must be authenticated, durable, and visibly distinct from scene truth."""
 import importlib
 import json
+from pathlib import Path
 import sqlite3
 
 import pytest
@@ -250,3 +251,77 @@ def test_explicit_label_survives_bounded_private_evidence_truncation(camera_clie
     result = client.get("/api/camera/status").json()["results"][0]
     assert result["labels"][0]["label"] == "drone"
     assert result["labels"][0]["confidence"] == 0.95
+
+
+CAPTURED = Path(__file__).parent / "fixtures" / "viso" / "captured" / "drone_detected_2026-11-23.json"
+EVIDENCE = "/api/preview/viso/evidence?name=operator_demo&seed=42&count=6&mode=radar_off_30s_viso&t="
+
+
+def _recorded_manifest(media, names=("fx05.mp4",)):
+    clips = []
+    for index, name in enumerate(names):
+        (media / name).write_bytes(b"video")
+        clips.append({
+            "file": name, "scenario": "operator_demo", "seed": 42, "count": 6,
+            "mode": "radar_off_30s_viso", "sim_start_s": 43 + 4 * index, "sim_end_s": 47 + 4 * index,
+            "frame": "LOCAL_SIM_METRES", "duration_seconds": 10, "playback": "realtime",
+            "synthetic": False, "provenance": "Recorded test footage (public dataset)",
+        })
+    (media / "manifest.json").write_text(json.dumps({"clips": clips}))
+
+
+def test_captured_viso_delivery_gives_a_verdict_and_matches_the_clip_its_report_names(camera_client):
+    """A redacted delivery captured from a real Viso Now agent on 2026-11-23.
+
+    Viso stores a hand-uploaded file under its own name, so `fileName` cannot
+    match. Its report names the original, which is a clip in the local manifest.
+    """
+    client, _, media = camera_client
+    _recorded_manifest(media)
+    assert _post(client, json.loads(CAPTURED.read_text(encoding="utf-8"))).status_code == 200
+    status = client.get("/api/camera/status").json()
+    result = status["results"][0]
+    assert result["outcome"] == "MAPPED"
+    assert result["source_filename"].endswith("-1700000000000.mp4")
+    assert (result["matched_clip"], result["source_match"]) == ("fx05.mp4", "named_in_report")
+    assert result["verdict"] == {
+        "label": "drone", "confidence": 0.95, "motion": "moving",
+        "detail": "Four-rotor multirotor UAV with visible body, propellers, and landing gear",
+        "tracking": "continuous – same drone tracked across all frames",
+    }
+    clip = next(item for item in status["media"] if item["filename"] == "fx05.mp4")
+    assert clip["synthetic"] is False
+    assert clip["scenario_context"]["playback"] == "realtime"
+    assert clip["scenario_context"]["provenance"] == "Recorded test footage (public dataset)"
+    held = client.get(EVIDENCE + "46.9").json()
+    assert held["results"] == [] and held["pending_count"] == 1
+    shown = client.get(EVIDENCE + "47").json()
+    assert shown["results"][0]["verdict"]["label"] == "drone"
+    assert shown["position_updates"] is False
+
+
+def test_a_report_only_matches_one_known_clip_named_as_a_whole_filename(camera_client):
+    client, _, media = camera_client
+    _recorded_manifest(media, names=("fx05.mp4", "fx06.mp4"))
+    cases = {
+        "names-both": "Compared `fx05.mp4` with `fx06.mp4`.",
+        "names-unknown": "Media sourced from `fx99.mp4`.",
+        "longer-name": "Media sourced from prefix-fx05.mp4 and fx05.mp4-copy.",
+        "names-one": "Media sourced from fx06.mp4.",
+    }
+    for incident, summary in cases.items():
+        _post(client, {"appId": "app", "incidentId": incident, "summary": summary,
+                       "fileName": "00000000-0000-4000-8000-000000000000-1700000000000.mp4"})
+    _post(client, {"appId": "app", "incidentId": "explicit", "fileName": "fx05.mp4", "summary": "Mentions fx06.mp4."})
+    matched = {item["incident_reference"]: (item["matched_clip"], item["source_match"])
+               for item in client.get("/api/camera/status").json()["results"]}
+    assert matched == {
+        "names-both": (None, None), "names-unknown": (None, None), "longer-name": (None, None),
+        "names-one": ("fx06.mp4", "named_in_report"), "explicit": ("fx05.mp4", "filename"),
+    }
+
+
+def test_a_result_without_labels_has_no_verdict(camera_client):
+    client, _, _ = camera_client
+    _post(client, {"appId": "app", "incidentId": "prose", "summary": "A drone was clearly seen."})
+    assert client.get("/api/camera/status").json()["results"][0]["verdict"] is None

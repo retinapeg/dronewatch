@@ -329,3 +329,56 @@ test('createPlayback frame never returns undefined for non-empty list', () => {
   const frame = playback.frame();
   assert.notEqual(frame, undefined, 'frame must never be undefined for non-empty list even at boundary');
 });
+
+// ---------------- camera check ----------------
+const REPLAY = {scenario: 'operator_demo', seed: 42, count: 6, mode: 'radar_off_30s_viso'};
+const linked = (filename, start, end, extra = {}) => ({filename, url: '/api/camera/media/' + filename,
+  scenario_context: {...REPLAY, sim_start_s: start, sim_end_s: end, ...extra}});
+const CAPTURED = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'viso', 'captured', 'drone_detected_2026-11-23.json'), 'utf8'));
+
+test('the camera clip follows the replay: next before its window, live inside it, kept after it', () => {
+  const media = [linked('a.mp4', 43, 47), linked('b.mp4', 47, 51), linked('whole.mp4', 40, 70), linked('a.png', 45, 45),
+                 {...linked('other.mp4', 43, 47), scenario_context: {...REPLAY, seed: 7, sim_start_s: 43, sim_end_s: 47}}];
+  const pick = t => { const got = op.cameraClip(media, REPLAY, t); return [got.clip && got.clip.filename, got.phase]; };
+  assert.deepEqual(pick(10), ['whole.mp4', 'before']);
+  assert.deepEqual(pick(44), ['a.mp4', 'live']);       // the narrowest open window wins
+  assert.deepEqual(pick(48), ['b.mp4', 'live']);
+  assert.deepEqual(pick(60), ['whole.mp4', 'live']);
+  assert.deepEqual(pick(80), ['whole.mp4', 'after']);
+  assert.deepEqual(op.cameraClip([], REPLAY, 44), {clip: null, phase: 'none'});
+  assert.deepEqual(op.cameraClip(media, {...REPLAY, mode: 'normal'}, 44), {clip: null, phase: 'none'});
+});
+
+test('real-time clips run one second per replay second; other clips stretch across their window', () => {
+  const realtime = {sim_start_s: 43, sim_end_s: 47, playback: 'realtime'};
+  assert.deepEqual(op.clipTime(realtime, 45, 10, 2), {time: 2, rate: 2});
+  assert.equal(op.clipTime(realtime, 40, 10, 1).time, 0);
+  assert.equal(op.clipTime(realtime, 90, 10, 1).time, 9.95);      // holds on the last frame
+  const stretched = {sim_start_s: 40, sim_end_s: 70};
+  assert.deepEqual(op.clipTime(stretched, 55, 8, 1), {time: 4, rate: 8 / 30});
+  assert.deepEqual(op.clipTime(stretched, 55, NaN, 1), {time: 0, rate: 1});
+});
+
+test('a camera finding is attached to the contact the camera was cued at when the clip began', () => {
+  const cues = [{t: 0, target: null}, {t: 43, target: 'DW-001'}, {t: 47, target: 'DW-003'}];
+  assert.equal(op.cueTargetAt(cues, 42.9), null);
+  assert.equal(op.cueTargetAt(cues, 46.9), 'DW-001');
+  const result = {scenario_context: {sim_start_s: 43, sim_end_s: 47}, verdict: {label: 'drone', confidence: 0.95}};
+  assert.deepEqual(op.cameraFindings([result, {verdict: {label: 'drone'}}], cues), {'DW-001': {label: 'DRONE', pct: 95}});
+  assert.deepEqual(op.cameraFindings([{...result, verdict: null}], cues), {});
+});
+
+test('the verdict is the sender’s own label in one line, with report markup removed', () => {
+  const label = CAPTURED.labels[0];
+  const view = op.verdictView({verdict: {label: label.label, confidence: label.confidence, detail: label.structure,
+                                         motion: label.motion_state, tracking: label.tracking_status}});
+  assert.deepEqual(view, {headline: 'DRONE', confidence: '95% confidence', pct: 95,
+    chips: ['Moving', 'Tracking: continuous'],
+    detail: 'Four-rotor multirotor UAV with visible body, propellers, and landing gear'});
+  assert.equal(op.verdictView({summary: 'A drone was seen.'}), null);
+  assert.equal(op.verdictView({verdict: {label: 'drone', confidence: 95}}).confidence, '');
+  const plain = op.plainText(CAPTURED.summary, 160);
+  assert.ok(plain.startsWith('The video captures a rural agricultural landscape'));
+  assert.ok(!/[#*`|]/.test(plain) && plain.length <= 161);
+  assert.equal(op.plainText(null), '');
+});

@@ -1,0 +1,81 @@
+{
+  "appId": "000000000000000000000001",
+  "appName": "Drone Restricted Zone Monitor",
+  "incidentId": "000000000000000000000002",
+  "incidentNumber": "ITM-0028",
+  "decision": "zone intrusion",
+  "category": "zone intrusion",
+  "summary": "### Scene Context\n\nThe video captures a rural agricultural landscape with open green fields, a distant tree line, a small building, and a clear blue sky. The camera performs a tracking pan following an airborne object across the frame. Media sourced from `fx05.mp4`.\n\n### Drone Visibility\n\nA **multirotor drone** (likely a DJI Phantom-class UAV) is clearly visible throughout the entire clip. The four-rotor configuration, body structure, and landing gear are distinctly identifiable in every frame. Confidence is very high (~95%).\n\n### Approximate Frame Position\n\n| Time | Position |\n|------|----------|\n| 0.0s | upper-left |\n| 1.0s | upper-left / upper-center |\n| 2.0s | upper-center |\n| 3.0s | center |\n| 4.0s | center-right |\n| 5.0s | lower-right |\n| 6.0s | lower-right (near ground) |\n| 7.0s | center |\n| 8.0s | center-right |\n| 9.0s | upper-center |\n\n### Motion Interpretation\n\nThe drone is **moving** throughout the clip. It traverses from upper-left to lower-right (descending), briefly reaches ground level around 5-6s, then ascends back into the center of the frame. There is no hovering; displacement is continuous and significant.\n\n### Tracking Status\n\nThe same drone is reliably tracked across all frames. Visibility is continuous with no occlusion or loss of identity.\n\n### First Visible Event\n\nThe drone is visible from the **very first frame (0.0s)**. A first-visible event is emitted at t=0.\n\n### Zone State\n\nThe virtual restricted zone covers the central third of the image (approximately x: 213–427, y: 160–320 in a 640×480 frame).\n\n| Time | Zone State |\n|------|------------|\n| 0.0–1.0s | OUTSIDE |\n| 2.0s | APPROACHING |\n| 3.0–4.0s | INSIDE_RESTRICTED_ZONE |\n| 5.0s | EXITED |\n| 6.0s | OUTSIDE |\n| 7.0–9.0s | INSIDE_RESTRICTED_ZONE (re-entry) |\n\n### Zone Intrusion Events\n\n- **DRONE_ZONE_INTRUSION #1** at ~3.0s: drone crosses from outside into the restricted zone.\n- **DRONE_ZONE_INTRUSION #2** at ~7.0s: drone re-enters the restricted zone after having exited.\n\n### Conclusion\n\nA clearly identifiable multirotor drone is tracked across the full clip, moving through the restricted zone twice. Two DRONE_ZONE_INTRUSION events are emitted. Impact is assessed as **high**.",
+  "severity": "high",
+  "status": "zone intrusion",
+  "labels": [
+    {
+      "label": "drone",
+      "confidence": 0.95,
+      "approximate_position": "Traverses upper-left → center → lower-right → center across frames",
+      "motion_state": "moving",
+      "tracking_status": "continuous – same drone tracked across all frames",
+      "structure": "Four-rotor multirotor UAV with visible body, propellers, and landing gear",
+      "first_visible_time": "0.0s",
+      "zone_state_sequence": [
+        "OUTSIDE",
+        "APPROACHING",
+        "INSIDE_RESTRICTED_ZONE",
+        "EXITED",
+        "OUTSIDE",
+        "INSIDE_RESTRICTED_ZONE"
+      ],
+      "intrusion_events": 2
+    }
+  ],
+  "activities": [
+    {
+      "action": "first_visible",
+      "description": "Drone becomes visible in the upper-left of the frame at the start of the clip",
+      "timestamp": "0.0s"
+    },
+    {
+      "action": "zone_intrusion",
+      "description": "Tracked drone crosses from outside into the central restricted zone",
+      "timestamp": "3.0s",
+      "event": "DRONE_ZONE_INTRUSION"
+    },
+    {
+      "action": "zone_exit",
+      "description": "Drone descends below the restricted zone boundary",
+      "timestamp": "5.0s"
+    },
+    {
+      "action": "zone_intrusion",
+      "description": "Drone re-enters the restricted zone after ascending from ground level",
+      "timestamp": "7.0s",
+      "event": "DRONE_ZONE_INTRUSION"
+    },
+    {
+      "action": "flying",
+      "description": "Drone traverses the frame continuously with significant displacement",
+      "duration": "0.0s–9.0s"
+    }
+  ],
+  "confidence": {
+    "confidence_if_available": 0.95,
+    "timestamps_if_available": {
+      "first_visible": "0.0s",
+      "intrusion_1": "3.0s",
+      "exit": "5.0s",
+      "intrusion_2": "7.0s"
+    },
+    "relevant_findings": "Multirotor drone (95% confidence) tracked continuously across 10-second clip. Drone moves from upper-left to lower-right, descends near ground, then ascends back to center. Two DRONE_ZONE_INTRUSION events emitted: first at ~3.0s when drone enters central restricted zone, second at ~7.0s upon re-entry after brief exit. Motion state: moving. Zone state sequence: OUTSIDE → APPROACHING → INSIDE → EXITED → OUTSIDE → INSIDE. Scene: rural agricultural area, clear sky, camera tracking pan."
+  },
+  "fileName": "00000000-0000-4000-8000-000000000000-1700000000000.mp4",
+  "fileType": "mp4",
+  "mediaLink": "media/video_files/000000000000000000000003/00000000-0000-4000-8000-000000000000-1700000000000.mp4",
+  "timestamp": "ITM-0028",
+  "findings": "### Scene Context\n\nThe video captures a rural agricultural landscape with open green fields, a distant tree line, a small building, and a clear blue sky. The camera performs a tracking pan following an airborne object across the frame. Media sourced from `fx05.mp4`.\n\n### Drone Visibility\n\nA **multirotor drone** (likely a DJI Phantom-class UAV) is clearly visible throughout the entire clip. The four-rotor configuration, body structure, and landing gear are distinctly identifiable in every frame. Confidence is very high (~95%).\n\n### Approximate Frame Position\n\n| Time | Position |\n|------|----------|\n| 0.0s | upper-left |\n| 1.0s | upper-left / upper-center |\n| 2.0s | upper-center |\n| 3.0s | center |\n| 4.0s | center-right |\n| 5.0s | lower-right |\n| 6.0s | lower-right (near ground) |\n| 7.0s | center |\n| 8.0s | center-right |\n| 9.0s | upper-center |\n\n### Motion Interpretation\n\nThe drone is **moving** throughout the clip. It traverses from upper-left to lower-right (descending), briefly reaches ground level around 5-6s, then ascends back into the center of the frame. There is no hovering; displacement is continuous and significant.\n\n### Tracking Status\n\nThe same drone is reliably tracked across all frames. Visibility is continuous with no occlusion or loss of identity.\n\n### First Visible Event\n\nThe drone is visible from the **very first frame (0.0s)**. A first-visible event is emitted at t=0.\n\n### Zone State\n\nThe virtual restricted zone covers the central third of the image (approximately x: 213–427, y: 160–320 in a 640×480 frame).\n\n| Time | Zone State |\n|------|------------|\n| 0.0–1.0s | OUTSIDE |\n| 2.0s | APPROACHING |\n| 3.0–4.0s | INSIDE_RESTRICTED_ZONE |\n| 5.0s | EXITED |\n| 6.0s | OUTSIDE |\n| 7.0–9.0s | INSIDE_RESTRICTED_ZONE (re-entry) |\n\n### Zone Intrusion Events\n\n- **DRONE_ZONE_INTRUSION #1** at ~3.0s: drone crosses from outside into the restricted zone.\n- **DRONE_ZONE_INTRUSION #2** at ~7.0s: drone re-enters the restricted zone after having exited.\n\n### Conclusion\n\nA clearly identifiable multirotor drone is tracked across the full clip, moving through the restricted zone twice. Two DRONE_ZONE_INTRUSION events are emitted. Impact is assessed as **high**.",
+  "incidentUrl": "https://now.viso.ai/worker/000000000000000000000001?incidentId=000000000000000000000002",
+  "source": {
+    "connectionId": null,
+    "connectionName": null,
+    "connectionType": null
+  }
+}
