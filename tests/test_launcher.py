@@ -67,3 +67,61 @@ def test_an_unknown_option_or_a_missing_environment_stops_with_a_plain_message(c
     shutil.rmtree(checkout / ".venv")
     result = start(checkout)
     assert result.returncode == 1 and "python3 -m venv .venv" in result.stdout
+
+
+@pytest.fixture
+def tools(tmp_path_factory):
+    """Stand-ins for cloudflared and the macOS clipboard, first on the PATH."""
+    folder = tmp_path_factory.mktemp("tools")
+    tunnel = folder / "cloudflared"
+    tunnel.write_text('#!/bin/sh\necho "$$" > "$SEEN/tunnel.pid"\necho "$*" > "$SEEN/tunnel.args"\n'
+                      'echo "INF Requesting new quick Tunnel on https://api.trycloudflare.com/tunnel" >&2\n'
+                      'echo "INF |  https://quiet-river-demo.trycloudflare.com  |" >&2\nexec sleep 30\n')
+    clipboard = folder / "pbcopy"
+    clipboard.write_text('#!/bin/sh\ncat > "$SEEN/clipboard"\n')
+    for tool in (tunnel, clipboard):
+        tool.chmod(0o755)
+    return folder
+
+
+def viso(checkout, tools, **env):
+    return start(checkout, "--viso", PATH=f"{tools}{os.pathsep}{os.environ['PATH']}", SEEN=str(tools), **env)
+
+
+def test_viso_makes_a_secret_opens_a_tunnel_and_puts_the_webhook_address_on_the_clipboard(checkout, tools):
+    result = viso(checkout, tools, PORT="8124")
+    assert result.returncode == 0, result.stderr
+    made = (checkout / ".env.local").read_text().strip()
+    assert made.startswith("DRONEWATCH_WEBHOOK_SECRET=") and stat.S_IMODE((checkout / ".env.local").stat().st_mode) == 0o600
+    secret = made.split("=", 1)[1]
+    assert len(secret) == 40 and secret.isalnum()
+    # The server got the secret, the tunnel points at the server, and the clipboard holds the whole address.
+    assert (checkout / "secret-seen.txt").read_text().strip() == f"server secret: {secret}"
+    assert (tools / "tunnel.args").read_text().strip() == "tunnel --url http://127.0.0.1:8124"
+    assert (tools / "clipboard").read_text() == f"https://quiet-river-demo.trycloudflare.com/v2/webhook/viso?token={secret}"
+    # The screen shows where Viso Now reaches this computer, and never the secret.
+    assert "https://quiet-river-demo.trycloudflare.com/v2/webhook/viso\n" in result.stdout
+    assert "on the clipboard" in result.stdout and secret not in result.stdout + result.stderr
+    # When the server stops, the tunnel is stopped with it.
+    with pytest.raises(ProcessLookupError):
+        os.kill(int((tools / "tunnel.pid").read_text()), 0)
+
+
+def test_viso_keeps_a_secret_that_is_already_there(checkout, tools):
+    (checkout / ".env.local").write_text(f"DRONEWATCH_WEBHOOK_SECRET={SECRET}\n")
+    result = viso(checkout, tools)
+    assert result.returncode == 0, result.stderr
+    assert (checkout / ".env.local").read_text() == f"DRONEWATCH_WEBHOOK_SECRET={SECRET}\n"
+    assert (tools / "clipboard").read_text().endswith(f"/v2/webhook/viso?token={SECRET}")
+    assert SECRET not in result.stdout + result.stderr
+
+
+def test_viso_without_cloudflared_says_how_to_install_it_and_starts_nothing(checkout, tmp_path_factory):
+    bare = tmp_path_factory.mktemp("bare")          # a PATH with the shell's basics and no cloudflared
+    for name in ("sh", "bash", "dirname", "sed", "head", "tr", "git", "cut", "env", "sleep", "cat"):
+        if found := shutil.which(name):
+            (bare / name).symlink_to(found)
+    result = start(checkout, "--viso", PATH=str(bare))
+    assert result.returncode == 1 and "brew install cloudflared" in result.stdout
+    assert not (checkout / "secret-seen.txt").exists() and not (checkout / ".env.local").exists()
+

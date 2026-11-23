@@ -102,6 +102,14 @@ server already on the port, starts the server and opens the camera demo in the
 browser. It reads the Viso Now webhook secret from the environment or from a
 private `.env.local` file beside it, which Git ignores, and never prints it.
 
+`./run --viso` also makes this computer reachable for Viso Now: it creates a
+secret if there is none, opens a public tunnel with `cloudflared`, and puts the
+full webhook address on the clipboard to paste into the agent's webhook
+connection. While the tunnel is open the whole local server answers at a
+random public address; only `/v2/webhook/viso` accepts data, and only with the
+secret. Ctrl+C closes it. The address is new each time, so paste it again
+after a restart.
+
 To regenerate the results tables:
 
 ```bash

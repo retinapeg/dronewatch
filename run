@@ -6,6 +6,10 @@
 # It gets the latest code, stops whatever is already using the port, starts the
 # server and opens the demo in the browser. Stop it with Ctrl+C.
 #
+#   ./run --viso        also let Viso Now reach this computer: makes a secret
+#                       if there is none, opens a public tunnel (cloudflared)
+#                       and puts the webhook address on the clipboard, ready to
+#                       paste into the agent's webhook connection in Viso Now
 #   ./run --no-pull     start what is here, without fetching new code
 #   ./run --no-open     do not open the browser
 #   PORT=8010 ./run     use another port
@@ -16,15 +20,17 @@
 #     DRONEWATCH_WEBHOOK_SECRET=the-token
 #
 # Without a secret the page still works and shows results already received;
-# new deliveries from Viso Now are refused.
+# new deliveries from Viso Now are refused. The secret is never printed.
 set -u
 cd "$(dirname "$0")" || exit 1
 
 PORT="${PORT:-8000}"
 PULL=1
 OPEN=1
+VISO=0
 for arg in "$@"; do
   case "$arg" in
+    --viso) VISO=1 ;;
     --no-pull) PULL=0 ;;
     --no-open) OPEN=0 ;;
     *) echo "run: unknown option $arg (see the top of this file)"; exit 2 ;;
@@ -53,6 +59,26 @@ if [ -z "${DRONEWATCH_WEBHOOK_SECRET:-}" ] && [ -z "${VISO_WEBHOOK_SECRET:-}" ] 
   fi
   unset secret
 fi
+if [ "$VISO" = 1 ]; then
+  if ! command -v cloudflared >/dev/null 2>&1; then
+    echo "cloudflared is not installed, so Viso Now cannot reach this computer."
+    echo "Install it once with:  brew install cloudflared   and run this again."
+    exit 1
+  fi
+  # No secret anywhere: make one and keep it in the private file for next time.
+  if [ -z "${DRONEWATCH_WEBHOOK_SECRET:-}${VISO_WEBHOOK_SECRET:-}" ]; then
+    made="$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 40)"
+    if [ "${#made}" -lt 32 ]; then
+      echo "Could not make a secret. Put one in .env.local yourself (see the top of this file)."
+      exit 1
+    fi
+    ( umask 077; printf 'DRONEWATCH_WEBHOOK_SECRET=%s\n' "$made" >> .env.local )
+    chmod 600 .env.local
+    export DRONEWATCH_WEBHOOK_SECRET="$made"
+    unset made
+    echo "Made a Viso Now secret and saved it in .env.local (private, not in Git)."
+  fi
+fi
 if [ -n "${DRONEWATCH_WEBHOOK_SECRET:-}${VISO_WEBHOOK_SECRET:-}" ]; then
   echo "Viso Now secret: set. New deliveries will be accepted."
 else
@@ -74,4 +100,45 @@ echo "Starting DroneWatch at $URL  (Ctrl+C to stop)"
 if [ "$OPEN" = 1 ] && command -v open >/dev/null 2>&1; then
   ( sleep 2; open "$URL" ) &
 fi
-exec .venv/bin/uvicorn main:app --host 127.0.0.1 --port "$PORT"
+if [ "$VISO" = 0 ]; then
+  exec .venv/bin/uvicorn main:app --host 127.0.0.1 --port "$PORT"
+fi
+
+# With --viso the server and the tunnel run side by side, and both stop together.
+LOG="${TMPDIR:-/tmp}/dronewatch-tunnel.$$.log"
+: > "$LOG"
+.venv/bin/uvicorn main:app --host 127.0.0.1 --port "$PORT" &
+SERVER=$!
+cloudflared tunnel --url "http://127.0.0.1:$PORT" > "$LOG" 2>&1 &
+TUNNEL=$!
+trap 'kill "$SERVER" "$TUNNEL" 2>/dev/null; rm -f "$LOG"' EXIT
+trap 'exit 130' INT TERM
+
+PUBLIC=""
+tries=0
+while [ -z "$PUBLIC" ] && [ "$tries" -lt 60 ] && kill -0 "$TUNNEL" 2>/dev/null; do
+  # The tunnel's own address, not the service address cloudflared names when it reports a problem.
+  PUBLIC="$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG" | grep -v '//api\.' | head -n 1)"
+  [ -n "$PUBLIC" ] || sleep 0.5
+  tries=$((tries + 1))
+done
+if [ -z "$PUBLIC" ]; then
+  echo "The tunnel did not come up, so Viso Now cannot reach this computer. The page still works."
+  echo "What cloudflared said:"
+  tail -n 5 "$LOG" | sed 's/^/  /'
+else
+  echo ""
+  echo "Viso Now can reach this computer at:"
+  echo "  $PUBLIC/v2/webhook/viso"
+  if command -v pbcopy >/dev/null 2>&1; then
+    printf '%s/v2/webhook/viso?token=%s' "$PUBLIC" "${DRONEWATCH_WEBHOOK_SECRET:-${VISO_WEBHOOK_SECRET:-}}" | pbcopy
+    echo "The full webhook address, with your secret on the end, is on the clipboard."
+    echo "Paste it into the agent's webhook connection in Viso Now."
+  else
+    echo "Add  ?token=  and the secret from .env.local to the end of that address,"
+    echo "and put it in the agent's webhook connection in Viso Now."
+  fi
+  echo "The address is new each time this starts. Leave this window open while Viso Now works."
+  echo ""
+fi
+wait "$SERVER"
