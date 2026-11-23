@@ -123,12 +123,14 @@ BEARING_SENSOR_ID = "bearing-west"
 #: A Viso Now-style visual detector: a camera at the site's north edge, cued
 #: up the approach axis. It geolocates what it detects (calibrated camera,
 #: known height, ground-plane intersection) with modest noise, but ONLY inside
-#: its sector and range. Outside that it reports nothing at all.
+#: its sector and range. Outside that it reports nothing at all. The view is
+#: narrow and long: 24 degrees across, out to 3 km, so at range it holds a group
+#: of contacts at once and the camera works while they are still far out.
 VISO_SENSOR_ID = "viso-eo"
 VISO_SENSOR_LOCATION = (0.0, 560.0)
 VISO_FOV_CENTRE_DEG = 90.0          # looks north, up the approach
-VISO_FOV_HALF_DEG = 32.0
-VISO_MAX_RANGE_M = 1500.0
+VISO_FOV_HALF_DEG = 12.0
+VISO_MAX_RANGE_M = 3000.0
 BACKUP_POSITION_SENSOR_ID = "eo-south"
 
 

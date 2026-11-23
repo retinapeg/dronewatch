@@ -28,7 +28,9 @@ from dronewatch.tracks.site import MonitoredSite
 from dronewatch.tracks.tracker import TrackerConfig
 
 WIDTH, HEIGHT, FPS, DURATION = 960, 540, 15, 8
-BOUNDS = (-1600.0, 1600.0, 0.0, 2200.0)
+# The radar outage of the radar_off_30s_viso mode, and a moment inside the camera's first look.
+OUTAGE_START_S, OUTAGE_END_S, STILL_S = 10, 40, 15
+BOUNDS = (-1600.0, 1600.0, 0.0, 3200.0)
 RECT = (70, 68, 890, 480)
 
 
@@ -49,7 +51,7 @@ def pixel(x, y):
 
 def existing_inputs(cues=None):
     """Mirror preview.get_tracks' two-pass cued-camera construction exactly."""
-    faults = FaultSpec.parse('radar:40-70;backup:viso')
+    faults = FaultSpec.parse(f'radar:{OUTAGE_START_S}-{OUTAGE_END_S};backup:viso')
     if cues is None:
         obs, scans = pipeline_input('operator_demo', seed=42, count=6,
                                     duration_s=90, faults=replace(faults, backup=None))
@@ -57,7 +59,8 @@ def existing_inputs(cues=None):
                                site=MonitoredSite(), scans=scans,
                                admit=['radar-north'], config=TrackerConfig(drop_after_s=45))
         cues = plan_camera_cues(radar['frames'], VISO_SENSOR_LOCATION,
-                                rest_deg=VISO_FOV_CENTRE_DEG)
+                                rest_deg=VISO_FOV_CENTRE_DEG,
+                                fov_half_deg=VISO_FOV_HALF_DEG, max_range_m=VISO_MAX_RANGE_M)
     faults = replace(faults, viso_cues=tuple((c['t'], c['centre_deg']) for c in cues))
     obs, _ = pipeline_input('operator_demo', seed=42, count=6,
                             duration_s=90, faults=faults)
@@ -119,7 +122,7 @@ def render(scans, cues, sim_time):
         px, _ = pixel(x, 0)
         draw.line((px, top, px, bottom), fill=(41, 59, 70), width=1)
         draw.text((px - 20, bottom + 5), str(x), font=font(10), fill=(135, 155, 168))
-    for y in range(0, 2201, 400):
+    for y in range(0, int(BOUNDS[3]) + 1, 400):
         _, py = pixel(0, y)
         draw.line((left, py, right, py), fill=(41, 59, 70), width=1)
         draw.text((left - 37, py - 5), str(y), font=font(10), fill=(135, 155, 168))
@@ -157,7 +160,7 @@ def render(scans, cues, sim_time):
 
     draw.text((24, 17), 'SYNTHETIC 2D SENSOR INPUT', font=font(19), fill=(222, 235, 239))
     draw.text((675, 20), f'SIM {sim_time:05.1f}s', font=font(17), fill=(197, 216, 224))
-    draw.text((24, 514), 'RADAR OFF 40-70s  |  VISION FOV  |  LABELLED TEST SYMBOLS  |  LOCAL x/y (m)',
+    draw.text((24, 514), f'RADAR OFF {OUTAGE_START_S}-{OUTAGE_END_S}s  |  VISION FOV  |  LABELLED TEST SYMBOLS  |  LOCAL x/y (m)',
               font=font(12), fill=(163, 185, 198))
     return image
 
@@ -183,8 +186,8 @@ def main():
         {'t': c['t'], 'centre_deg': c['centre_deg']} for c in cues], indent=2) + '\n')
     if not args.clip_id.startswith('schematic-') or not args.clip_id.removeprefix('schematic-').isdigit():
         parser.error('--clip-id must be schematic- followed by digits')
-    render(scans, cues, 58).save(args.output / f'{args.clip_id}.png')
-    print(f'Ready {args.clip_id}.png at sim t=58', flush=True)
+    render(scans, cues, STILL_S).save(args.output / f'{args.clip_id}.png')
+    print(f'Ready {args.clip_id}.png at sim t={STILL_S}', flush=True)
     if args.stills_only:
         return
     video = args.output / f'{args.clip_id}.mp4'
@@ -196,7 +199,7 @@ def main():
                                stdin=subprocess.PIPE)
     try:
         for frame_number in range(DURATION * FPS):
-            sim_time = 40 + frame_number / (DURATION * FPS - 1) * 30
+            sim_time = OUTAGE_START_S + frame_number / (DURATION * FPS - 1) * (OUTAGE_END_S - OUTAGE_START_S)
             process.stdin.write(render(scans, cues, sim_time).tobytes())
         process.stdin.close()
         if process.wait() != 0:
@@ -211,8 +214,8 @@ def main():
     item = {'clip_id': args.clip_id, 'file': video.name, 'still': f'{args.clip_id}.png',
             'duration_seconds': DURATION, 'fps': FPS, 'width': WIDTH, 'height': HEIGHT,
             'synthetic': True, 'scenario': 'operator_demo', 'seed': 42, 'count': 6,
-            'mode': 'radar_off_30s_viso', 'sim_start_s': 40, 'sim_end_s': 70,
-            'still_sim_time_s': 58, 'frame': 'LOCAL_SIM_METRES',
+            'mode': 'radar_off_30s_viso', 'sim_start_s': OUTAGE_START_S, 'sim_end_s': OUTAGE_END_S,
+            'still_sim_time_s': STILL_S, 'frame': 'LOCAL_SIM_METRES',
             't_zero': T_ZERO.isoformat(),
             'world_bounds': list(BOUNDS), 'pixel_rect': list(RECT)}
     manifest['clips'] = [item] + [c for c in manifest['clips'] if c['clip_id'] != item['clip_id']]

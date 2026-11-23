@@ -16,9 +16,9 @@ This folder is what GitHub Pages serves. There is no server behind it.
 
 Nothing is computed in the browser that the Python tracker did not compute first.
 
-Not available here: camera clips and Viso Now results. The camera window says so. The camera's cueing at
-lost contacts is still shown, with lock brackets on the contact it is on, because that is part of the
-recorded replay. Run the server (see the top-level README) for the footage and the verdict.
+Not available here: camera clips and Viso Now results. The camera window says so. The camera turning to
+groups of lost contacts is still shown, with lock brackets on the contacts it has picked up, because that
+is part of the recorded replay. Run the server (see the top-level README) for the footage and the verdict.
 
 ## Rebuilding
 

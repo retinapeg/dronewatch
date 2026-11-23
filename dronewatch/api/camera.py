@@ -319,6 +319,15 @@ def _scenario_contexts() -> dict[str, dict[str, Any]]:
         # window start; the default stretches the whole clip across the window.
         if clip.get("playback") == "realtime":
             context["playback"] = "realtime"
+            # Recorded footage stands in for what the camera saw during a look. Its
+            # result can be released part-way through that look, once a few seconds
+            # have been "captured", instead of only when the look is over. A rendered
+            # excerpt of the scene keeps the rule below it was written for: nothing
+            # is released before the excerpt ends.
+            after = clip.get("result_after_s")
+            if (isinstance(after, (int, float)) and not isinstance(after, bool) and math.isfinite(after)
+                    and 0 <= after <= end - start):
+                context["available_at_sim_s"] = round(start + after, 3)
         # Recorded footage must never be presented as rendered from the scene.
         context["synthetic"] = clip.get("synthetic") is not False
         if provenance := _safe_text(clip.get("provenance"), 120):
@@ -402,8 +411,9 @@ def preview_evidence(
     """Non-spatial sender evidence beside the existing operator loss/cue flow.
 
     Exact file/manifest correlation is required to associate an incident with a
-    scenario. A recorded clip's complete result is held until the clip ends in
-    replay time, so its later events do not leak into earlier tracker frames.
+    scenario. A clip's complete result is held until the clip ends in replay
+    time, so its later events do not leak into earlier tracker frames; recorded
+    footage linked to a camera look may name an earlier moment inside the look.
     """
     status = camera_status()
     matched, uncorrelated, pending = [], [], 0

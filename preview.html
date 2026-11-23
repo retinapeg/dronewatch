@@ -146,7 +146,7 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 .viso-evidence.has-feed.confirmed:not(.live){border-color:#3f9a63}
 .viso-evidence.has-feed .ev-body{max-height:none;overflow:visible}
 .ev-target{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin:0 0 9px}
-.ev-subject{font:700 21px/1 var(--mono);letter-spacing:.03em;color:#fff}.ev-subject:empty{display:none}
+.ev-subject{font:700 21px/1 var(--mono);letter-spacing:.03em;color:#fff}.ev-subject:empty{display:none}.ev-subject.multi{font-size:14.5px;letter-spacing:.01em}
 .ev-state{font:700 10px/1 var(--mono);letter-spacing:.09em;color:#49c9d9}
 .viso-evidence.live .ev-state{color:#06161a;background:#5fe3f0;padding:4px 7px;border-radius:3px}
 .viso-evidence.live .ev-state::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#06161a;margin-right:6px;vertical-align:1px;animation:camlock 1.1s ease-in-out infinite}
@@ -156,7 +156,8 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 .ev-body .ev-screen video{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;object-fit:contain}
 .ev-standby{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:0 34px;text-align:center;font:700 12px var(--mono);letter-spacing:.24em;color:#48667a;background:repeating-linear-gradient(0deg,#050b10 0 2px,#07111a 2px 4px)}
 .ev-standby span{font:10px/1.5 var(--mono);letter-spacing:.02em;color:#35505f}
-.ev-osd{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:9px 28px;font:700 10px var(--mono);letter-spacing:.08em;color:#f2fbfc;text-shadow:0 1px 3px #000,0 0 6px #000a;pointer-events:none}
+.ev-capline{display:flex;align-items:baseline;gap:10px;margin:5px 0 11px}.ev-capline .ev-caption{flex:1;min-width:0;margin:0}.ev-capline:has(.ev-caption:empty){display:none}
+.ev-osd{flex:none;display:flex;gap:6px;font:700 10px/1.4 var(--mono);letter-spacing:.06em;color:#8fdfe8;font-variant-numeric:tabular-nums}
 .ev-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:#ffffff26}.ev-progress i{display:block;height:100%;width:0;background:#5fe3f0}
 .ev-corner{position:absolute;width:13px;height:13px;border:2px solid #5fe3f0;opacity:.9;pointer-events:none}
 .ev-corner.tl{left:7px;top:7px;border-right:0;border-bottom:0}.ev-corner.tr{right:7px;top:7px;border-left:0;border-bottom:0}
@@ -171,7 +172,8 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
 .viso-evidence.has-feed .ev-target{height:31px;flex-wrap:nowrap;overflow:hidden}
 .viso-evidence.has-feed .ev-subject,.viso-evidence.has-feed .ev-state{flex:none;white-space:nowrap}
 .viso-evidence.has-feed .ev-moved{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.viso-evidence.has-feed .ev-caption,.viso-evidence.has-feed .ev-caption:empty{display:block;height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viso-evidence.has-feed .ev-body .ev-capline{display:flex;height:15px;overflow:hidden}
+.viso-evidence.has-feed .ev-caption,.viso-evidence.has-feed .ev-caption:empty{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .viso-evidence.has-feed .ev-result{height:164px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
 .viso-evidence.has-feed .ev-result[hidden]{display:none}
 .viso-evidence.has-feed .ev-labels{flex-wrap:nowrap;overflow:hidden}.viso-evidence.has-feed .ev-label{flex:none;white-space:nowrap}
@@ -254,12 +256,11 @@ details .kv{font:11.5px/1.6 var(--mono);color:var(--ink-dim);white-space:pre-wra
           <div class="ev-screen" id="ev-screen" hidden>
             <video id="ev-video" muted playsinline preload="metadata" aria-label="Camera footage of the contact" hidden></video>
             <div class="ev-standby" id="ev-standby">STANDBY<span>The footage starts when the camera is cued at a lost contact</span></div>
-            <div class="ev-osd" id="ev-osd" hidden><span id="ev-play">PLAYING</span><span id="ev-time"></span></div>
             <div class="ev-progress" id="ev-progress" hidden><i></i></div>
             <i class="ev-corner tl"></i><i class="ev-corner tr"></i><i class="ev-corner bl"></i><i class="ev-corner br"></i>
           </div>
           <div class="ev-media-empty" id="ev-media-empty">No camera clip is linked to this replay. The map still shows where the camera is cued.</div>
-          <div class="ev-caption" id="ev-caption"></div>
+          <div class="ev-capline"><span class="ev-caption" id="ev-caption"></span><span class="ev-osd" id="ev-osd" hidden><span id="ev-play"></span><span id="ev-time"></span></span></div>
           <div class="ev-result" id="ev-result" hidden>
             <p class="ev-pending" id="ev-pending" hidden></p>
             <div class="ev-source" id="ev-note" hidden></div>
@@ -539,21 +540,62 @@ const OP=(()=>{
     const m=Math.floor(tenths/600), rest=tenths-m*600;
     return m+':'+(rest<100?'0':'')+(rest/10).toFixed(1);
   }
-  // Which contact the camera was cued at when a clip's window opened.
-  function cueTargetAt(cues,t){
-    let target=null;
-    for(const cue of Array.isArray(cues)?cues:[]){ if(cue.t<=t) target=cue.target||null; else break; }
-    return target;
+  // The camera cue in force at replay time t.
+  function cueAt(cues,t){
+    let found=null;
+    for(const cue of Array.isArray(cues)?cues:[]){ if(cue.t<=t) found=cue; else break; }
+    return found;
   }
-  // What the camera window is about at replay time t. `id` is the contact its
-  // clip was taken of, once that clip's window has opened: "live" while the
-  // camera is still on it, "after" once the camera has moved on. `now` is the
-  // contact the camera is pointed at this instant, which can be a different one.
+  // The contacts a cue is for, left to right as the camera sees them. A look
+  // can hold several; older schedules name one. For a settled camera these are
+  // the contacts it picked up during that look, not the ones it was sent for.
+  function cueTargets(cue){
+    if(!cue) return [];
+    if(Array.isArray(cue.targets)) return cue.targets.filter(id=>typeof id==='string'&&id);
+    return cue.target?[cue.target]:[];
+  }
+  // What the camera is doing under one cue.
+  //   rest     not sent anywhere
+  //   turning  on its way to a look, or back to rest
+  //   looking  arrived where it was sent, with no contact picked up yet
+  //   on       arrived, and holding the contacts in `seen`
+  // `sent` is what it was sent for and `look` everything it picks up while it
+  // stays there. A contact is only ever in `seen` once the camera has picked it
+  // up and while it is still inside the view, so nothing is claimed early.
+  function cameraState(cue){
+    const ids=list=>Array.isArray(list)?list.filter(id=>typeof id==='string'&&id):null;
+    const look=cueTargets(cue), arrived=!cue||cue.settled!==false;
+    const sent=(cue&&ids(cue.planned))||look;
+    const seen=!arrived?[]:(cue&&ids(cue.seen))||look;
+    return {state:!arrived?'turning':seen.length?'on':sent.length?'looking':'rest',seen,look:arrived?look:[],sent};
+  }
+  // The same in the few words drawn beside the camera and in the summary.
+  function cameraWord(camera){
+    return camera.state==='on'?(camera.seen.length===1?'ON '+camera.seen[0]:'ON '+camera.seen.length+' CONTACTS')
+      :camera.state==='turning'?'TURNING':camera.state==='looking'?'LOOKING':'AT REST';
+  }
+  // The most urgent contact the camera was cued at at time t.
+  function cueTargetAt(cues,t){
+    const cue=cueAt(cues,t);
+    return cue&&cue.target?cue.target:null;
+  }
+  // What the camera window is about at replay time t.
+  //   ids     the contacts its clip was taken of, once that clip's window has
+  //           opened: "live" while the camera is still on them, "after" once
+  //           it has moved on.
+  //   now     the contacts the camera is on this instant, which can be others.
+  //           Empty while the camera is still turning, and until it has picked
+  //           a contact up: a contact is never claimed before the camera has it.
+  //   turning the contacts it is turning towards, until it arrives.
+  //   looking the contacts it was sent for, once it has arrived and before it
+  //           has picked any of them up.
   function cameraSubject(clip,cues,t){
-    const c=clip&&clip.scenario_context, now=cueTargetAt(cues,t);
-    if(!c||!Number.isFinite(c.sim_start_s)) return {id:null,phase:'none',now};
-    if(!(t>=c.sim_start_s)) return {id:null,phase:'before',now};
-    return {id:cueTargetAt(cues,c.sim_start_s),phase:t<c.sim_end_s?'live':'after',now,since:c.sim_start_s};
+    const camera=cameraState(cueAt(cues,t));
+    const now=camera.seen, turning=camera.state==='turning'?camera.sent:[], looking=camera.state==='looking'?camera.sent:[];
+    const c=clip&&clip.scenario_context;
+    if(!c||!Number.isFinite(c.sim_start_s)) return {ids:[],phase:'none',now,turning,looking};
+    if(!(t>=c.sim_start_s)) return {ids:[],phase:'before',now,turning,looking};
+    return {ids:cueTargets(cueAt(cues,c.sim_start_s)),phase:t<c.sim_end_s?'live':'after',now,turning,looking,since:c.sim_start_s};
   }
   // The line that ties a contact on the map to the camera window: from just
   // outside the contact's marker (`gap` pixels) to the nearest point on the
@@ -579,32 +621,82 @@ const OP=(()=>{
     const cut=text.slice(0,max), stop=cut.lastIndexOf('. ');
     return stop>max*0.5?cut.slice(0,stop+1):cut.replace(/\s+\S*$/,'')+'…';
   }
-  // One line for the operator from the sender's own label. Nothing is inferred from prose.
+  // The verdict for the operator, from the sender's own labels. Nothing is
+  // inferred from prose. One labelled object reads "DRONE 95%"; several read
+  // "3 DRONES" with the lowest and highest confidence and one chip each.
+  // `count` is how many objects were labelled and `drones` how many of those
+  // labels name a drone.
   function verdictView(result){
+    const pctOf=x=>typeof x==='number'&&x>=0&&x<=1?Math.round(x*100):null;
+    const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+    const first=x=>plainText(x,60).split(/\s[–—-]\s|[,;(]/)[0].trim();
+    const many=(result&&Array.isArray(result.labels)?result.labels:[]).filter(l=>l&&typeof l.label==='string'&&l.label.trim());
+    if(many.length>1){
+      const pcts=many.map(l=>pctOf(l.confidence)).filter(x=>x!==null);
+      const drones=many.filter(l=>verdictTone(l.label)==='drone').length, all=drones===many.length;
+      const low=pcts.length?Math.min(...pcts):null, high=pcts.length?Math.max(...pcts):null;
+      return {headline:many.length+(all?' DRONES':' OBJECTS'),
+              confidence:low===null?'':(low===high?low:low+'–'+high)+'% confidence',pct:low,
+              count:many.length,drones,tone:all?'drone':'other',
+              chips:many.map(l=>cap(plainText(l.label,24).toLowerCase())+(pctOf(l.confidence)===null?'':' '+pctOf(l.confidence)+'%')),
+              detail:plainText(many[0].structure,160)};
+    }
     const v=result&&result.verdict;
     if(!v||typeof v.label!=='string'||!v.label.trim()) return null;
-    const pct=typeof v.confidence==='number'&&v.confidence>=0&&v.confidence<=1?Math.round(v.confidence*100):null;
-    const first=x=>plainText(x,60).split(/\s[–—-]\s|[,;(]/)[0].trim();
-    const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+    const pct=pctOf(v.confidence), tone=verdictTone(v.label);
     const chips=[first(v.motion)&&cap(first(v.motion)),first(v.tracking)&&'Tracking: '+first(v.tracking).toLowerCase()].filter(Boolean);
     return {headline:plainText(v.label,40).toUpperCase(),confidence:pct===null?'':pct+'% confidence',pct,
-            chips,detail:plainText(v.detail,160)};
+            count:1,drones:tone==='drone'?1:0,tone,chips,detail:plainText(v.detail,160)};
   }
-  // Contacts the camera looked at and the sender labelled, for the list and the map.
+  // The day a result was received, for the line that says where a verdict came
+  // from: "23 NOV". Empty when the time is missing or unreadable.
+  function receivedOn(iso){
+    const d=typeof iso==='string'?new Date(iso):null;
+    if(!d||Number.isNaN(d.getTime())) return '';
+    return d.getUTCDate()+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getUTCMonth()];
+  }
+  // How a verdict compares with what the camera was looking at: the sender
+  // counts objects in a clip, the look holds a known number of contacts, and
+  // the two are only ever compared as numbers. Which object is which contact
+  // is not something a clip can say.
+  function lookVerdict(view,contacts){
+    if(!view||!(contacts>0)) return null;
+    if(contacts===1) return {confirmed:view.tone==='drone',text:''};
+    const all=view.drones>=contacts;
+    return {confirmed:all,text:all?`All ${contacts} contacts in view were seen as drones.`
+      :`${view.drones} drone${view.drones===1?'':'s'} seen; ${contacts} contacts were in view.`};
+  }
+  // Contacts the camera looked at and the sender labelled, for the list and
+  // the map. A look at one contact carries that label; a look at several
+  // carries the count, on every contact in it.
   function cameraFindings(results,cues){
     const found={};
     for(const result of Array.isArray(results)?results:[]){
       const c=result&&result.scenario_context, view=verdictView(result);
       if(!c||!view||!Number.isFinite(c.sim_start_s)) continue;
-      const target=cueTargetAt(cues,c.sim_start_s);
-      if(target&&!found[target]) found[target]={label:view.headline,pct:view.pct,tone:verdictTone(view.headline)};
+      const ids=cueTargets(cueAt(cues,c.sim_start_s));
+      const match=lookVerdict(view,ids.length);
+      for(const id of ids){
+        if(found[id]) continue;
+        found[id]=ids.length===1?{label:view.headline,pct:view.pct,tone:view.tone}
+          :{label:view.drones+' OF '+ids.length+' DRONES',pct:null,tone:match.confirmed?'drone':'other',seen:view.drones,of:ids.length};
+      }
     }
     return found;
   }
 
+  // The camera's tag on a contact. The list has room for the long form; the map
+  // gets the short one, with the width it takes so the label placer leaves room.
+  function findingTag(found,short){
+    if(!found) return null;
+    const what=found.label+(found.pct===null||found.pct===undefined?'':' '+found.pct+'%');
+    const text=short?what:'CAMERA: '+what;
+    return {text,width:Math.ceil(text.length*6.7+12),drone:found.tone==='drone'};
+  }
+
   return {project,fitCamera,scenarioEnvelope,operatorCamera,focusCamera,stepCamera,zoomAt,niceScale,
           sortTracks,resolveSelection,declutter,placeLabels,priorityClass,closingSpeed,createPlayback,
-          cameraClip,clipTime,timecode,cueTargetAt,cameraSubject,leaderLine,verdictTone,plainText,verdictView,cameraFindings,
+          cameraClip,clipTime,timecode,cueAt,cueTargets,cueTargetAt,cameraState,cameraWord,cameraSubject,leaderLine,verdictTone,plainText,verdictView,receivedOn,lookVerdict,cameraFindings,findingTag,
           PRIORITY_RANK,MIN_SCALE,MAX_SCALE,SITE_ANCHOR};
 })();
 if(typeof module!=='undefined') module.exports=OP;
@@ -773,15 +865,16 @@ if(typeof module!=='undefined') module.exports=OP;
     const st=svg('text',{x:s.px,y:s.py+22,'text-anchor':'middle',fill:'#9cc4ee','font-size':11,'font-weight':700,'font-family':'var(--mono)','letter-spacing':'.1em'});
     st.textContent='SITE ALPHA'; stage.append(st);
 
-    // Cued visual sensor: the sector the camera is looking at. This is
-    // where a lost contact can be re-acquired; drawn so the operator sees
-    // WHICH lost contacts the camera can help with and which it cannot.
+    // Cued visual sensor: the view the camera has right now. It is narrow and
+    // long, so what is inside it is plainly what the camera is looking at. The
+    // label never names a contact before the camera has arrived: while it is
+    // still turning it says so.
     const frameNow=state.playback.frame(); const tNow=frameNow?frameNow.t:0;
     for(const cam of (state.data&&state.data.sensors)||[]){
       if(cam.kind!=='eo-camera') continue;
-      // Pan-tilt: the sector points wherever the tracker cued it at this time.
-      let centre=cam.fov_centre_deg, cue=null;
-      for(const q of (cam.cues||[])){ if(q.t<=tNow){centre=q.centre_deg;cue=q} else break; }
+      // Pan-tilt: the view points wherever the tracker cued it at this time.
+      const cue=OP.cueAt(cam.cues,tNow), centre=cue?cue.centre_deg:cam.fov_centre_deg;
+      const camera=OP.cameraState(cue), aimed=camera.seen, on=camera.state==='on';
       cam._centre=centre; cam._cue=cue;
       const c=P.toScreen(cam.x,cam.y);
       const a0=(centre-cam.fov_half_deg)*Math.PI/180, a1=(centre+cam.fov_half_deg)*Math.PI/180;
@@ -790,17 +883,20 @@ if(typeof module!=='undefined') module.exports=OP;
       const large=(a1-a0)>Math.PI?1:0;
       const d=`M ${c.px} ${c.py} L ${px(a0)} ${py(a0)} A ${R} ${R} 0 ${large} 0 ${px(a1)} ${py(a1)} Z`;
       const g=svg('g',{class:'cam-sector'});
-      g.append(svg('path',{d,fill:'#49c9d9','fill-opacity':0.06,stroke:'#49c9d9','stroke-opacity':0.55,'stroke-width':1,'stroke-dasharray':'4 4'}));
+      g.append(svg('path',{d,fill:'#49c9d9','fill-opacity':on?0.10:0.05,stroke:on?'#5fe3f0':'#49c9d9','stroke-opacity':on?0.9:0.5,
+        'stroke-width':on?1.4:1,'stroke-dasharray':on?'none':'4 4'}));
       g.append(svg('circle',{cx:c.px,cy:c.py,r:5,fill:'#49c9d9'}));
-      const lb=svg('text',{x:c.px+9,y:c.py+4,fill:'#49c9d9','font-size':10,'font-family':'var(--mono)','letter-spacing':'.08em'});
-      lb.textContent=cue&&cue.target?`CAMERA · ON ${cue.target}`:`CAMERA · ${cam.pan_tilt?'AT REST':'FIXED'}`; g.append(lb);
-      // centreline of the cue
+      const lb=svg('text',{x:c.px+9,y:c.py+4,fill:on?'#5fe3f0':'#49c9d9','font-size':10,'font-family':'var(--mono)','letter-spacing':'.08em',
+        stroke:'#0b1016','stroke-width':3,'stroke-linejoin':'round','paint-order':'stroke'});
+      lb.textContent='CAMERA · '+(cam.pan_tilt||camera.state!=='rest'?OP.cameraWord(camera):'FIXED');
+      g.append(lb);
+      // centreline of the view
       const ang=centre*Math.PI/180, L=cam.max_range_m*sc;
-      g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+L*Math.cos(ang),y2:c.py-L*Math.sin(ang),stroke:'#49c9d9','stroke-opacity':0.5,'stroke-width':1}));
-      // and a solid line to the contact itself, so the eye can follow the camera to it
-      const aimed=cue&&cue.target?tracks.find(k=>k.id===cue.target):null;
-      if(aimed){
-        const q=P.toScreen(aimed.x,aimed.y), d=Math.hypot(q.px-c.px,q.py-c.py);
+      g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+L*Math.cos(ang),y2:c.py-L*Math.sin(ang),stroke:'#49c9d9','stroke-opacity':0.35,'stroke-width':1}));
+      // One contact in view: a solid line to it, so the eye can follow the camera there.
+      const single=on&&aimed.length===1?tracks.find(k=>k.id===aimed[0]):null;
+      if(single){
+        const q=P.toScreen(single.x,single.y), d=Math.hypot(q.px-c.px,q.py-c.py);
         if(d>40) g.append(svg('line',{x1:c.px,y1:c.py,x2:c.px+(q.px-c.px)*(d-26)/d,y2:c.py+(q.py-c.py)*(d-26)/d,stroke:'#5fe3f0','stroke-opacity':0.95,'stroke-width':2}));
       }
       stage.append(g);
@@ -903,9 +999,9 @@ if(typeof module!=='undefined') module.exports=OP;
         transform:`translate(${p.px} ${p.py}) rotate(${-(t.heading||0)})`,'data-id':t.id,style:'cursor:pointer'});
       sym.addEventListener('click',ev=>{ev.stopPropagation();select(t.id)});
       stage.append(sym);
-      const tagged=!!(state.cameraFound||{})[t.id];
-      const locked=cv.now===t.id||(cv.feed&&cv.id===t.id);
-      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:tagged?128:(t.fresh!=='U')?114:56,h:((t.fresh!=='U')?38:26)+(tagged?18:0),symbol:locked?56:0,track:t,col});
+      const tag=OP.findingTag((state.cameraFound||{})[t.id],true);
+      const locked=(cv.now||[]).includes(t.id)||(cv.feed&&(cv.ids||[]).includes(t.id));
+      items.push({id:t.id,px:p.px,py:p.py,rank:isSel?2:high?1:0,w:Math.max((t.fresh!=='U')?114:56,tag?tag.width:0),h:((t.fresh!=='U')?38:26)+(tag?18:0),symbol:locked?56:0,track:t,col,tag});
     }
 
     // Camera lock. Corner brackets mark the contact the camera is on; the contact shown in the
@@ -917,20 +1013,30 @@ if(typeof module!=='undefined') module.exports=OP;
         g.append(svg('path',{d:`M ${it.px+sx*k} ${it.py+sy*(k-a)} L ${it.px+sx*k} ${it.py+sy*k} L ${it.px+sx*(k-a)} ${it.py+sy*k}`}));
       stage.append(g);
     };
-    const shown=cv.feed&&cv.id?items.find(i=>i.id===cv.id):null, aimedAt=cv.now?items.find(i=>i.id===cv.now):null;
-    const tone=cv.found&&cv.found.tone==='drone'?' drone':'';
-    if(aimedAt&&!(shown&&shown.id===aimedAt.id&&cv.phase==='live')) bracket(aimedAt,'cam-lock',21);
-    if(shown){
-      const live=cv.phase==='live';
-      bracket(shown,live?'cam-lock live':'cam-lock done'+tone,live?24:21);
-      const panel=$('viso-evidence');
-      if(panel.open){
-        const pr=panel.getBoundingClientRect(), sr=stage.getBoundingClientRect();
-        const line=OP.leaderLine(shown,{left:pr.left-sr.left,top:pr.top-sr.top,right:pr.right-sr.left,bottom:pr.bottom-sr.top},live?30:27);
-        if(line){
-          stage.append(svg('line',{class:live?'cam-leader':'cam-leader done'+tone,x1:line.x1,y1:line.y1,x2:line.x2,y2:line.y2}));
-          stage.append(svg('circle',{cx:line.x2,cy:line.y2,r:3.5,fill:live?'#5fe3f0':tone?'#4ad27a':'#7ddbd0'}));
+    const onMap=ids=>(ids||[]).map(id=>items.find(i=>i.id===id)).filter(Boolean);
+    const live=cv.phase==='live';
+    const shown=cv.feed?onMap(live?cv.ids.filter(id=>cv.now.includes(id)):cv.ids):[];
+    const toneOf=id=>{const f=(state.cameraFound||{})[id];return f&&f.tone==='drone'?' drone':'';};
+    // What the camera is on now, unless that contact is about to get the stronger marks below.
+    // A contact the camera is on at this instant always has the bright brackets. The quieter "done"
+    // brackets are for the contacts in the window's footage that the camera has since left.
+    const onNow=onMap(cv.now);
+    for(const it of onNow) if(!(live&&shown.includes(it))) bracket(it,'cam-lock',21);
+    for(const it of shown) if(live||!onNow.includes(it)) bracket(it,live?'cam-lock live':'cam-lock done'+toneOf(it.id),live?24:21);
+    const panel=$('viso-evidence');
+    if(shown.length&&panel.open){
+      // Every contact in the footage is tied to the window. Several contacts meet at one point on its edge.
+      const pr=panel.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+      const rect={left:pr.left-sr.left,top:pr.top-sr.top,right:pr.right-sr.left,bottom:pr.bottom-sr.top};
+      const middle={px:shown.reduce((a,i)=>a+i.px,0)/shown.length,py:shown.reduce((a,i)=>a+i.py,0)/shown.length};
+      const to=OP.leaderLine(middle,rect,0);
+      if(to){
+        const end={left:to.x2,right:to.x2,top:to.y2,bottom:to.y2}, confirmed=!live&&shown.every(i=>toneOf(i.id));
+        for(const it of shown){
+          const line=OP.leaderLine(it,end,live?30:27);
+          if(line) stage.append(svg('line',{class:live?'cam-leader':'cam-leader done'+toneOf(it.id),x1:line.x1,y1:line.y1,x2:line.x2,y2:line.y2}));
         }
+        stage.append(svg('circle',{cx:to.x2,cy:to.y2,r:3.5,fill:live?'#5fe3f0':confirmed?'#4ad27a':'#7ddbd0'}));
       }
     }
 
@@ -948,12 +1054,11 @@ if(typeof module!=='undefined') module.exports=OP;
       b.textContent=fmtRange(t.range_m); g.append(b);
       if(t.fresh==='S'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:it.col,'font-size':9.5,'letter-spacing':'.08em'});c.textContent=`LAST KNOWN · ${t.age_s.toFixed(0)} s`;g.append(c)}
       else if(t.fresh==='P'){const c=svg('text',{x,y:L.y+35,'text-anchor':L.anchor,fill:'#f2b53a','font-size':9.5,'letter-spacing':'.08em'});c.textContent=`PREDICTED · ${t.age_s.toFixed(1)} s`;g.append(c)}
-      const seen=(state.cameraFound||{})[t.id];
-      if(seen){
-        const text='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%'), cw=text.length*6.7+12, cy=L.y+(t.fresh==='S'||t.fresh==='P'?40:28);
-        const cx=L.anchor==='start'?x-3:L.anchor==='end'?x-cw+3:x-cw/2, drone=seen.tone==='drone';
+      if(it.tag){
+        const cw=it.tag.width, cy=L.y+(t.fresh==='S'||t.fresh==='P'?40:28), drone=it.tag.drone;
+        const cx=L.anchor==='start'?x:L.anchor==='end'?x-cw:x-cw/2;
         g.append(svg('rect',{x:cx,y:cy,width:cw,height:15,rx:3,fill:drone?'#0e2b1c':'#0e332f',stroke:drone?'#4ad27a':'#2c7f78','stroke-width':1}));
-        const c=svg('text',{x:cx+cw/2,y:cy+11,'text-anchor':'middle',fill:drone?'#9df0bb':'#aef3ea',stroke:'none','font-size':10,'font-weight':700,'letter-spacing':'.05em'});c.textContent=text;g.append(c);
+        const c=svg('text',{x:cx+cw/2,y:cy+11,'text-anchor':'middle',fill:drone?'#9df0bb':'#aef3ea',stroke:'none','font-size':10,'font-weight':700,'letter-spacing':'.05em'});c.textContent=it.tag.text;g.append(c);
       }
       stage.append(g);
     }
@@ -986,7 +1091,8 @@ if(typeof module!=='undefined') module.exports=OP;
     const srcHtml=Object.keys(srcs).length?`<div class="src">${Object.entries(srcs).map(([id,s])=>`<div class="row"><span>${short(id)}</span><span class="${cls(s)}">${s}</span></div>`).join('')}</div>`:'';
     const lost=tracks.filter(t=>t.fresh&&t.fresh!=='U').length;
     const cam=((state.data&&state.data.sensors)||[]).find(s=>s.kind==='eo-camera');
-    const camLine=cam?`<div class="row" style="margin-top:4px"><span style="color:#49c9d9">CAMERA</span><span style="color:#49c9d9">${cam._cue&&cam._cue.target?'→ '+cam._cue.target:'rest'}</span></div>`:'';
+    const camera=cam?OP.cameraState(cam._cue):null;
+    const camLine=cam?`<div class="row" style="margin-top:4px"><span style="color:#49c9d9">CAMERA</span><span style="color:#49c9d9">${camera.state==='on'?(camera.seen.length===1?'→ '+camera.seen[0]:'→ '+camera.seen.length+' contacts'):camera.state}</span></div>`:'';
     $('summary').innerHTML=`<div class="h">INCOMING GROUP</div><div class="n">${tracks.length} TRACK${tracks.length===1?'':'S'}</div>
       <div class="row"><span><i class="k" style="background:var(--high)"></i>HIGH</span><span>${n.h}</span></div>
       <div class="row"><span><i class="k" style="background:var(--watch)"></i>WATCH</span><span>${n.w}</span></div>
@@ -1008,10 +1114,11 @@ if(typeof module!=='undefined') module.exports=OP;
         <div class="pr ${OP.priorityClass(t.priority)}">${SHORT[t.priority]||t.priority}</div>
         <div class="rg">${fmtRange(t.range_m)}</div><div class="mv">${mv}</div>`;
       const cv=state.camView||{};
-      if(cv.now===t.id){const on=document.createElement('span');on.className='fr c';on.textContent='CAMERA ON';el.querySelector('.id').append(on);}
-      if(cv.feed&&cv.id===t.id&&cv.phase==='live') el.classList.add('cam-on');
+      if((cv.now||[]).includes(t.id)){const on=document.createElement('span');on.className='fr c';on.textContent='CAMERA ON';el.querySelector('.id').append(on);}
+      if(cv.feed&&(cv.ids||[]).includes(t.id)&&cv.phase==='live') el.classList.add('cam-on');
       const seen=(state.cameraFound||{})[t.id];
-      if(seen){const tag=document.createElement('span');tag.className='st cam'+(seen.tone==='drone'?' drone':'');tag.textContent='CAMERA: '+seen.label+(seen.pct===null?'':' '+seen.pct+'%');el.querySelector('.id').append(tag);}
+      const found=OP.findingTag(seen,false);
+      if(found){const tag=document.createElement('span');tag.className='st cam'+(found.drone?' drone':'');tag.textContent=found.text;el.querySelector('.id').append(tag);}
       el.addEventListener('click',()=>select(t.id));
       rows.append(el);
     }
@@ -1175,7 +1282,7 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     }catch(e){ $('viso-text').textContent='VISO · UNAVAILABLE'; }
   }
 
-  let evidencePolling=false, evidenceSignature='', evidenceMedia='', evidenceClip=null, feedKey='';
+  let evidencePolling=false, evidenceSignature='', evidenceMedia='', evidenceClip=null, feedKey='', feedRatio=0;
   const replayKey=()=>({scenario:state.scenario,seed:state.seed,count:state.count,mode:state.lossMode});
   const camSensor=()=>((state.data&&state.data.sensors)||[]).find(s=>s.kind==='eo-camera')||null;
   // Which contact the camera window is about right now. Worked out before each draw so the map,
@@ -1184,7 +1291,6 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     const f=state.playback.frame(), cam=camSensor();
     const view=OP.cameraSubject(evidenceClip,cam?cam.cues:[],f?f.t:0);
     view.feed=!!evidenceMedia&&view.phase!=='none';
-    view.found=view.id?(state.cameraFound||{})[view.id]||null:null;
     state.camView=view;
     return view;
   }
@@ -1200,17 +1306,22 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     const c=evidenceClip&&evidenceClip.scenario_context, v=state.camView||cameraView();
     const feed=v.feed&&!!c, started=feed&&v.phase!=='before', live=started&&v.phase==='live';
     panel.classList.toggle('has-feed',feed);panel.classList.toggle('live',live);$('map').classList.toggle('feed',feed&&panel.open);
-    // The contact first, in large type: the one in the footage, or failing that the one the camera is on.
-    const subject=started?v.id:v.now;
-    $('ev-subject').textContent=subject||'';
-    $('ev-state').textContent=!cam?'No camera in this replay':started?(live?'CAMERA ON':'CHECKED AT T+'+c.sim_start_s+' s'):v.now?'CAMERA ON':'Camera at rest';
-    $('ev-moved').textContent=started&&!live&&v.now&&v.now!==v.id?'camera now on '+v.now:'';
+    // The contacts first, in large type: the ones in the footage, or failing that the ones the camera is on.
+    const subject=started?v.ids:v.now.length?v.now:v.turning.length?v.turning:v.looking;
+    $('ev-subject').textContent=subject.join(' · ');
+    $('ev-subject').classList.toggle('multi',subject.length>1);
+    $('ev-state').textContent=!cam?'No camera in this replay':started?(live?'CAMERA ON':'CHECKED AT T+'+c.sim_start_s+' s')
+      :v.now.length?'CAMERA ON':v.turning.length?'CAMERA TURNING':v.looking.length?'CAMERA LOOKING':'Camera at rest';
+    const elsewhere=started&&!live&&v.now.length&&!v.now.some(id=>v.ids.includes(id));
+    const moved=$('ev-moved');
+    moved.textContent=elsewhere?'camera now on '+(v.now.length===1?v.now[0]:v.now.length+' others'):'';
+    if(moved.textContent&&moved.scrollWidth>moved.clientWidth+1) moved.textContent='';
     $('ev-screen').hidden=!feed;$('ev-media-empty').hidden=feed;
     video.hidden=!started;$('ev-standby').hidden=started;$('ev-osd').hidden=!started;$('ev-progress').hidden=!started;
     if(!started){$('ev-caption').textContent='';video.pause();feedKey='';return;}
     const what=c.synthetic===false?(c.provenance||'Recorded footage'):'Simulated sensor view';
-    $('ev-caption').textContent=what+' · camera cue at T+'+c.sim_start_s+' s';
-    $('ev-play').textContent=live?'▶ PLAYING':'↻ REPLAY';
+    $('ev-caption').textContent=what;
+    $('ev-play').textContent=live?'▶':'↻';$('ev-play').title=live?'Playing':'Replaying the clip from this look';
     if(!f||!Number.isFinite(video.duration)) return;
     const at=OP.clipTime(c,t,video.duration,parseFloat($('speed').value)||1);
     if(at.free){
@@ -1236,7 +1347,7 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
   }
   function clearEvidence(keepClip){
     evidenceSignature='';feedKey='';state.cameraFound={};state.camView=null;
-    if(!keepClip) evidenceClip=null;
+    if(!keepClip){evidenceClip=null;feedRatio=0;}
     $('ev-result').hidden=!(keepClip&&evidenceClip);$('ev-result').className='ev-result';$('ev-verdict').hidden=true;$('ev-bar').hidden=true;$('ev-labels').replaceChildren();
     $('ev-summary').textContent='';$('ev-summary').hidden=true;$('ev-note').hidden=true;
     $('ev-pending').hidden=!(keepClip&&evidenceClip);$('ev-pending').textContent='Viso Now’s verdict on the clip appears here.';
@@ -1261,12 +1372,18 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
           evidenceMedia=picked.clip.url;video.src=picked.clip.url;
           if(picked.clip.poster_url&&picked.clip.poster_url.startsWith('/api/camera/media/')) video.poster=picked.clip.poster_url; else video.removeAttribute('poster');
           video.addEventListener('loadedmetadata',()=>{
-            if(video.videoWidth&&video.videoHeight) $('viso-evidence').style.setProperty('--ev-ratio',(video.videoWidth/video.videoHeight).toFixed(4));
+            // The window keeps the shape of the tallest clip shown so far, so it does not change size
+            // when the footage changes from one look to the next; a wider clip sits inside it.
+            if(video.videoWidth&&video.videoHeight){
+              const ratio=video.videoWidth/video.videoHeight;
+              feedRatio=feedRatio?Math.min(feedRatio,ratio):ratio;
+              $('viso-evidence').style.setProperty('--ev-ratio',feedRatio.toFixed(4));
+            }
             syncEvidenceVideo();syncFootageClock();
           },{once:true});
           video.load();
         }
-      }else if(evidenceMedia){evidenceMedia='';video.pause();video.removeAttribute('src');video.load();}
+      }else if(evidenceMedia){evidenceMedia='';feedRatio=0;video.pause();video.removeAttribute('src');video.load();}
       cameraView();syncEvidenceVideo();
       const real=list=>Array.isArray(list)?list.filter(item=>item.outcome==='MAPPED'&&item.synthetic_sender!==true):[];
       const correlated=real(data.results), other=real(data.uncorrelated_results), cam=camSensor();
@@ -1276,7 +1393,9 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
       const signature=JSON.stringify({id:item&&item.id,clip:picked.clip&&picked.clip.filename,phase:picked.phase,pending:data.pending_count,found});
       if(signature!==evidenceSignature){
         evidenceSignature=signature;state.cameraFound=found;
-        const view=OP.verdictView(item), tone=view?OP.verdictTone(view.headline):'other', box=$('ev-result');
+        const inView=picked.clip&&cam?OP.cueTargets(OP.cueAt(cam.cues,picked.clip.scenario_context.sim_start_s)):[];
+        const view=OP.verdictView(item), match=mine?OP.lookVerdict(view,inView.length):null, box=$('ev-result');
+        const tone=view&&(match?match.confirmed:view.tone==='drone')?'drone':'other';
         const awaiting=!!picked.clip&&!item&&picked.phase!=='before';
         // With footage linked the verdict's slot is always there, waiting; otherwise it only appears with a result.
         const arrived=!!item&&(box.hidden||!$('ev-pending').hidden);
@@ -1288,12 +1407,14 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
         $('ev-bar').hidden=!view||view.pct===null;$('ev-bar').firstElementChild.style.width=(view&&view.pct!==null?view.pct:0)+'%';
         const labels=$('ev-labels');labels.replaceChildren();
         for(const text of (view?view.chips:[])){const chip=document.createElement('span');chip.className='ev-label';chip.textContent=text;labels.appendChild(chip);}
-        const detail=view?view.detail:item?OP.plainText(item.summary,160):'';
+        const detail=match&&match.text?match.text:view?view.detail:item?OP.plainText(item.summary,160):'';
         $('ev-summary').textContent=detail;$('ev-summary').hidden=!detail;
         $('ev-pending').hidden=!!item||!picked.clip;
         $('ev-pending').textContent=!awaiting?'Viso Now’s verdict on the clip appears here.':data.pending_count?'Awaiting the Viso Now result…':'No Viso Now result for this clip yet.';
         $('ev-note').hidden=!item;
-        $('ev-note').textContent=mine?'VISO NOW VERDICT':'LATEST VISO NOW RESULT · NOT LINKED TO THIS REPLAY';
+        // A verdict shown in the replay is a real result received earlier; say when.
+        const day=item?OP.receivedOn(item.received_at):'';
+        $('ev-note').textContent=mine?'VISO NOW VERDICT'+(day?' · RECEIVED '+day:''):'LATEST VISO NOW RESULT · NOT LINKED TO THIS REPLAY';
         $('ev-badge').textContent=item?'Result in':awaiting&&data.pending_count?'Checking':picked.clip?'Standing by':'Waiting';
         // The verdict arriving is the moment: bring it in visibly, once.
         if(arrived){void box.offsetWidth;box.classList.add('ev-in');}
@@ -1307,10 +1428,11 @@ ${v.configured?'':'\nSet the shared secret to enable deliveries. Until then this
     const loadReferenceArt=()=>{const art=new Image();art.onload=()=>document.documentElement.classList.add('drone-art-ready');art.onerror=()=>{if(++artAttempts<30)setTimeout(loadReferenceArt,4000);};art.src='/assets/drone-types.png';};
     loadReferenceArt();
     const eventDemo=new URLSearchParams(location.search).get('demo')==='viso';
-    if(eventDemo){state.lossMode='radar_off_30s_viso';$('speed').value='2';$('viso-evidence').open=true;}
+    if(eventDemo){state.lossMode='radar_off_30s_viso';$('speed').value='1';$('viso-evidence').open=true;}
     bind(); requestAnimationFrame(tick); refreshViso(); setInterval(refreshViso,8000);
     await load();
-    if(eventDemo&&state.data){const i=state.data.frames.findIndex(frame=>frame.t>=35);if(i>=0)state.playback.seek(i);render();start();}
+    // Start a few seconds before the radar drops out, so the loss and the camera's first look are both seen.
+    if(eventDemo&&state.data){const i=state.data.frames.findIndex(frame=>frame.t>=6);if(i>=0)state.playback.seek(i);render();start();}
     refreshEvidence();setInterval(refreshEvidence,500);
   }
   init();

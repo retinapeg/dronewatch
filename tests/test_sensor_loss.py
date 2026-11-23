@@ -474,16 +474,16 @@ def test_cued_camera_only_sees_its_sector():
 
 
 def test_viso_camera_relocalises_only_what_it_can_see():
-    """Radar off for 30 s; the camera keeps SOME contacts fresh and cueable
-    while others go stale. That difference is the point."""
+    """Radar off for 30 s; a camera left looking north keeps the contact in its
+    narrow view fresh while the others go stale. That difference is the point."""
     from dronewatch.tracks.tracker import TrackerConfig
     scenario = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6,
-                                 faults=FaultSpec.parse("radar:40-70;backup:viso"))
+                                 faults=FaultSpec.parse("radar:10-40;backup:viso"))
     assert any(o.sensor_id == "viso-eo" for o in scenario.observations)
     tl = build_timeline(scenario.observations, t_zero=T_ZERO, duration_s=90.0,
                         scans=scenario.scans, admit=("radar-north", "viso-eo"),
                         config=TrackerConfig(drop_after_s=45.0))
-    f = tl["frames"][int(52 * 5)]
+    f = tl["frames"][int(22 * 5)]
     fresh = [t["fresh"] for t in f["tracks"]]
     assert "U" in fresh and "S" in fresh, fresh
     assert f["sources"]["radar-north"] == "UNAVAILABLE"
@@ -556,18 +556,136 @@ def test_quadratic_behaviour_fit_is_unbiased_under_filter_noise():
             assert 0.6 * abs(truth) <= abs(mean) <= 1.1 * abs(truth), (truth, mean)
 
 
-def test_camera_cue_plan_targets_lost_contacts_and_slews_at_a_finite_rate():
-    from dronewatch.tracks.cueing import plan_camera_cues
-    tl = run_mode("radar:40-70")
-    cues = plan_camera_cues(tl["frames"], (0.0, 560.0), rest_deg=90.0, slew_deg_s=40.0)
+def _bearing_from_camera(track, camera=(0.0, 560.0)):
+    x, y = track.get("hc") or track.get("est") or (track["x"], track["y"])
+    return math.degrees(math.atan2(y - camera[1], x - camera[0]))
+
+
+def test_camera_plan_looks_at_groups_of_lost_contacts_and_slews_at_a_finite_rate():
+    from dronewatch.tracks import cueing
+    tl = run_mode("radar:10-40")
+    cues = cueing.plan_camera_cues(tl["frames"], (0.0, 560.0), rest_deg=90.0, slew_deg_s=40.0)
     at = {c["t"]: c for c in cues}
-    assert at[30.0]["target"] is None and at[30.0]["centre_deg"] == 90.0
-    during = [c for c in cues if 44 <= c["t"] <= 62]
-    assert all(c["target"] for c in during), "camera must be cued while contacts are lost"
-    assert len({c["target"] for c in during}) >= 3, "dwell-and-rotate must visit several contacts"
+    # Before anything is lost the camera rests on the approach, and says so.
+    assert at[8.0] == {"t": 8.0, "centre_deg": 90.0, "target": None, "targets": [], "settled": True, "reason": "rest"}
+    # run_mode keeps the default 25 s retention, so stay inside it.
+    during = [c for c in cues if 13 <= c["t"] <= 33]
+    assert all(c["targets"] and c["target"] in c["targets"] for c in during), "camera must be cued while contacts are lost"
+    # Far out the six contacts sit in two groups of three, and the first two looks take in all six.
+    first = [c for c in cues if c["t"] < 24.3 and c["targets"] and c["settled"]]
+    assert sorted({tuple(sorted(c["targets"])) for c in first}) == [("DW-001", "DW-002", "DW-005"), ("DW-003", "DW-004", "DW-006")]
     for a, b in zip(cues, cues[1:]):
         d = abs((b["centre_deg"] - a["centre_deg"] + 180) % 360 - 180)
         assert d <= 40.0 * (b["t"] - a["t"]) + 1e-6, "slew rate exceeded"
+
+
+def test_a_settled_look_has_every_one_of_its_contacts_inside_the_view():
+    """The cue never claims a contact the camera is not pointing at: while it is
+    still turning it says so, and once settled each target's predicted bearing
+    is inside the field of view."""
+    from dronewatch.tracks import cueing
+    tl = run_mode("radar:10-40")
+    cues = cueing.plan_camera_cues(tl["frames"], (0.0, 560.0), rest_deg=90.0)
+    frames = {round(f["t"], 2): f for f in tl["frames"]}
+    settled = [c for c in cues if c["targets"] and c["settled"]]
+    turning = [c for c in cues if c["targets"] and not c["settled"]]
+    assert settled and turning
+    assert len(settled) > 4 * len(turning), "far out, the camera spends most of its time on target"
+    for cue in settled:
+        tracks = {t["id"]: t for t in frames[cue["t"]]["tracks"]}
+        offsets = [(_bearing_from_camera(tracks[i]) - cue["centre_deg"] + 180) % 360 - 180 for i in cue["targets"]]
+        assert max(abs(o) for o in offsets) <= cueing.FOV_HALF_DEG, (cue["t"], cue["targets"], offsets)
+        # Left to right as the camera sees them: anticlockwise first.
+        assert offsets == sorted(offsets, reverse=True), (cue["t"], offsets)
+
+
+def test_the_plan_and_the_synthetic_camera_assume_the_same_view():
+    from dronewatch.synthetic import generator as G
+    from dronewatch.tracks import cueing
+    assert (G.VISO_FOV_HALF_DEG, G.VISO_MAX_RANGE_M) == (cueing.FOV_HALF_DEG, cueing.MAX_RANGE_M)
+
+
+def test_a_contact_out_of_the_cameras_reach_gets_no_look():
+    from dronewatch.tracks.cueing import plan_camera_cues
+    lost = lambda i, x, y: {"id": i, "x": x, "y": y, "fresh": "P", "priority": "WATCH", "range_m": 0.0, "age_s": 3.0}
+    frames = [{"t": 0.2 * n, "tracks": [lost("NEAR", -500.0, 2000.0), lost("FAR", 3000.0, 5000.0)]} for n in range(10)]
+    cues = plan_camera_cues(frames, (0.0, 560.0), rest_deg=90.0, max_range_m=3000.0)
+    assert {tuple(c["targets"]) for c in cues} == {("NEAR",)}
+    nothing = plan_camera_cues([{"t": 0.0, "tracks": [lost("FAR", 3000.0, 5000.0)]}], (0.0, 560.0), rest_deg=90.0)
+    assert nothing[0]["targets"] == [] and nothing[0]["reason"] == "rest"
+
+
+def test_a_look_is_credited_only_with_contacts_the_camera_picked_up():
+    from dronewatch.tracks.cueing import confirm_looks
+    cue = lambda t, targets, settled=True: {"t": t, "centre_deg": 90.0, "target": targets[0] if targets else None,
+                                            "targets": targets, "settled": settled, "reason": "x" if targets else "rest"}
+    cues = [cue(0.0, []), cue(0.2, ["A", "B"], False), cue(0.4, ["A", "B"]), cue(0.6, ["A", "B"]), cue(0.8, ["A", "B"]), cue(1.0, [])]
+    # Camera at the origin looking along +y: A is left of centre, C right of it. `src` is seconds since the camera's last update.
+    track = lambda i, x, age=None: {"id": i, "x": x, "y": 1000.0, "priority": "WATCH", "src": {} if age is None else {"cam": age}}
+    frames = [
+        {"t": 0.0, "tracks": [track("A", -100.0), track("B", 0.0), track("C", 100.0)]},
+        {"t": 0.2, "tracks": [track("A", -100.0, 0.0), track("B", 0.0), track("C", 100.0)]},     # seen in passing, before arrival
+        {"t": 0.4, "tracks": [track("A", -100.0, 0.2), track("B", 0.0), track("C", 100.0)]},     # arrived: nothing picked up yet
+        {"t": 0.6, "tracks": [track("A", -100.0, 0.4), track("B", 0.0), track("C", 100.0, 0.0)]},
+        {"t": 0.8, "tracks": [track("A", -100.0, 0.0), track("B", 0.0), track("C", 900.0, 0.2)]},  # C has left the view
+        {"t": 1.0, "tracks": [track("A", -100.0, 0.2), track("B", 0.0), track("C", 900.0, 0.4)]},
+    ]
+    out = confirm_looks(cues, frames, "cam", (0.0, 0.0))
+    assert [(c["t"], c["centre_deg"], c["settled"]) for c in out] == [(c["t"], c["centre_deg"], c["settled"]) for c in cues]
+    assert [c["planned"] for c in out] == [[], ["A", "B"], ["A", "B"], ["A", "B"], ["A", "B"], []]
+    # Turning: still the contacts it was sent for, none of them claimed.
+    assert (out[1]["targets"], out[1]["seen"]) == (["A", "B"], [])
+    # Settled: the look is A and C, left to right. B was sent for and never picked up; C was not sent for.
+    assert [c["targets"] for c in out[2:5]] == [["A", "C"]] * 3
+    assert [c["seen"] for c in out[2:5]] == [[], ["C"], ["A"]]
+    assert [c["target"] for c in out[2:5]] == ["A", "A", "A"]
+    assert (out[5]["targets"], out[5]["seen"], out[5]["target"]) == ([], [], None)
+    # A look that finds nothing has no contacts, and is still not the camera at rest.
+    empty = confirm_looks(cues, [{"t": f["t"], "tracks": [track("B", 0.0)]} for f in frames], "cam", (0.0, 0.0))
+    assert [(c["targets"], c["seen"], c["target"], c["planned"]) for c in empty[2:5]] == [([], [], None, ["A", "B"])] * 3
+
+
+def test_in_the_replay_the_camera_is_only_ever_on_contacts_it_picked_up_inside_its_view():
+    import math
+    from dronewatch.api import preview
+    from dronewatch.synthetic import generator as G
+    wrap = lambda d: (d + 180.0) % 360.0 - 180.0
+    cx, cy = G.VISO_SENSOR_LOCATION
+    for name in preview.OPERATOR_SCENARIOS:
+        for count in (3, 6, 10):
+            data = preview.get_tracks(name=name, seed=42, count=count, duration_s=preview.OPERATOR_DEMO_DURATION_S,
+                                      mode="radar_off_30s_viso")
+            cues = next(s for s in data["sensors"] if s["kind"] == "eo-camera")["cues"]
+            frames = {round(f["t"], 2): f for f in data["frames"]}
+            arrived = None
+            for cue in cues:
+                on = cue["settled"] and bool(cue["planned"])
+                arrived = (arrived if arrived is not None else cue["t"]) if on else None
+                assert set(cue["seen"]) <= set(cue["targets"])
+                if not on:
+                    assert cue["seen"] == [] and cue["targets"] == cue["planned"]
+                    continue
+                tracks = {t["id"]: t for t in frames[round(cue["t"], 2)]["tracks"]}
+                for contact in cue["seen"]:
+                    t = tracks[contact]
+                    offset = wrap(math.degrees(math.atan2(t["y"] - cy, t["x"] - cx)) - cue["centre_deg"])
+                    assert abs(offset) <= G.VISO_FOV_HALF_DEG + 1.0, (name, count, cue["t"], contact, offset)
+                    assert cue["t"] - t["src"]["viso-eo"] >= arrived - 1e-6, (name, count, cue["t"], contact)
+
+
+def test_the_demo_camera_picks_up_three_contacts_in_each_of_its_first_two_looks():
+    from dronewatch.api import preview
+    data = preview.get_tracks(name="operator_demo", seed=42, count=6, duration_s=preview.OPERATOR_DEMO_DURATION_S,
+                              mode="radar_off_30s_viso")
+    cues = next(s for s in data["sensors"] if s["kind"] == "eo-camera")["cues"]
+    at = lambda t: next(c for c in cues if abs(c["t"] - t) < 1e-6)
+    # The radar goes off at T+10 with the contacts about 2 km out. The camera arrives on the west
+    # three at T+12.6 and has all of them within a second and a half; then the same for the east three.
+    assert (at(12.4)["settled"], at(12.6)["settled"]) == (False, True)
+    assert at(12.6)["targets"] == ["DW-002", "DW-005", "DW-001"] and at(14.0)["seen"] == ["DW-002", "DW-005", "DW-001"]
+    assert sorted(at(19.0)["targets"]) == ["DW-003", "DW-004", "DW-006"] and sorted(at(20.4)["seen"]) == ["DW-003", "DW-004", "DW-006"]
+    ranges = [t["range_m"] for t in next(f for f in data["frames"] if abs(f["t"] - 12.6) < 1e-6)["tracks"]]
+    assert min(ranges) > 1500, ranges
 
 
 def test_cued_camera_reacquires_more_than_a_fixed_one():
@@ -579,7 +697,7 @@ def test_cued_camera_reacquires_more_than_a_fixed_one():
     from dronewatch.tracks.tracker import TrackerConfig
     from dronewatch.synthetic import generator as G
     cfg = TrackerConfig(drop_after_s=45.0)
-    base = FaultSpec.parse("radar:40-70;backup:viso")
+    base = FaultSpec.parse("radar:10-40;backup:viso")
 
     def seen_by_camera(faults):
         s = generate_scenario("operator_demo", seed=42, duration_s=90.0, count=6, faults=faults)
@@ -587,7 +705,7 @@ def test_cued_camera_reacquires_more_than_a_fixed_one():
                             admit=("radar-north", "viso-eo"), config=cfg)
         ids = set()
         for f in tl["frames"]:
-            if 40 <= f["t"] <= 70:
+            if 10 <= f["t"] <= 40:
                 ids |= {t["id"] for t in f["tracks"] if "viso-eo" in t["src"]}
         return ids
 
@@ -598,4 +716,4 @@ def test_cued_camera_reacquires_more_than_a_fixed_one():
     cues = plan_camera_cues(pass1["frames"], G.VISO_SENSOR_LOCATION, rest_deg=G.VISO_FOV_CENTRE_DEG)
     cued = seen_by_camera(replace(base, viso_cues=tuple((c["t"], c["centre_deg"]) for c in cues)))
     assert len(cued) == 6, cued
-    assert len(cued) >= len(fixed)
+    assert len(fixed) < 6, "a camera left looking north cannot see the whole group"

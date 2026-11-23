@@ -33,12 +33,12 @@ shown as evidence; they do not feed positions to the tracker.
   identity switch per run, and a 30 s outage outlasts the 25 s track retention,
   so all six contacts come back as new identities.
 
-![Operator preview at T+65 s with six synthetic contacts: radar unavailable, four contacts marked lost with their containment regions, and the simulated camera cued to contact DW-003](docs/images/operator-preview-radar-outage.png)
+![Operator preview at T+15 s with six synthetic contacts about 2 km out: radar unavailable, and the simulated camera's narrow view turned onto three lost contacts, each marked with lock brackets](docs/images/operator-preview-radar-outage.png)
 
-*The operator view (`/preview?demo=viso`) captured from a local run: seed 42, six
-synthetic contacts, radar off from 40 to 70 s, simulated camera (labelled
-VISO-EO) cued by the tracker. All data is synthetic, and no Viso Now results had
-been received.*
+*The operator view (`/preview?demo=viso`) captured from a local run at T+15 s:
+seed 42, six synthetic contacts, radar off from 10 to 40 s, simulated camera
+(labelled VISO-EO) turned by the tracker onto three lost contacts. All data is
+synthetic; no camera clip was linked and no Viso Now results had been received.*
 
 ## System architecture
 
@@ -259,24 +259,31 @@ contacts) computed once on the server by `GET /api/preview/tracks`, so playback
 speed cannot change what is estimated. The sensor-loss menu selects a fault
 mode: radar off, all positional inputs off, EO or bearing-only backup, degraded
 radar, one contact unobserved, and a 30 s radar outage with or without a
-simulated camera that the tracker cues towards lost contacts. Every lost
+simulated camera that the tracker turns towards groups of lost contacts. Every lost
 contact is drawn with its behaviour-shaped containment region, and selecting
 one fetches and draws sampled paths from `GET /api/preview/paths`. The track
 picture is labelled "SIMULATION · NOT LIVE".
 
-- `/preview?demo=viso` starts the 30 s outage with the cued camera at T+35 at 2x
-  speed, with the camera window open. When the camera is cued at a lost
-  contact, that contact gets lock brackets on the map and a line runs from it
-  to the camera window, which names the contact in large type and plays the
-  clip linked to that moment. Recorded footage plays at its own speed and
-  loops, so it is never a still frame. The Viso Now verdict for the clip then
-  lands in the window (label, confidence, a short reason), the brackets and the
-  contact's tag turn green if the label is a drone, and the window stays tied
-  to that contact while the camera moves on. Results are shown, not fused: they
-  do not update tracks. Link a clip with
-  `python scripts/link_camera_clip.py clip.mp4 --cue DW-001` (see `--help`);
-  [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) covers the rendered
-  synthetic clips.
+- `/preview?demo=viso` starts the 30 s outage with the cued camera at T+6 at
+  normal speed, with the camera window open. The radar goes off at T+10, while
+  the contacts are still about 2 km out. The simulated camera has a narrow view
+  (24° wide, 3 km reach) and looks at lost contacts in groups: it turns to a
+  group that fits in one view, holds it for about six seconds, then turns to
+  the next. The map says when it is turning and when it is on a group; once it
+  is on, every contact in view gets lock brackets and a line to the camera
+  window, which names them in large type and plays the clip linked to that
+  look. Recorded footage plays at its own speed and loops, so it is never a
+  still frame. The Viso Now verdict for the clip then lands in the window. A
+  clip with several objects gives a count ("3 DRONES"), which is compared with
+  the number of contacts in view as a number only: no object in the clip is
+  matched to a particular contact. When the counts agree, the brackets and the
+  contacts' tags turn green. A verdict is a delivery this server received
+  earlier; the replay shows it three seconds into the look, with the day it
+  was received. Results are shown, not fused: they do not update tracks. List
+  the looks with `python scripts/link_camera_clip.py --list-cues` and link a
+  clip to one with `python scripts/link_camera_clip.py clip.mp4 --look 1` (see
+  `--help`); [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) covers the
+  rendered synthetic clips.
 - `/preview/diagnostics` is the raw-observation view of the synthetic
   generator (default `mixed_threat_decoy`, seed 42). It draws observations, not
   tracks.

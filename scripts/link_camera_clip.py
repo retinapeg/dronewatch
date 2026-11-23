@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Link a camera clip to a moment of the operator replay.
+r"""Link a camera clip to a moment of the operator replay.
 
 The operator view plays a linked clip while the replay is inside the clip's
 window, and shows a Viso Now result for that clip against the same moment. This
 script copies the clip into the camera media folder and records the link in that
 folder's manifest.json.
 
-    # link a clip to the first time the camera is cued at contact DW-001
-    python scripts/link_camera_clip.py /path/to/clip.mp4 --cue DW-001 \
+    # list the camera's looks: when it is settled on which contacts
+    python scripts/link_camera_clip.py --list-cues
+
+    # link a clip to the first look (or the second, third, ...)
+    python scripts/link_camera_clip.py /path/to/clip.mp4 --look 1 \
         --recorded "Recorded test footage (public dataset)"
 
-    # or give the window in simulation seconds
-    python scripts/link_camera_clip.py /path/to/clip.mp4 --start 43 --end 47
+    # or to the first look that has contact DW-003 in it
+    python scripts/link_camera_clip.py /path/to/clip.mp4 --cue DW-003
 
-    # list when the camera is cued at each contact
-    python scripts/link_camera_clip.py --list-cues
+    # or give the window in simulation seconds
+    python scripts/link_camera_clip.py /path/to/clip.mp4 --start 12.6 --end 18.2
 
 Nothing is sent anywhere. The clip still has to be analysed by Viso Now for a
 result to appear; this only says which moment of the replay the clip belongs to.
@@ -32,25 +35,39 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
+def looks_from(cues: list[dict]) -> list[dict]:
+    """Each unbroken spell of the camera settled on one group of contacts.
+
+    The contacts of a look are the ones the camera picked up during it. The time
+    the camera spends turning towards a group is not part of the look: a clip
+    linked to a look starts when the camera has arrived. A spell in which the
+    camera found nothing is not a look.
+    """
+    looks: list[dict] = []
+    step = cues[1]["t"] - cues[0]["t"] if len(cues) > 1 else 1.0
+    for index, cue in enumerate(cues):
+        targets = list(cue.get("targets") or ([cue["target"]] if cue.get("target") else []))
+        end = cues[index + 1]["t"] if index + 1 < len(cues) else round(cue["t"] + step, 2)
+        if not targets or cue.get("settled") is False:
+            continue
+        last = looks[-1] if looks else None
+        # A look that only loses members (contacts the radar has picked up again) is the same look.
+        if last and set(targets) <= set(last["targets"]) and last["end"] == cue["t"]:
+            last["end"] = end
+        else:
+            looks.append({"target": cue.get("target") or targets[0], "targets": targets,
+                          "start": cue["t"], "end": end})
+    return looks
+
+
 def cue_windows(scenario: str, seed: int, count: int, mode: str) -> list[dict]:
-    """Each unbroken spell of the camera pointing at one contact."""
+    """The camera's looks in one replay, in order."""
     from dronewatch.api import preview
 
     data = preview.get_tracks(name=scenario, seed=seed, count=count,
                               duration_s=preview.OPERATOR_DEMO_DURATION_S, mode=mode)
     camera = next((s for s in data.get("sensors", []) if s.get("kind") == "eo-camera"), None)
-    if camera is None:
-        return []
-    cues = camera.get("cues", [])
-    windows: list[dict] = []
-    for index, cue in enumerate(cues):
-        target = cue.get("target")
-        end = cues[index + 1]["t"] if index + 1 < len(cues) else cue["t"] + 1
-        if windows and windows[-1]["target"] == target and windows[-1]["end"] == cue["t"]:
-            windows[-1]["end"] = end
-        elif target:
-            windows.append({"target": target, "start": cue["t"], "end": end})
-    return windows
+    return looks_from(camera.get("cues", [])) if camera else []
 
 
 def clip_duration(path: Path) -> float | None:
@@ -71,11 +88,14 @@ def clip_duration(path: Path) -> float | None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("clip", nargs="?", type=Path, help="an .mp4 clip to link")
-    parser.add_argument("--cue", help="contact ID; uses the first time the camera is cued at it")
+    parser.add_argument("--look", type=int, metavar="N", help="link to the Nth look (see --list-cues)")
+    parser.add_argument("--cue", help="contact ID; uses the first look that has it in view")
     parser.add_argument("--start", type=float, help="window start, simulation seconds")
     parser.add_argument("--end", type=float, help="window end, simulation seconds")
     parser.add_argument("--recorded", metavar="NOTE",
                         help="mark the clip as recorded footage, with a short note shown under it")
+    parser.add_argument("--result-after", type=float, default=3.0, metavar="SECONDS",
+                        help="how far into the window the Viso Now result is shown (default 3)")
     parser.add_argument("--scenario", default="operator_demo")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--count", type=int, default=6)
@@ -84,28 +104,38 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--list-cues", action="store_true")
     args = parser.parse_args(argv)
 
-    windows = cue_windows(args.scenario, args.seed, args.count, args.mode) if (args.list_cues or args.cue) else []
+    wanted = args.list_cues or args.cue or args.look is not None
+    windows = cue_windows(args.scenario, args.seed, args.count, args.mode) if wanted else []
     if args.list_cues:
-        for window in windows:
-            print(f"{window['target']}  T+{window['start']:g} to T+{window['end']:g} s")
+        for number, window in enumerate(windows, start=1):
+            print(f"look {number}  T+{window['start']:g} to T+{window['end']:g} s  {', '.join(window['targets'])}")
         return 0
     if args.clip is None:
         parser.error("give a clip to link, or --list-cues")
     clip = args.clip.expanduser()
-    if clip.suffix.lower() != ".mp4" or not clip.is_file():
+    if not clip.is_file():
+        parser.error(f"there is no file at {clip}")
+    if clip.suffix.lower() != ".mp4":
         parser.error(f"{clip} is not an .mp4 file")
 
-    if args.cue:
-        window = next((w for w in windows if w["target"] == args.cue), None)
+    if args.look is not None:
+        if not 1 <= args.look <= len(windows):
+            parser.error(f"this replay has {len(windows)} looks; try --list-cues")
+        window = windows[args.look - 1]
+        start, end = window["start"], window["end"]
+    elif args.cue:
+        window = next((w for w in windows if args.cue in w["targets"]), None)
         if window is None:
-            parser.error(f"the camera is never cued at {args.cue} in this replay; try --list-cues")
+            parser.error(f"the camera never has {args.cue} in a look in this replay; try --list-cues")
         start, end = window["start"], window["end"]
     elif args.start is not None and args.end is not None:
         start, end = args.start, args.end
     else:
-        parser.error("give --cue CONTACT, or both --start and --end")
+        parser.error("give --look N, --cue CONTACT, or both --start and --end")
     if not 0 <= start < end <= 300:
         parser.error("the window must satisfy 0 <= start < end <= 300")
+    if not args.result_after >= 0:
+        parser.error("--result-after cannot be negative")
 
     if args.media_dir:
         media = args.media_dir.expanduser().resolve()
@@ -128,6 +158,8 @@ def main(argv: list[str] | None = None) -> int:
         "file": clip.name, "scenario": args.scenario, "seed": args.seed, "count": args.count,
         "mode": args.mode, "sim_start_s": start, "sim_end_s": end, "frame": "LOCAL_SIM_METRES",
         "playback": "realtime", "synthetic": args.recorded is None,
+        # The result is shown part-way through the look, after a few seconds of footage.
+        "result_after_s": round(min(args.result_after, end - start), 1),
     }
     if args.recorded:
         entry["provenance"] = args.recorded[:120]

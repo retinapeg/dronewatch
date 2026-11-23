@@ -573,8 +573,12 @@ SENSOR_LOSS_MODES: Dict[str, Dict[str, Any]] = {
     # for 45 s. That is a display policy and is stated as such.
     "radar_off_30s": {"label": "Radar off 30 s (40-70) — stochastic containment",
                       "faults": "radar:40-70", "admit": ["radar-north"], "retain_s": 45.0},
-    "radar_off_30s_viso": {"label": "Radar off 30 s + Viso camera cued to lost contacts",
-                           "faults": "radar:40-70;backup:viso",
+    # The outage starts while the group is still 1.3 to 2.2 km from the camera.
+    # At that range the camera makes small moves and a look holds several
+    # contacts; close in, the same contacts would have it swinging through
+    # a right angle between looks.
+    "radar_off_30s_viso": {"label": "Radar off 30 s (10-40) + Viso camera on lost groups",
+                           "faults": "radar:10-40;backup:viso",
                            "admit": ["radar-north", "viso-eo"], "retain_s": 45.0},
 }
 
@@ -625,7 +629,9 @@ def get_tracks(
                                site=MonitoredSite(), scans=scans1,
                                admit=[a for a in spec["admit"] if a != "viso-eo"], config=config)
         cues = plan_camera_cues(pass1["frames"], _gen.VISO_SENSOR_LOCATION,
-                                rest_deg=_gen.VISO_FOV_CENTRE_DEG)
+                                rest_deg=_gen.VISO_FOV_CENTRE_DEG,
+                                fov_half_deg=_gen.VISO_FOV_HALF_DEG,
+                                max_range_m=_gen.VISO_MAX_RANGE_M)
         faults = _replace(faults, viso_cues=tuple((c["t"], c["centre_deg"]) for c in cues))
 
     observations, scans = pipeline_input(
@@ -635,6 +641,11 @@ def get_tracks(
         observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite(),
         scans=scans, admit=spec["admit"], config=config,
     )
+    if cues:
+        # The plan says what the camera was sent to look for; this says what it found.
+        from ..tracks.cueing import confirm_looks
+        cues = confirm_looks(cues, timeline["frames"], _gen.VISO_SENSOR_ID, _gen.VISO_SENSOR_LOCATION,
+                             fov_half_deg=_gen.VISO_FOV_HALF_DEG)
     timeline.update({
         "scenario": name,
         "seed": seed,
@@ -650,8 +661,8 @@ def get_tracks(
                       "y": _gen.VISO_SENSOR_LOCATION[1], "fov_centre_deg": _gen.VISO_FOV_CENTRE_DEG,
                       "fov_half_deg": _gen.VISO_FOV_HALF_DEG, "max_range_m": _gen.VISO_MAX_RANGE_M,
                       "pan_tilt": True, "slew_deg_s": 40.0,
-                      # The cue schedule the tracker produced: what the camera was
-                      # pointed at, when, and why.
+                      # Where the camera pointed and when, what it was sent to look
+                      # for (`planned`) and what it picked up (`targets`, `seen`).
                       "cues": cues}]
                     if "viso-eo" in spec["admit"] else []),
         "faults": faults.label(),

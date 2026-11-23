@@ -13,11 +13,11 @@ from dronewatch.tracks.frames import build_timeline
 from dronewatch.tracks.cueing import plan_camera_cues
 from dronewatch.tracks.tracker import TrackerConfig
 observations, scans = pipeline_input('operator_demo', seed=42, count=3,
-    duration_s=55, faults=FaultSpec.parse('radar:40-70'))
-timeline = build_timeline(observations, t_zero=T_ZERO, duration_s=55,
+    duration_s=45, faults=FaultSpec.parse('radar:10-40'))
+timeline = build_timeline(observations, t_zero=T_ZERO, duration_s=45,
     scans=scans, admit=['radar-north'], config=TrackerConfig(drop_after_s=45))
 cues = plan_camera_cues(timeline['frames'], (0.0,560.0), rest_deg=90.0)
-assert any(c['target'] for c in cues if c['t'] >= 44)
+assert any(c['target'] for c in cues if c['t'] >= 14)
 print(hashlib.sha256(json.dumps([timeline,cues],sort_keys=True).encode()).hexdigest())
 '''
     outputs = [subprocess.check_output(

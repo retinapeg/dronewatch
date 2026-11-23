@@ -270,6 +270,26 @@ def _recorded_manifest(media, names=("fx05.mp4",)):
     (media / "manifest.json").write_text(json.dumps({"clips": clips}))
 
 
+def test_recorded_footage_can_release_its_result_part_way_through_the_look(camera_client):
+    client, _, media = camera_client
+    (media / "fx05.mp4").write_bytes(b"video")
+    look = {"file": "fx05.mp4", "scenario": "operator_demo", "seed": 42, "count": 6, "mode": "radar_off_30s_viso",
+            "sim_start_s": 12.6, "sim_end_s": 18.2, "frame": "LOCAL_SIM_METRES", "playback": "realtime", "synthetic": False}
+    write = lambda **extra: (media / "manifest.json").write_text(json.dumps({"clips": [{**look, **extra}]}))
+    write(result_after_s=3.0)
+    assert _post(client, json.loads(CAPTURED.read_text(encoding="utf-8"))).status_code == 200
+    assert client.get(EVIDENCE + "15.5").json()["pending_count"] == 1
+    assert client.get(EVIDENCE + "15.6").json()["results"][0]["matched_clip"] == "fx05.mp4"
+    # Without the setting, or with one that falls outside the look, the result waits for the look to end.
+    for extra in ({}, {"result_after_s": 99}, {"result_after_s": -1}, {"result_after_s": True}):
+        write(**extra)
+        assert client.get(EVIDENCE + "18.1").json()["results"] == []
+        assert len(client.get(EVIDENCE + "18.2").json()["results"]) == 1
+    # A rendered excerpt of the scene is never released early: its later events must not leak.
+    write(result_after_s=3.0, playback="stretched")
+    assert client.get(EVIDENCE + "18.1").json()["results"] == []
+
+
 def test_captured_viso_delivery_gives_a_verdict_and_matches_the_clip_its_report_names(camera_client):
     """A redacted delivery captured from a real Viso Now agent on 2026-11-23.
 

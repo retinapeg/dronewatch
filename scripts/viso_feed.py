@@ -275,7 +275,7 @@ def main(argv=None) -> int:
                    help="shared secret; defaults to $DRONEWATCH_WEBHOOK_SECRET")
     p.add_argument("--header", default=DEFAULT_HEADER)
     p.add_argument("--source", choices=["generate", "drive", "local", "scenario"], default="generate")
-    p.add_argument("--scenario-faults", default="radar:40-70;backup:viso",
+    p.add_argument("--scenario-faults", default="radar:10-40;backup:viso",
                    help="fault spec whose Viso camera detections to replay (--source scenario)")
     p.add_argument("--from-t", type=float, default=None, help="only detections at/after this sim time")
     p.add_argument("--to-t", type=float, default=None, help="only detections at/before this sim time")

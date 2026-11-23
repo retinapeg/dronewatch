@@ -70,8 +70,11 @@ What DroneWatch does with a delivery like this:
   manifest, otherwise by the one known clip name quoted in the report
   (`source_match: "named_in_report"`). A report that names no known clip, or
   more than one, is linked to nothing.
-- The operator view shows the verdict on the contact the camera was cued at
-  when the clip began. It is shown, not fused: tracks do not change.
+- The operator view shows the verdict on the contacts the simulated camera
+  picked up during the look the clip is linked to. When a result lists several
+  objects, their number is compared with the number of contacts in that look,
+  as a number only: no object in the clip is matched to a particular contact.
+  It is shown, not fused: tracks do not change.
 - A redacted copy of the delivery is kept at
   `tests/fixtures/viso/captured/drone_detected_2026-11-23.json`, with account
   and incident identifiers replaced by zeros. It sits outside the synthetic

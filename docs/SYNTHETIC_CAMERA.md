@@ -8,8 +8,8 @@ The labelled 2D schematic is generated with:
 python scripts/render_viso_schematic.py --output /path/to/viso-feed --clip-id schematic-02
 ```
 
-`schematic-02.png` is the camera observation at simulation time 58 seconds.
-`schematic-02.mp4` shows simulation seconds 40–70 in eight playback seconds.
+`schematic-02.png` is the camera observation at simulation time 15 seconds.
+`schematic-02.mp4` shows simulation seconds 10–40 in eight playback seconds.
 The video uses the existing `operator_demo`, seed 42, count 6, and
 `radar_off_30s_viso` mode. It reproduces the preview's radar-only first pass,
 camera cue planner, and second `pipeline_input` pass with that cue schedule.
