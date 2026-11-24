@@ -30,6 +30,7 @@ from ..domain.observation import GeoPosition, SensorObservation
 from . import kalman as K
 from . import uncertainty as U
 from .attention import PRIORITY_ORDER, AttentionModel
+from .crossfix import HOLD_S, CrossFixer
 from .site import MonitoredSite
 from .tracker import Freshness, Tracker, TrackerConfig
 
@@ -37,6 +38,8 @@ PROJECTION_VERSION = 2
 
 #: Snapshot rate. Fine enough to look continuous, coarse enough to stay small.
 FRAME_HZ = 5.0
+#: A fixed camera stays in a track's source list this long after its last sighting of it.
+CAMERA_LISTED_S = 3.0
 
 #: The primary positional modality. Other sources are admitted only when
 #: explicitly enabled by the caller (see `admit`).
@@ -67,6 +70,11 @@ def _as_measurement(observation: SensorObservation, t_zero: datetime) -> Optiona
     if raw.get("kind") == "bearing":
         base.update({"kind": "bearing", "bearing": float(raw["bearing_rad"]),
                      "sensor_xy": tuple(raw["sensor_xy"]), "sigma_rad": raw.get("sigma_rad")})
+        # A camera's report: how high above the horizon, and a rough range from apparent size.
+        for key, name in (("elevation_rad", "elevation"), ("sigma_el_rad", "sigma_el"), ("sensor_z", "sensor_z"),
+                          ("range_m", "range_m"), ("range_log_sigma", "range_log_sigma"), ("reach_m", "reach_m")):
+            if raw.get(key) is not None:
+                base[name] = float(raw[key])
         return base
     position = observation.position
     if not isinstance(position, GeoPosition):
@@ -91,20 +99,30 @@ def build_timeline(
     frame_hz: float = FRAME_HZ,
     scans: Sequence[Any] = (),
     admit: Sequence[str] = DEFAULT_ADMIT,
+    cameras: Any = (),
 ) -> Dict[str, Any]:
     """Run the tracker over a scenario and snapshot it at a fixed rate.
 
     `admit` lists the sensor ids whose measurements reach the estimator.
     Everything else is ignored here (Diagnostics still shows it).
+
+    `cameras` names the admitted sensors that are fixed cameras reporting
+    bearings: their ids, or a mapping from id to what each can see (the fields
+    of crossfix.View). Their reports do not go to the tracker one by one:
+    sightings of the same instant are first crossed into position fixes (see
+    crossfix.py), and each frame then also lists the bearings nothing could be
+    made of.
     """
     site = site or MonitoredSite()
     tracker = Tracker(config)
     attention = AttentionModel(site)
     evidence = tuple(a.split(":")[0] for a in admit if a.endswith(":evidence"))
     admitted = tuple(a.split(":")[0] for a in admit)
+    camera_ids = tuple(c for c in cameras if c in admitted)
+    fixer = CrossFixer({c: cameras[c] for c in camera_ids} if isinstance(cameras, dict) else camera_ids) if camera_ids else None
     for source_id in admitted:
-        tracker.declare_source(source_id, CADENCE_S.get(source_id, 1.0), NOMINAL_SIGMA_M.get(source_id),
-                               evidence_only=source_id in evidence)
+        tracker.declare_source(source_id, CADENCE_S.get(source_id, 0.5 if source_id in camera_ids else 1.0),
+                               NOMINAL_SIGMA_M.get(source_id), evidence_only=source_id in evidence)
 
     measurements = [
         m for m in (_as_measurement(o, t_zero) for o in observations if o.sensor_id in admitted)
@@ -140,6 +158,8 @@ def build_timeline(
             due.append(measurements[cursor])
             cursor += 1
 
+        if fixer is not None:
+            due = fixer.feed(due, now, tracker)
         tracker.process(due, now=now)
 
         # Maintain the per-loss ensembles.
@@ -211,7 +231,9 @@ def build_timeline(
                 "meas": ([round(track.last_measurement.x, 1), round(track.last_measurement.y, 1),
                           round(track.last_measurement.t, 1)]
                          if track.last_measurement else None),
-                "src": {sid: round(now - t_last, 1) for sid, t_last in track.sources.items()},
+                # A fixed camera is listed only while it is, or has just been, on the contact.
+                "src": {sid: round(now - t_last, 1) for sid, t_last in track.sources.items()
+                        if sid not in camera_ids or now - t_last <= CAMERA_LISTED_S},
                 **({"amb": round(track.last_margin, 1)} if track.last_margin is not None else {}),
                 **({"ambn": track.ambiguous_count} if track.ambiguous_count else {}),
                 # Behaviour-shaped region for a lost contact: the hull of the
@@ -222,10 +244,18 @@ def build_timeline(
             })
 
         snapshots.sort(key=lambda s: (PRIORITY_ORDER[_priority(s)], s["range_m"]))
-        frames.append({
+        frame = {
             "t": now, "tracks": snapshots, "obs": cursor,
-            "sources": {sid: s.state.value for sid, s in tracker.sources.items()},
-        })
+            "sources": {sid: s.state.value for sid, s in tracker.sources.items() if sid not in camera_ids},
+        }
+        if fixer is not None:
+            # Cameras are counted, not listed: [reporting, of]. And the directions in which
+            # a camera saw something that no position could be made of: [camera, degrees, rough metres].
+            frame["cams"] = [sum(1 for c in camera_ids if tracker.sources[c].state.value == "REPORTING"), len(camera_ids)]
+            frame["sightings"] = [[sid, round(math.degrees(bearing), 2), None if rough is None else round(rough)]
+                                  for when, sid, bearing, rough in tracker.unassigned_bearings
+                                  if now - when <= HOLD_S + 0.7]
+        frames.append(frame)
 
     return {
         "version": PROJECTION_VERSION,
@@ -245,6 +275,11 @@ def build_timeline(
         "late_rejected": tracker.late_rejected_count,
         "invalid_rejected": tracker.rejected_invalid_count,
         "unassigned_nonpositional": tracker.unassigned_nonpositional_count,
+        **({"camera_fixes": fixer.fix_count, "camera_sightings_paired": fixer.paired_sightings,
+            "camera_sightings_single": fixer.single_sightings, "camera_fixes_vetoed": fixer.vetoed_fixes,
+            "camera_fixes_ghost": fixer.ghost_fixes, "camera_fixes_refused": tracker.unmatched_fix_count,
+            "tracks_merged": tracker.merged_count}
+           if fixer is not None else {}),
         "evidence_only_reports": dict(tracker.evidence_count),
         "ambiguous_associations": tracker.ambiguous_association_count,
         "estimator": {

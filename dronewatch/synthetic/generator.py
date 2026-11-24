@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 from ..domain.observation import Modality, SensorObservation
+from . import cameras
 from .delivery import DeliveryProfile, deliver
 from .groundtruth import (
     GroundTruthEntity,
@@ -68,14 +69,32 @@ class FaultSpec:
     #: Pan-tilt cue schedule for the Viso camera: ((t, centre_deg), ...).
     #: Produced by the tracker (dronewatch/tracks/cueing.py), never by hand.
     viso_cues: Tuple[Tuple[float, float], ...] = ()
+    #: The fixed cameras of dronewatch.synthetic.cameras report what crosses
+    #: their views: a bearing and a rough range each.
+    camera_network: bool = False
+    #: The radar sees nothing beyond this range from the site centre, metres.
+    #: None leaves it unlimited, as in every other mode.
+    radar_reach_m: Optional[float] = None
+    #: Start the group this many seconds further back along its own approach.
+    run_in_s: float = 0.0
+    #: Keep each contact's height within this many metres of where it started.
+    #: None leaves the unbounded vertical wander of the motion model.
+    altitude_band_m: Optional[float] = None
 
     @classmethod
     def parse(cls, text: Optional[str]) -> "FaultSpec":
-        """radar:40-55;all:40-55;degrade:40-55x4;sparse:0.5;loss:2@40-55;backup:bearing"""
+        """radar:40-55;all:40-55;degrade:40-55x4;sparse:0.5;loss:2@40-55;backup:bearing
+
+        and, for the camera network: cameras:on (the fixed cameras report),
+        reach:1400 (the radar sees nothing beyond this many metres), runin:72
+        (the group starts this many seconds further out), hold:15 (each contact
+        keeps its height within this many metres).
+        """
         if not text:
             return cls()
         radar, allp, deg, loss = [], [], [], []
         cadence, backup, delivery, crossing = None, None, "default", False
+        cameras, reach, run_in, hold = False, None, 0.0, None
         for part in text.split(";"):
             part = part.strip()
             if not part:
@@ -100,10 +119,19 @@ class FaultSpec:
                 delivery = value.strip().lower() or "default"
             elif key == "crossing":
                 crossing = True
+            elif key == "cameras":
+                cameras = value.strip().lower() not in ("", "off", "0", "no")
+            elif key == "reach":
+                reach = float(value)
+            elif key == "runin":
+                run_in = float(value)
+            elif key == "hold":
+                hold = float(value)
             else:
                 raise ValueError(f"unknown fault {key!r}")
         return cls(tuple(radar), tuple(allp), tuple(deg), cadence, tuple(loss), backup,
-                   delivery, crossing, ())
+                   delivery, crossing, (), camera_network=cameras, radar_reach_m=reach, run_in_s=run_in,
+                   altitude_band_m=hold)
 
     def label(self) -> str:
         bits = []
@@ -115,6 +143,10 @@ class FaultSpec:
         if self.backup: bits.append(f"backup {self.backup}")
         if self.delivery != "default": bits.append(f"{self.delivery} delivery")
         if self.crossing: bits.append("crossing pair")
+        if self.camera_network: bits.append("fixed cameras on")
+        if self.radar_reach_m: bits.append(f"radar reach {self.radar_reach_m / 1000:g} km")
+        if self.run_in_s: bits.append(f"group starts {self.run_in_s:.0f} s further out")
+        if self.altitude_band_m: bits.append(f"height held within {self.altitude_band_m:g} m")
         return ", ".join(bits) or "no faults"
 
 
@@ -151,8 +183,10 @@ def _tuned_sensors(scenario_name: str, duration: float,
         by_id["radar-north"].detection_probability = 0.95
         if scenario_name == "operator_demo_signal_loss":
             # One deliberate, understandable gap so coasting and stale states
-            # can be demonstrated and recovered from.
-            by_id["radar-north"].dropout_windows = [(40.0, 52.0)]
+            # can be demonstrated and recovered from. A group that starts further
+            # out arrives that much later, and the gap moves with it, so it still
+            # falls while the group is in front of the radar.
+            by_id["radar-north"].dropout_windows = [(40.0 + faults.run_in_s, 52.0 + faults.run_in_s)]
     elif scenario_name == "sensor_dropout":
         # RF disappears entirely for the middle third of the scenario.
         by_id["rf-east"].dropout_windows = [(duration / 3, 2 * duration / 3)]
@@ -192,6 +226,23 @@ def _tuned_sensors(scenario_name: str, duration: float,
             fov_half_deg=VISO_FOV_HALF_DEG, max_range_m=VISO_MAX_RANGE_M,
             cue_schedule=list(faults.viso_cues),
         ))
+    if faults.radar_reach_m:
+        radar.location = (0.0, 0.0)
+        radar.max_range_m = faults.radar_reach_m
+    if faults.camera_network:
+        for camera in cameras.CAMERA_NETWORK:
+            sensors.append(SensorModel(
+                sensor_id=camera.camera_id, modality=Modality.EO,
+                cadence_hz=cameras.ANALYSIS_HZ, detection_probability=cameras.DETECTION_PROBABILITY,
+                position_noise_m=0.0, latency_mean_s=0.3, latency_jitter_s=0.08,
+                confidence_range=(0.5, 0.9), class_evidence_strength=0.0, false_positive_rate=0.0,
+                location=camera.location, fov_centre_deg=camera.heading_deg,
+                fov_half_deg=camera.hfov_deg / 2.0, max_range_m=camera.reach_m,
+                bearing_only=True, bearing_noise_deg=cameras.BEARING_SIGMA_DEG,
+                range_hint_log_sigma=cameras.RANGE_LOG_SIGMA,
+                elevation_noise_deg=cameras.ELEVATION_SIGMA_DEG, height_m=camera.height_m,
+                max_elevation_deg=camera.vfov_deg,
+            ))
     if faults.backup == "bearing":
         sensors.append(SensorModel(
             sensor_id=BEARING_SENSOR_ID, modality=Modality.ACOUSTIC,
@@ -287,6 +338,8 @@ def generate_scenario(
         entities = generate_incoming_group(
             count or 6, seed=seed, duration=duration_s, dt=dt,
             crossing=bool(faults and faults.crossing),
+            run_in_s=faults.run_in_s if faults else 0.0,
+            altitude_band_m=faults.altitude_band_m if faults else None,
         )
     else:
         entities = ENTITY_BUILDERS[scenario_name](seed, duration_s, dt)

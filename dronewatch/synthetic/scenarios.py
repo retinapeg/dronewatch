@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 import random
+from dataclasses import replace
 from typing import Callable, Dict, List, Optional, Tuple
 
 from ..domain.enums import ObjectClass
@@ -341,25 +342,53 @@ def _continues_inbound(duration: float) -> List[TrajectorySegment]:
     return [ConstantVelocity(duration)]
 
 
-def _turns_away(sign: float):
+def _turns_away(sign: float, run_in_s: float = 0.0):
     def build(duration: float) -> List[TrajectorySegment]:
-        remaining = max(1.0, duration - SPLIT_TIME_S - TURN_DURATION_S)
+        remaining = max(1.0, duration - run_in_s - SPLIT_TIME_S - TURN_DURATION_S)
         return [
-            ConstantVelocity(SPLIT_TIME_S),
+            ConstantVelocity(run_in_s + SPLIT_TIME_S),
             HeadingChange(TURN_DURATION_S, turn_rate_deg_s=sign * TURN_RATE_DEG_S),
             ConstantVelocity(remaining),
         ]
     return build
 
 
+def hold_altitude(entity: GroundTruthEntity, band_m: float) -> GroundTruthEntity:
+    """The same flight with its height kept within `band_m` of where it started.
+
+    The vertical wander of the motion model has no limit, and over a long run
+    it takes a contact hundreds of metres up or below the ground. A real
+    multirotor holds its height. This squeezes the wander smoothly into a band,
+
+        z' = z_0 + b tanh((z - z_0) / b),
+
+    without drawing any new random numbers, so the horizontal path is untouched.
+    """
+    if not entity.trajectory:
+        return entity
+    z0 = entity.trajectory[0].z
+    held = []
+    for point in entity.trajectory:
+        squeeze = math.tanh((point.z - z0) / band_m)
+        held.append(replace(point, z=round(z0 + band_m * squeeze, 4), vz=round(point.vz * (1.0 - squeeze * squeeze), 4)))
+    return replace(entity, trajectory=tuple(held))
+
+
 def generate_incoming_group(
-    count: int, *, seed: int, duration: float, dt: float, crossing: bool = False
+    count: int, *, seed: int, duration: float, dt: float, crossing: bool = False,
+    run_in_s: float = 0.0, altitude_band_m: Optional[float] = None,
 ) -> List[GroundTruthEntity]:
     """The operator demo: an incoming wedge that separates.
 
     The centre continues toward the site and crosses the monitored boundary, one
     wing skims the boundary, and the outer wings turn away. That populates every
     attention level in a single run without any clutter.
+
+    `run_in_s` starts every contact that many seconds earlier along its own
+    straight line, so the same approach begins further out: the group is where
+    the ordinary demo starts once `run_in_s` has passed. `altitude_band_m`
+    keeps each contact's height within that many metres of where it started
+    (see `hold_altitude`).
     """
     if not 3 <= count <= 10:
         raise ValueError("the operator demo supports 3 to 10 contacts")
@@ -373,20 +402,22 @@ def generate_incoming_group(
         if fate == "PASSING":
             # Wings peel outward: left wing turns clockwise (negative), right wing
             # anticlockwise, so both move away from the approach axis.
-            segments = _turns_away(1.0 if lateral >= 0 else -1.0)
+            segments = _turns_away(1.0 if lateral >= 0 else -1.0, run_in_s)
         else:
             segments = _continues_inbound
-        entities.append(
-            make_entity(
-                f"gt-contact-{index + 1:02d}",
-                ObjectClass.UNKNOWN, ControlMode.CONTROLLED,
-                segments,
-                seed=seed, duration=duration, dt=dt,
-                initial=_inbound_initial(index, count, fate, rng, crossing),
-                disturbance_sigma=DEMO_DISTURBANCE,
-                intent="INBOUND" if fate == "INBOUND" else "PASSING",
-            )
+        initial = _inbound_initial(index, count, fate, rng, crossing)
+        if run_in_s:
+            initial = replace(initial, x=initial.x - initial.vx * run_in_s, y=initial.y - initial.vy * run_in_s)
+        entity = make_entity(
+            f"gt-contact-{index + 1:02d}",
+            ObjectClass.UNKNOWN, ControlMode.CONTROLLED,
+            segments,
+            seed=seed, duration=duration, dt=dt,
+            initial=initial,
+            disturbance_sigma=DEMO_DISTURBANCE,
+            intent="INBOUND" if fate == "INBOUND" else "PASSING",
         )
+        entities.append(entity if altitude_band_m is None else hold_altitude(entity, altitude_band_m))
     return entities
 
 

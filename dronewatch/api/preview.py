@@ -49,6 +49,8 @@ from ..tracks.frames import build_timeline
 from ..tracks import uncertainty as _unc
 import math as _math
 from ..synthetic import generator as _gen
+from ..synthetic import cameras as _cams
+from ..tracks.crossfix import FIX_SOURCE as _FIX_SOURCE
 from ..tracks.site import MonitoredSite
 
 router = APIRouter()
@@ -580,7 +582,68 @@ SENSOR_LOSS_MODES: Dict[str, Dict[str, Any]] = {
     "radar_off_30s_viso": {"label": "Radar off 30 s (10-40) + Viso camera on lost groups",
                            "faults": "radar:10-40;backup:viso",
                            "admit": ["radar-north", "viso-eo"], "retain_s": 45.0},
+    # Not a loss at all: the radar is a short-range one and never fails. The
+    # group starts 72 s further out, where only the fixed cameras of
+    # dronewatch/synthetic/cameras.py can see it, and each contact holds its
+    # height (the vertical wander of the other modes has no limit, and over a
+    # run this long it would put contacts below the ground). The run is longer
+    # so the whole approach is seen, tracks are kept for 60 s, and two tracks
+    # that stay on one object for 3 s are merged.
+    "camera_network": {"label": "Fixed cameras first, radar reach 1.4 km",
+                       "faults": f"cameras:on;reach:{_cams.SHORT_RANGE_RADAR_REACH_M:g};runin:72;hold:15",
+                       "admit": ["radar-north", *_cams.CAMERA_IDS], "retain_s": 60.0,
+                       "duration_s": 162.0, "merge_after_s": 3.0},
 }
+
+
+def _network_sensors(radar_reach_m: Optional[float]) -> List[Dict[str, Any]]:
+    """The fixed cameras and the radar, as the map draws them."""
+    sensors: List[Dict[str, Any]] = [
+        {"id": camera.camera_id, "kind": "fixed-camera", "place": camera.place, "x": camera.x, "y": camera.y,
+         "heading_deg": camera.heading_deg, "hfov_deg": camera.hfov_deg, "height_m": camera.height_m,
+         # How far its optics reach against the reference drone, and how close a drone at
+         # the nominal height can come before it is above the top of the picture.
+         "reach_m": round(camera.reach_m), "near_m": round(camera.near_m())}
+        for camera in _cams.CAMERA_NETWORK
+    ]
+    if radar_reach_m:
+        sensors.append({"id": "radar-north", "kind": "radar", "x": 0.0, "y": 0.0, "reach_m": radar_reach_m})
+    return sensors
+
+
+def early_warning(frames: List[Dict[str, Any]], radar_id: str = "radar-north") -> Dict[str, Any]:
+    """When the cameras first placed each track, when the radar first saw it, and the difference.
+
+    Read from the frames, so it is what an operator watching the replay would
+    have seen: a track counts from the first frame it is shown in. `gain_s` is
+    None for a track the radar never saw, and for one the cameras never placed.
+    """
+    rows: Dict[str, Dict[str, Any]] = {}
+    for frame in frames:
+        for snap in frame["tracks"]:
+            row = rows.setdefault(snap["id"], {"id": snap["id"], "fix_t": None, "fix_range_m": None,
+                                               "radar_t": None, "radar_range_m": None, "gain_s": None})
+            if row["fix_t"] is None and _FIX_SOURCE in snap["src"]:
+                row["fix_t"], row["fix_range_m"] = frame["t"], snap["range_m"]
+            if row["radar_t"] is None and radar_id in snap["src"]:
+                row["radar_t"], row["radar_range_m"] = frame["t"], snap["range_m"]
+    for row in rows.values():
+        if row["fix_t"] is not None and row["radar_t"] is not None:
+            row["gain_s"] = round(row["radar_t"] - row["fix_t"], 1)
+    ordered = sorted(rows.values(), key=lambda r: (r["fix_t"] is None, r["fix_t"] or 0.0, r["id"]))
+    fixed = [r for r in ordered if r["fix_t"] is not None]
+    seen = [r for r in ordered if r["radar_t"] is not None]
+    first_fix = min(fixed, key=lambda r: r["fix_t"]) if fixed else None
+    first_radar = min(seen, key=lambda r: r["radar_t"]) if seen else None
+    return {
+        "tracks": ordered,
+        # The first position the cameras gave, and the first thing the radar saw.
+        "first_fix": first_fix,
+        "first_radar": first_radar,
+        # How long the cameras had a position on something before the radar saw anything.
+        "lead_s": (round(first_radar["radar_t"] - first_fix["fix_t"], 1)
+                   if first_fix and first_radar and first_radar["radar_t"] >= first_fix["fix_t"] else None),
+    }
 
 
 @router.get("/api/preview/tracks")
@@ -605,15 +668,19 @@ def get_tracks(
 
     if mode not in SENSOR_LOSS_MODES:
         raise HTTPException(status_code=404, detail=f"unknown mode {mode!r}; known: {list(SENSOR_LOSS_MODES)}")
+    spec = SENSOR_LOSS_MODES[mode]
+    # A mode that needs a longer run says so; the browser does not choose it.
+    duration_s = spec.get("duration_s", duration_s)
     key = (name, seed, count, duration_s, mode)
     if key in _TRACK_CACHE:
         _TRACK_CACHE.move_to_end(key)
         return _TRACK_CACHE[key]
 
-    spec = SENSOR_LOSS_MODES[mode]
     faults = FaultSpec.parse(spec["faults"])
     from ..tracks.tracker import TrackerConfig
-    config = TrackerConfig(drop_after_s=spec["retain_s"]) if spec.get("retain_s") else None
+    settings = {k: v for k, v in (("drop_after_s", spec.get("retain_s")), ("merge_after_s", spec.get("merge_after_s")))
+                if v is not None}
+    config = TrackerConfig(**settings) if settings else None
 
     cues: List[Dict[str, Any]] = []
     if faults.backup == "viso":
@@ -640,6 +707,7 @@ def get_tracks(
     timeline = build_timeline(
         observations, t_zero=T_ZERO, duration_s=duration_s, site=MonitoredSite(),
         scans=scans, admit=spec["admit"], config=config,
+        cameras=_cams.views() if faults.camera_network else (),
     )
     if cues:
         # The plan says what the camera was sent to look for; this says what it found.
@@ -664,7 +732,16 @@ def get_tracks(
                       # Where the camera pointed and when, what it was sent to look
                       # for (`planned`) and what it picked up (`targets`, `seen`).
                       "cues": cues}]
-                    if "viso-eo" in spec["admit"] else []),
+                    if "viso-eo" in spec["admit"] else [])
+                   + (_network_sensors(faults.radar_reach_m) if faults.camera_network else []),
+        **({"camera_network": {
+            "cameras": len(_cams.CAMERA_NETWORK),
+            "places": len({camera.place for camera in _cams.CAMERA_NETWORK}),
+            "target_size_m": _cams.TARGET_SIZE_M, "min_pixels": _cams.MIN_PIXELS,
+            "bearing_sigma_deg": _cams.BEARING_SIGMA_DEG, "analysis_hz": _cams.ANALYSIS_HZ,
+            "radar_reach_m": faults.radar_reach_m, "fix_source": _FIX_SOURCE,
+            "early_warning": early_warning(timeline["frames"]),
+        }} if faults.camera_network else {}),
         "faults": faults.label(),
         "modes": [{"id": k, "label": v["label"]} for k, v in SENSOR_LOSS_MODES.items()],
     })

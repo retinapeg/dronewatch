@@ -351,6 +351,49 @@ def update(x_minus: Vector, p_minus: Matrix, z: Vector, r: Matrix, model,
     return x_plus, p_plus, inn
 
 
+def update_across_sight_line(x_minus: Vector, p_minus: Matrix, z: Vector, r: Matrix, model,
+                             sensor_xy: Tuple[float, float]) -> Tuple[Vector, Matrix, Innovation]:
+    """A bearing update that may not move the estimate along the line of sight.
+
+    A bearing from one sensor says where the target is across the line of
+    sight and nothing about how far away it is. The ordinary gain still moves
+    range and range rate, through cross-covariances the linearisation builds
+    up, and over a long spell with a single sensor that drifts the range: the
+    known weakness of a Cartesian filter fed bearings alone. Here the gain is
+    projected onto the direction across the line of sight, for position and for
+    velocity, before it is applied:
+
+        n = (-d_y, d_x) / |d|,  d = p^- - s
+        K' = blockdiag(n n^T, n n^T) K
+
+    The covariance is then updated in Joseph form, which is correct for any
+    gain, so the uncertainty along the line of sight is left exactly as the
+    prediction made it.
+    """
+    inn = innovation(x_minus, p_minus, z, r, model)
+    h, s, nu = inn.jacobian, inn.covariance, inn.residual
+    k_t = solve_spd(s, matmul(h, p_minus))
+    if k_t is None:
+        raise MeasurementRejected("innovation covariance not positive definite")
+    k = transpose(k_t)                                         # 4 x 1
+    dx, dy = x_minus[0] - sensor_xy[0], x_minus[1] - sensor_xy[1]
+    d = math.hypot(dx, dy)
+    if d < 1.0:
+        raise MeasurementRejected("measurement geometry singular")
+    nx, ny = -dy / d, dx / d
+    for first in (0, 2):                                       # position pair, then velocity pair
+        for j in range(len(nu)):
+            across = k[first][j] * nx + k[first + 1][j] * ny
+            k[first][j], k[first + 1][j] = across * nx, across * ny
+    n, m = len(x_minus), len(nu)
+    x_plus = [x_minus[i] + sum(k[i][j] * nu[j] for j in range(m)) for i in range(n)]
+    i_kh = sub(identity(n), matmul(k, h))
+    p_plus = symmetrize(add(matmul(matmul(i_kh, p_minus), transpose(i_kh)), matmul(matmul(k, r), transpose(k))))
+    if not is_finite(p_plus):
+        raise MeasurementRejected("update produced non-finite covariance")
+    return x_plus, p_plus, inn
+
+
 # --- derived quantities ------------------------------------------------------
 
 @dataclass(frozen=True)

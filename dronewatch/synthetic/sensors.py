@@ -93,6 +93,21 @@ class SensorModel:
     #: mathematical convention, and no position at all.
     bearing_only: bool = False
     bearing_noise_deg: float = 2.0
+    #: A camera knows the direction of what it sees well and its distance badly.
+    #: When this is above zero a bearing report also carries a rough range, as a
+    #: camera would get from how large the object looks given an assumed size.
+    #: The value is the one-sigma error of that range in log terms (0.35 is
+    #: about a factor of 1.4 either way). Zero means no range is reported.
+    range_hint_log_sigma: float = 0.0
+    #: A camera also sees how far above the horizon the object is. When this is
+    #: above zero a bearing report carries that elevation angle, measured from a
+    #: sensor mounted `height_m` above the ground, with this one-sigma error.
+    elevation_noise_deg: float = 0.0
+    height_m: float = 0.0
+    #: The top of the picture, degrees above the horizon. A camera with a long
+    #: lens has a shallow picture, so anything that passes close and high is
+    #: above it and is not seen. None means no limit.
+    max_elevation_deg: Optional[float] = None
     #: Windows in which the sensor scans normally but its position noise is
     #: multiplied by the given factor (quality degradation, not outage).
     degraded_windows: List[Tuple[float, float, float]] = field(default_factory=list)
@@ -114,13 +129,17 @@ class SensorModel:
     def is_blind_to(self, entity_id: str, t: float) -> bool:
         return any(start <= t <= end for start, end in self.blind_windows.get(entity_id, ()))
 
-    def can_see(self, x: float, y: float, t: float = 0.0) -> bool:
-        """Sector and range check for a cued sensor. Always true if no FOV set."""
+    def can_see(self, x: float, y: float, t: float = 0.0, z: Optional[float] = None) -> bool:
+        """Sector, range and (given a height) elevation check. Always true if no view is set."""
         centre = self.centre_at(t)
         if centre is None and self.max_range_m is None:
             return True
         sx, sy = self.location or (0.0, 0.0)
         dx, dy = x - sx, y - sy
+        if self.max_elevation_deg is not None and z is not None:
+            elevation = math.degrees(math.atan2(z - self.height_m, max(math.hypot(dx, dy), 1e-6)))
+            if not 0.0 <= elevation <= self.max_elevation_deg:
+                return False
         if self.max_range_m is not None and math.hypot(dx, dy) > self.max_range_m:
             return False
         if centre is not None:
@@ -275,7 +294,7 @@ def observe_entity(
             continue
 
         point = entity.state_at(t)
-        if not sensor.can_see(point.x, point.y, t):
+        if not sensor.can_see(point.x, point.y, t, point.z):
             t += sensor.interval_s
             continue
         factor = sensor.noise_factor(t)
@@ -301,6 +320,18 @@ def observe_entity(
             position = None
             raw.update({"kind": "bearing", "bearing_rad": round(bearing, 6),
                         "sensor_xy": [sx, sy], "sigma_rad": round(sigma, 6)})
+            ground = math.hypot(point.x - sx, point.y - sy)
+            if sensor.range_hint_log_sigma > 0:
+                rough = ground * math.exp(gauss[1] * sensor.range_hint_log_sigma)
+                raw.update({"range_m": round(rough, 1), "range_log_sigma": sensor.range_hint_log_sigma})
+            if sensor.elevation_noise_deg > 0:
+                sigma_el = math.radians(sensor.elevation_noise_deg) * factor
+                elevation = math.atan2(point.z - sensor.height_m, max(ground, 1e-6)) + gauss[2] * sigma_el
+                raw.update({"elevation_rad": round(elevation, 6), "sigma_el_rad": round(sigma_el, 6),
+                            "sensor_z": sensor.height_m})
+            if sensor.max_range_m is not None:
+                # What the camera's own optics allow: nothing it reports is further than this.
+                raw["reach_m"] = round(sensor.max_range_m, 1)
         else:
             sigma = sensor.position_noise_m * factor
             x = point.x + gauss[0] * sigma

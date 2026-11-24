@@ -124,6 +124,16 @@ class TrackerConfig:
     #: A source is UNAVAILABLE when its heartbeat is older than this many of
     #: its own scan intervals.
     heartbeat_tolerance_scans: float = 2.5
+    #: Duplicate tracks. With one sensor each object gives one report per scan
+    #: and two tracks cannot both live on it. With several sensors they can,
+    #: each fed by a different one. Two confirmed tracks that stay within
+    #: `merge_distance_m` and `merge_speed_m_s` of each other for
+    #: `merge_after_s` are taken to be one object and the newer is retired.
+    #: None (the default) never merges. Two real objects that fly this close
+    #: and this alike for that long cannot be told apart by position anyway.
+    merge_after_s: Optional[float] = None
+    merge_distance_m: float = 40.0
+    merge_speed_m_s: float = 5.0
 
 
 @dataclass
@@ -158,6 +168,10 @@ class Track:
     history: List[Tuple[float, float, float]] = field(default_factory=list)
     last_altitude_m: Optional[float] = None
     last_measurement: Optional[Measured] = None
+    #: Last time a camera's bearing was accepted. A camera that still has the
+    #: object in view keeps the track from going stale, though a bearing says
+    #: nothing about range and the track is not counted as freshly positioned.
+    last_bearing_t: float = -math.inf
     #: Last time each source contributed an accepted measurement.
     sources: Dict[str, float] = field(default_factory=dict)
     #: (-2 ln L) margin between best and second-best candidate at the last
@@ -290,6 +304,15 @@ class Tracker:
         self.late_rejected_count = 0
         self.rejected_invalid_count = 0
         self.unassigned_nonpositional_count = 0
+        #: Fixes the camera network matched to one track that the track then refused.
+        self.unmatched_fix_count = 0
+        #: Duplicate tracks retired, and since when each close pair has been close.
+        self.merged_count = 0
+        self._close_since: Dict[Tuple[str, str], float] = {}
+        #: The most recent bearings no track explained: (t, source_id, bearing_rad,
+        #: rough range or None). A direction with nothing to attach it to; kept so
+        #: it can be shown, never used to estimate anything.
+        self.unassigned_bearings: Deque[Tuple[float, str, float, Optional[float]]] = deque(maxlen=64)
         self.spawn_count = 0
         self.ambiguous_association_count = 0
         #: Accepted-update innovation diagnostics: (t, nis, dof, track_id).
@@ -370,6 +393,8 @@ class Tracker:
             last_measurement=Measured(m["x"], m["y"], m["t"], m.get("source_id", "radar")),
         )
         track.sources[track.last_measurement.source_id] = m["t"]
+        for contributor in m.get("cameras") or ():
+            track.sources[contributor] = m["t"]
         track.display_time = m["t"]
         track.display_state = list(track.state)
         track.display_cov = [row[:] for row in cov]
@@ -423,7 +448,11 @@ class Tracker:
     def _apply(self, track: Track, m: dict, model, r, z, inn: Optional[K.Innovation]) -> None:
         dt = m["t"] - track.state_time
         x_minus, p_minus = K.predict(track.state, track.covariance, dt, self.config.process_noise_w)
-        x_plus, p_plus, _ = K.update(x_minus, p_minus, z, r, model, precomputed=inn)
+        if m.get("camera") and m.get("kind") == "bearing":
+            # One camera's bearing: it may tighten the track across the line of sight only.
+            x_plus, p_plus, _ = K.update_across_sight_line(x_minus, p_minus, z, r, model, m["sensor_xy"])
+        else:
+            x_plus, p_plus, _ = K.update(x_minus, p_minus, z, r, model, precomputed=inn)
         track.checkpoints.append(Checkpoint(track.state_time, list(track.state),
                                             [row[:] for row in track.covariance], m))
         track.state, track.covariance, track.state_time = x_plus, p_plus, m["t"]
@@ -485,10 +514,20 @@ class Tracker:
                 continue
 
             t = m["t"]
+            if positional and m.get("spawn"):
+                # The sender has already established that no held track is near this fix.
+                self._spawn(m, r)
+                continue
             candidates = []          # (score, track_id, checkpoint_idx, innovation)
             any_too_old = False
+            #: A report from the camera network comes already matched: a lone bearing to
+            #: one track or to none, a fix to the one track it may update.
+            matched = m.get("camera") or "track" in m
             for track in self.tracks.values():
-                if track.freshness is Freshness.STALE and not positional:
+                if matched:
+                    if track.track_id != m.get("track"):
+                        continue
+                elif track.freshness is Freshness.STALE and not positional:
                     continue
                 ref = self._reference_state(track, t)
                 if ref is None:
@@ -512,12 +551,18 @@ class Tracker:
                 if any_too_old:
                     self.late_rejected_count += 1
                     continue
-                if positional:
+                if positional and "track" in m:
+                    # A fix meant for one track, which that track does not accept. It is
+                    # not offered to any other and it does not start a new one.
+                    self.unmatched_fix_count += 1
+                elif positional:
                     self._spawn(m, r)
                 else:
                     # A bearing alone does not fix a position; it cannot start a
                     # track. Kept as a count, not silently dropped.
                     self.unassigned_nonpositional_count += 1
+                    if m.get("kind") == "bearing":
+                        self.unassigned_bearings.append((t, source_id, m["bearing"], m.get("range_m")))
                 continue
 
             candidates.sort(key=lambda c: c[0])
@@ -543,6 +588,11 @@ class Tracker:
             track.hits += 1
             track.misses = 0
             track.sources[source_id] = max(track.sources.get(source_id, -math.inf), t)
+            # A fix made from several cameras credits each of them.
+            for contributor in m.get("cameras") or ():
+                track.sources[contributor] = max(track.sources.get(contributor, -math.inf), t)
+            if m.get("camera"):
+                track.last_bearing_t = max(track.last_bearing_t, t)
             if positional:
                 if track.last_measurement is None or t >= track.last_measurement.t:
                     track.last_measurement = Measured(m["x"], m["y"], t, source_id)
@@ -571,18 +621,21 @@ class Tracker:
             # Age of positional information, not of any measurement.
             pos_t = track.last_measurement.t if track.last_measurement else track.state_time
             age = now - pos_t
+            # A camera that still has the object in view: its direction is known now even
+            # though its range is not, so the track is coasting, not stale, and is kept.
+            in_view = now - track.last_bearing_t <= cfg.coast_after_s
 
             if track.lifecycle is Lifecycle.TENTATIVE:
                 if age > cfg.tentative_timeout_s:
                     del self.tracks[track_id]
                     continue
-            elif age > cfg.drop_after_s:
+            elif age > cfg.drop_after_s and not in_view:
                 track.lifecycle = Lifecycle.ARCHIVED
                 self.archived.append(track_id)
                 del self.tracks[track_id]
                 continue
 
-            if age > cfg.stale_after_s:
+            if age > cfg.stale_after_s and not in_view:
                 track.freshness = Freshness.STALE
             elif age > cfg.coast_after_s:
                 track.freshness = Freshness.PREDICTED
@@ -601,6 +654,34 @@ class Tracker:
                     track.frozen_position = (track.last_measurement.x, track.last_measurement.y)
             else:
                 track.frozen_position = None
+        if cfg.merge_after_s is not None:
+            self._merge_duplicates(now)
+
+    def _merge_duplicates(self, now: float) -> None:
+        """Retire the newer of two confirmed tracks that have been one object for long enough."""
+        cfg = self.config
+        live = [t for t in self.tracks.values()
+                if t.lifecycle is Lifecycle.CONFIRMED and t.freshness is not Freshness.STALE]
+        close = set()
+        for i, a in enumerate(live):
+            for b in live[i + 1:]:
+                xa, xb = a.display_state, b.display_state
+                if (math.hypot(xa[0] - xb[0], xa[1] - xb[1]) <= cfg.merge_distance_m
+                        and math.hypot(xa[2] - xb[2], xa[3] - xb[3]) <= cfg.merge_speed_m_s):
+                    close.add((a.track_id, b.track_id))
+        for pair in [p for p in self._close_since if p not in close]:
+            del self._close_since[pair]
+        for pair in sorted(close):
+            since = self._close_since.setdefault(pair, now)
+            if now - since < cfg.merge_after_s or pair[0] not in self.tracks or pair[1] not in self.tracks:
+                continue
+            # Track ids are issued in order, so the later id is the newer track.
+            newer = max(pair)
+            self.tracks[newer].lifecycle = Lifecycle.ARCHIVED
+            self.archived.append(newer)
+            del self.tracks[newer]
+            self.merged_count += 1
+            del self._close_since[pair]
 
     def visible_tracks(self) -> List[Track]:
         return [track for track in self.tracks.values() if track.is_visible]
