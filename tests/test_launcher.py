@@ -42,7 +42,7 @@ def test_it_works_from_another_folder_and_starts_the_server_on_the_local_address
     result = start(checkout, cwd=elsewhere)
     assert result.returncode == 0, result.stderr
     assert "server args: main:app --host 127.0.0.1 --port 8000" in result.stdout
-    assert "http://127.0.0.1:8000/preview?demo=viso" in result.stdout
+    assert "http://127.0.0.1:8000/preview?demo=cameras" in result.stdout, "the camera network is the demo it opens"
     assert (checkout / "secret-seen.txt").read_text().strip() == "server secret: none"
     assert "secret: not set" in result.stdout
 
@@ -102,6 +102,7 @@ def test_viso_makes_a_secret_opens_a_tunnel_and_puts_the_webhook_address_on_the_
     # The screen shows where Viso Now reaches this computer, and never the secret.
     assert "https://quiet-river-demo.trycloudflare.com/v2/webhook/viso\n" in result.stdout
     assert "on the clipboard" in result.stdout and secret not in result.stdout + result.stderr
+    assert "http://127.0.0.1:8124/preview?demo=viso" in result.stdout, "with Viso Now connected it opens the camera check"
     # When the server stops, the tunnel is stopped with it.
     with pytest.raises(ProcessLookupError):
         os.kill(int((tools / "tunnel.pid").read_text()), 0)

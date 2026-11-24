@@ -7,7 +7,7 @@ This folder is what GitHub Pages serves. There is no server behind it.
   asset paths relative, and replaces the links to server-only pages. Do not edit these two files by hand:
   a test fails if they differ from what the build writes.
 - `api/tracks__*.json` is the tracker's recorded output (`GET /api/preview/tracks`) for every scenario,
-  contact count and sensor-loss mode at seed 42, written by calling the real
+  contact count and sensor mode at seed 42, written by calling the real
   `dronewatch.api.preview.get_tracks` once per combination.
 - `api/paths/*.json` is the recorded Monte Carlo containment cloud (`GET /api/preview/paths`) for every
   lost contact in those replays, one per two seconds of replay time.
@@ -19,6 +19,9 @@ Nothing is computed in the browser that the Python tracker did not compute first
 Not available here: camera clips and Viso Now results. The camera window says so. The camera turning to
 groups of lost contacts is still shown, with lock brackets on the contacts it has picked up, because that
 is part of the recorded replay. Run the server (see the top-level README) for the footage and the verdict.
+
+The camera-network mode (`?demo=cameras`) is complete here: every camera, sight line, fix and the
+early-warning counter come from the recorded replay.
 
 ## Rebuilding
 

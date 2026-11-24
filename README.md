@@ -4,8 +4,10 @@ DroneWatch is a prototype counter-drone (counter-UAS) tracking and
 incident-awareness system in Python. A FastAPI server runs a Kalman-filter
 tracker over synthetic multi-sensor reports, replays the result in a browser
 operator view, and estimates where a contact could be once its sensor stops
-reporting. It also has webhook receivers intended for Viso Now visual-analysis
-results; the vendor contract and an end-to-end connection remain unverified.
+reporting. One mode places an incoming group by crossing the bearings of fixed
+cameras, before a short-range radar can see it. It also has webhook receivers
+intended for Viso Now visual-analysis results; the vendor contract and an
+end-to-end connection remain unverified.
 
 Everything the tracker sees is synthetic, generated from fixed seeds by
 `dronewatch/synthetic/`. No real radar or RF hardware is connected, there is no
@@ -32,6 +34,16 @@ shown as evidence; they do not feed positions to the tracker.
 - Failures are reported rather than tuned away: a crossing pair averages one
   identity switch per run, and a 30 s outage outlasts the 25 s track retention,
   so all six contacts come back as new identities.
+- Fixed cameras before the radar
+  ([`docs/results/camera_network.md`](docs/results/camera_network.md), eight
+  held-out seeds): 32 simulated cameras that each report only a direction
+  placed the first contact 3.1 to 3.3 km out, 65 to 84 s before a radar with a
+  1.4 km reach saw anything. With 3 and 6 contacts every run had exactly one
+  track per contact, none of them off its contact, and position RMSE was 6 to
+  8 m while only cameras held it. With 10 contacts one run in eight had a track
+  off every contact for 0.7% of its frames. This holds for a 1.2 m drone
+  against a short-range radar; for a small drone, or against a medium-range
+  radar, the radar sees it first ([why](docs/CAMERA_NETWORK.md)).
 
 ![Operator preview at T+15 s with six synthetic contacts about 2 km out: radar unavailable, and the simulated camera's narrow view turned onto three lost contacts, each marked with lock brackets](docs/images/operator-preview-radar-outage.png)
 
@@ -40,19 +52,29 @@ seed 42, six synthetic contacts, radar off from 10 to 40 s, simulated camera
 (labelled VISO-EO) turned by the tracker onto three lost contacts. All data is
 synthetic; no camera clip was linked and no Viso Now results had been received.*
 
+![Operator preview in the camera-network mode at T+62 s: six contacts between 2.3 and 3.3 km out, each with lines to the two or more fixed cameras that have just sighted it; the radar's 1.4 km reach is a dotted ring round the site and the counter reads 35 seconds ahead of the radar](docs/images/operator-preview-camera-network.png)
+
+*The camera-network mode (`/preview?demo=cameras`) at T+62 s: seed 42, six
+synthetic contacts, 32 simulated fixed cameras at 14 places. Each bright view
+is a camera that has a contact now; each line runs from a camera to a track it
+has just sighted. The dotted ring is how far the radar reaches. Camera
+detections are simulated; no footage is analysed in this mode.*
+
 ## System architecture
 
 ![DroneWatch architecture: operator browser, FastAPI server, synthetic sensor generator, Kalman tracker, containment and camera cue planner, optional Viso webhook ingestion into SQLite, and offline evaluation](docs/images/architecture.svg)
 
 *Purple: model call · blue: deterministic code · green: human · amber: evaluation · grey: storage · dashed: external, optional, mocked or planned*
 
-The operator picks a scenario, contact count and sensor-loss mode.
+The operator picks a scenario, contact count and sensor mode.
 `GET /api/preview/tracks` then generates seeded synthetic observations and
 sensor heartbeats with those faults, runs the tracker over them once in
 delivery order, and returns 5 Hz frames (estimates, covariances, containment
 regions, rule-based priority levels) that the browser replays. In the cued
 camera mode the tracker runs twice: a radar-only pass decides where the
-simulated camera points, and a second pass adds its synthetic detections. Viso
+simulated camera points, and a second pass adds its synthetic detections. In
+the camera-network mode the bearings of 32 simulated fixed cameras are crossed
+into position fixes before they reach the tracker. Viso
 Now results enter only through the webhooks, are stored in SQLite and shown as
 non-spatial evidence, and never update a track. Ground truth never reaches the
 server or the browser; only `experiments/sensor_loss.py`, the tests and the
@@ -68,9 +90,10 @@ in the external Viso Now service, whose results are kept as evidence only.
 ## Run it online (nothing to install)
 
 - **Live demo, nothing to start:** <https://retinapeg.github.io/dronewatch/> — the operator view replaying the
-  tracker's recorded output for every scenario, contact count and sensor-loss mode (seed 42), including the
+  tracker's recorded output for every scenario, contact count and sensor mode (seed 42), including the
   Monte Carlo containment cloud for each lost contact. Static, so it never sleeps; camera clips and Viso Now
-  results need the server (see [`site/README.md`](site/README.md)).
+  results need the server (see [`site/README.md`](site/README.md)). The camera network plays by itself at
+  <https://retinapeg.github.io/dronewatch/?demo=cameras>.
 - **Render (free tier):** Render -> *New* -> *Blueprint* -> pick this repo. `render.yaml` and the
   `Dockerfile` do the rest. The free tier sleeps after 15 minutes idle; the first load after that
   takes about 30 s. Open `/` once it is up.
@@ -94,15 +117,17 @@ python3 -m venv .venv
 .venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-Open <http://127.0.0.1:8000/preview>, pick a sensor-loss mode and press Play.
+Open <http://127.0.0.1:8000/preview>, pick a sensor mode and press Play.
 
 Once it is set up, `./run` starts it with one command from any folder (for
 example `~/Projects/dronewatch/run`): it fetches the latest code, stops a
-server already on the port, starts the server and opens the camera demo in the
-browser. It reads the Viso Now webhook secret from the environment or from a
+server already on the port, starts the server and opens the camera-network
+demo in the browser. The Viso Now camera check is one click away on that page.
+`./run` reads the Viso Now webhook secret from the environment or from a
 private `.env.local` file beside it, which Git ignores, and never prints it.
 
-`./run --viso` also makes this computer reachable for Viso Now: it creates a
+`./run --viso` opens the camera check instead and also makes this computer
+reachable for Viso Now: it creates a
 secret if there is none, opens a public tunnel with `cloudflared`, and puts the
 full webhook address on the clipboard to paste into the agent's webhook
 connection. While the tunnel is open the whole local server answers at a
@@ -115,6 +140,7 @@ To regenerate the results tables:
 ```bash
 .venv/bin/python -m experiments.sensor_loss                  # writes docs/results/sensor_loss_quick.{md,json}
 .venv/bin/python -m experiments.sensor_loss --out /tmp/dw    # write elsewhere instead
+.venv/bin/python -m experiments.camera_network               # writes docs/results/camera_network.{md,json}
 ```
 
 The runs are seeded, so a rerun reproduces the tables apart from the wall-clock
@@ -248,8 +274,45 @@ How to read it, from the analysis in `docs/SENSOR_LOSS_MATH.md`:
   average one impure reacquisition per run, and a 30 s outage exceeds
   retention.
 
+### Fixed cameras before the radar
+
+[`dronewatch/synthetic/cameras.py`](dronewatch/synthetic/cameras.py) and
+[`dronewatch/tracks/crossfix.py`](dronewatch/tracks/crossfix.py), tested in
+[`tests/test_camera_network.py`](tests/test_camera_network.py), measured by
+[`experiments/camera_network.py`](experiments/camera_network.py). The
+arithmetic, the layout, the results and the limits are in
+[`docs/CAMERA_NETWORK.md`](docs/CAMERA_NETWORK.md). In summary:
+
+- A camera's reach against a drone is pixels on target: a drone of width `s`
+  at range `R` covers `n = s / (R * HFOV / N_x)` pixels, and below 8 there is
+  nothing to detect. For a 1.2 m drone and a 4K sensor that is 0.83 km through
+  an ordinary 40 degree lens and 2.75 km through a 12 degree one, over a strip
+  that is 576 m wide whatever the lens. An ordinary security camera on the
+  site's own fence therefore sees no further than the radar does; early
+  warning comes from long lenses and from cameras that stand further out.
+- A camera reports a bearing and an elevation (0.1 degree each) and a rough
+  range from apparent size (a factor of 1.4 either way), never a position.
+- Two cameras that see the same object at the same moment give a position by
+  weighted least squares, with a covariance that follows the geometry: at
+  2.4 km, two cameras 850 m apart give 3 m across the view and 13 m along it.
+- With several objects in view the wrong pairs of bearings cross too. They are
+  rejected by the two cameras disagreeing about height at the crossing, by a
+  third camera that should see the spot and does not, and by a rule that a new
+  object is only ever made from sightings no held track is near.
+- A sighting that cannot be paired can refine an existing track across the
+  line of sight only (a projected Kalman gain with a Joseph-form update), and
+  can never start one.
+- The radar's 1.4 km reach is the published tracking range of a short-range
+  counter-drone radar against a heavy-lift multirotor. A medium-range radar
+  reaches further than any camera here, and the cameras' reach shrinks in
+  proportion to the size of the drone, so for a small drone the radar sees it
+  first. Both limits are worked through in the document.
+
 ### Known limitations
 
+- The camera network is synthetic: its detector is a detection probability
+  inside an optical reach, with no weather, night, clutter or false
+  detections, and its cameras are assumed surveyed and synchronised.
 - A constant-velocity filter lags sustained turns; a sharp manoeuvre inside a
   blackout can cause a wrong reacquisition when neighbours are close.
 - Greedy nearest-neighbour association with no track-existence probability.
@@ -264,10 +327,11 @@ How to read it, from the analysis in `docs/SENSOR_LOSS_MATH.md`:
 `GET /preview` serves the operator view (`preview.html`). It replays the
 tracker's output for the `operator_demo` scenarios (seed 42, 3, 6 or 10
 contacts) computed once on the server by `GET /api/preview/tracks`, so playback
-speed cannot change what is estimated. The sensor-loss menu selects a fault
-mode: radar off, all positional inputs off, EO or bearing-only backup, degraded
-radar, one contact unobserved, and a 30 s radar outage with or without a
-simulated camera that the tracker turns towards groups of lost contacts. Every lost
+speed cannot change what is estimated. The sensors menu selects a mode: radar
+off, all positional inputs off, EO or bearing-only backup, degraded radar, one
+contact unobserved, a 30 s radar outage with or without a simulated camera
+that the tracker turns towards groups of lost contacts, and a network of fixed
+cameras with a short-range radar. Every lost
 contact is drawn with its behaviour-shaped containment region, and selecting
 one fetches and draws sampled paths from `GET /api/preview/paths`. The track
 picture is labelled "SIMULATION · NOT LIVE".
@@ -292,6 +356,20 @@ picture is labelled "SIMULATION · NOT LIVE".
   clip to one with `python scripts/link_camera_clip.py clip.mp4 --look 1` (see
   `--help`); [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md) covers the
   rendered synthetic clips.
+- `/preview?demo=cameras` starts the camera network at T+10 at twice normal
+  speed. The group starts 3.8 to 5 km out and the run is 162 s long. The map
+  shows 32 fixed cameras at 14 places, each view drawn from where a drone
+  comes into the picture out to the camera's reach, and the radar's 1.4 km
+  reach as a dotted ring. A camera that sees something no position can be made
+  of draws a dashed ray: a direction only. When two cameras at different
+  places see the same contact the track appears, with a solid line from each
+  camera that has just sighted it. The counter in the summary box reads how
+  long the cameras have had a position while the radar has had nothing, and
+  stops at the lead they had when the radar makes its first detection; each
+  contact carries its own figure, which turns green when the radar picks that
+  contact up. Nothing later in the replay is shown before it happens. The
+  cameras' detections are simulated, and the page says so; this mode has no
+  camera window and no Viso Now result.
 - `/preview/diagnostics` is the raw-observation view of the synthetic
   generator (default `mixed_threat_decoy`, seed 42). It draws observations, not
   tracks.
@@ -314,7 +392,7 @@ If port 8000 is occupied, pass any free port, for example `--port 8010`.
 | `GET` | `/camera` | Camera clips and received Viso Now results (`camera.html`). |
 | `GET` | `/api/preview/scenarios` | Synthetic scenario names and defaults. |
 | `GET` | `/api/preview/scenario` | Generated observations for one scenario and seed. |
-| `GET` | `/api/preview/tracks` | Tracker output over time for an operator scenario and sensor-loss mode. |
+| `GET` | `/api/preview/tracks` | Tracker output over time for an operator scenario and sensor mode. |
 | `GET` | `/api/preview/paths` | Monte Carlo containment paths for one track at one time. |
 | `GET` | `/api/preview/viso/status` | Protected webhook configuration and local receipt state. Never returns raw payloads or the secret. |
 | `GET` | `/api/preview/viso/evidence` | Non-spatial Viso evidence matched to a scenario replay. |
@@ -413,6 +491,10 @@ deployment, keep the secret set and expose only that route to Viso.
   parameters, equation-to-test map and known limitations.
 - [docs/results/sensor_loss_quick.md](docs/results/sensor_loss_quick.md):
   committed experiment results (raw data in `sensor_loss_quick.json`).
+- [docs/CAMERA_NETWORK.md](docs/CAMERA_NETWORK.md): the camera-network mode:
+  optics, layout, crossing bearings, ghosts, results and limits.
+- [docs/results/camera_network.md](docs/results/camera_network.md): its
+  held-out results (raw data in `camera_network.json`).
 - [docs/SYNTHETIC_CAMERA.md](docs/SYNTHETIC_CAMERA.md): synthetic camera clips
   used as Viso input.
 - [data/synthetic/README.md](data/synthetic/README.md): synthetic dataset

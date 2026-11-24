@@ -618,3 +618,129 @@ test('every element id on the page is used once', () => {
   assert.deepEqual(repeated, []);
   assert.ok(ids.includes('mode') && ids.includes('view-mode'));
 });
+
+/* ---------------- camera network ---------------- */
+const fence = {id: 'cam-nw-3', kind: 'fixed-camera', place: 'NW CORNER', x: -425, y: 425, heading_deg: 80, hfov_deg: 12, reach_m: 2750, near_m: 735};
+const fence2 = {id: 'cam-nw-4', kind: 'fixed-camera', place: 'NW CORNER', x: -425, y: 425, heading_deg: 92, hfov_deg: 12, reach_m: 2750, near_m: 735};
+const gate = {id: 'cam-gate-n', kind: 'fixed-camera', place: 'N GATE', x: 0, y: 1500, heading_deg: 90, hfov_deg: 12, reach_m: 2750, near_m: 752};
+const radarSensor = {id: 'radar-north', kind: 'radar', x: 0, y: 0, reach_m: 1400};
+
+test('a replay’s sensors are sorted into fixed cameras and the radar, and a replay without them has neither', () => {
+  const net = op.network([{id: 'viso-eo', kind: 'eo-camera'}, fence, gate, radarSensor, null, {kind: 'fixed-camera'}]);
+  assert.deepEqual(net.cameras.map(c => c.id), ['cam-nw-3', 'cam-gate-n']);
+  assert.equal(net.byId['cam-gate-n'], gate);
+  assert.equal(net.radar, radarSensor);
+  assert.deepEqual(op.network(undefined), {cameras: [], byId: {}, radar: null});
+  assert.equal(op.network([{id: 'viso-eo', kind: 'eo-camera'}]).radar, null);
+});
+
+test('a line is drawn only from a camera that has just sighted the contact', () => {
+  const byId = op.network([fence, gate]).byId;
+  const track = {src: {'cameras': 0.2, 'radar-north': 0.4, 'cam-nw-3': 0.2, 'cam-gate-n': 2.6, 'cam-unknown': 0.1}};
+  assert.deepEqual(op.camerasOn(track, byId), ['cam-nw-3'], 'the gate saw it 2.6 s ago; the radar and the fix source are not cameras');
+  assert.deepEqual(op.camerasOn(track, byId, 3), ['cam-nw-3', 'cam-gate-n']);
+  assert.deepEqual(op.camerasOn({}, byId), []);
+  assert.deepEqual(op.camerasOn(null, byId), []);
+});
+
+test('a camera’s view runs from where a drone comes into the picture out to its reach', () => {
+  const view = op.cameraWedge(gate);                    // at (0, 1500), looking north through a 12 degree lens
+  assert.equal(view.near, 752);
+  assert.equal(view.far, 2750);
+  const [nearRight, farRight, farLeft, nearLeft] = view.corners;
+  assert.ok(farRight.x > 0 && farLeft.x < 0, 'angles grow anticlockwise, so the first edge is the right-hand one');
+  assert.ok(Math.abs(farRight.x + farLeft.x) < 1e-6 && Math.abs(farRight.y - farLeft.y) < 1e-6, 'symmetric about north');
+  assert.ok(Math.abs(Math.hypot(farRight.x, farRight.y - 1500) - 2750) < 1e-6);
+  assert.ok(Math.abs(Math.hypot(nearLeft.x, nearLeft.y - 1500) - 752) < 1e-6);
+  assert.ok(Math.abs(farRight.x - 2750 * Math.sin(6 * Math.PI / 180)) < 1e-6, 'half of twelve degrees either side');
+  assert.ok(nearRight.y < farRight.y);
+  assert.equal(op.cameraWedge({...gate, near_m: 9000}).near, 2750, 'never further out than the reach');
+});
+
+test('directions are counted by place, because two lenses on one pole cannot cross', () => {
+  const byId = op.network([fence, fence2, gate]).byId;
+  assert.equal(op.placesWithADirection([['cam-nw-3', 81.2, 2400], ['cam-nw-4', 81.2, null]], byId), 1);
+  assert.equal(op.placesWithADirection([['cam-nw-3', 81.2, 2400], ['cam-gate-n', 95, 1900], ['cam-gone', 0, 0]], byId), 2);
+  assert.equal(op.placesWithADirection(undefined, byId), 0);
+});
+
+const early = {
+  first_fix: {id: 'DW-001', fix_t: 26.2, fix_range_m: 3256, radar_t: 99.2, radar_range_m: 1388, gain_s: 73},
+  first_radar: {id: 'DW-001', fix_t: 26.2, fix_range_m: 3256, radar_t: 99.2, radar_range_m: 1388, gain_s: 73},
+};
+
+test('the early-warning counter waits, then counts, then holds the lead once the radar has seen something', () => {
+  assert.deepEqual(op.warningHeadline(early, 20), {state: 'waiting', seconds: 0, fix: null, radar: null});
+  const ahead = op.warningHeadline(early, 61.2);
+  assert.equal(ahead.state, 'ahead');
+  assert.ok(Math.abs(ahead.seconds - 35) < 1e-9);
+  assert.equal(ahead.radar, null, 'the radar’s first detection is still in the future and is not shown');
+  const gained = op.warningHeadline(early, 140);
+  assert.equal(gained.state, 'gained');
+  assert.ok(Math.abs(gained.seconds - 73) < 1e-9, 'fixed at the lead the cameras had; it does not keep counting');
+  assert.equal(gained.radar.radar_range_m, 1388);
+  // A replay in which the radar never sees anything keeps counting; one with no fix never starts.
+  assert.equal(op.warningHeadline({first_fix: early.first_fix, first_radar: null}, 140).state, 'ahead');
+  assert.equal(op.warningHeadline({first_fix: null, first_radar: null}, 140).state, 'waiting');
+  assert.equal(op.warningHeadline(undefined, 140).state, 'waiting');
+});
+
+test('a contact’s tag counts while only cameras hold it and turns into the time gained when the radar sees it', () => {
+  const row = {id: 'DW-002', fix_t: 39.6, fix_range_m: 3117, radar_t: 116.8, radar_range_m: 1388, gain_s: 77.2};
+  assert.equal(op.warningTag(row, 30, 1400), null, 'before the cameras placed it there is nothing to say');
+  const counting = op.warningTag(row, 80.9, 1400);
+  assert.deepEqual([counting.state, counting.short, counting.text, counting.drone], ['ahead', '+41 s', 'CAMERAS +41 s', false]);
+  const gained = op.warningTag(row, 150, 1400);
+  assert.deepEqual([gained.state, gained.short, gained.text, gained.drone], ['gained', '+77 s', '+77 s BEFORE RADAR', true]);
+  assert.equal(gained.width, Math.ceil('+77 s'.length * 6.7 + 12), 'the map label is sized for the short form');
+  // A wing that turns away and never comes inside the radar's reach keeps counting.
+  assert.equal(op.warningTag({...row, radar_t: null, radar_range_m: null, gain_s: null}, 150, 1400).short, '+110 s');
+  // First placed inside the radar's reach, or seen by the radar at the same moment: never early, no tag.
+  assert.equal(op.warningTag({id: 'DW-009', fix_t: 101.8, fix_range_m: 1330, radar_t: null, gain_s: null}, 105, 1400), null);
+  assert.equal(op.warningTag({id: 'DW-009', fix_t: 101.8, fix_range_m: 1330, radar_t: 101.8, gain_s: 0}, 105, 1400), null);
+  assert.equal(op.warningTag(undefined, 105, 1400), null);
+});
+
+test('with a camera network the view takes in every camera and the contacts, beside the boxes on the left', () => {
+  const site = {x: 0, y: 0, radius_m: 600}, viewport = {w: 1100, h: 800};
+  const cameras = [{x: -1900, y: 1500}, {x: 1900, y: 1500}, {x: 2000, y: -200}, {x: -2000, y: -200}, {x: 0, y: -1500}, {x: 0, y: 1500}];
+  const far = [{x: -150, y: 3250}], near = [{x: -150, y: 1200}, {x: 300, y: 900}];
+  const onScreen = (view, p, left) => {
+    const q = op.project(view, viewport).toScreen(p.x, p.y);
+    return q.px >= (left || 0) + 30 && q.px <= viewport.w - 30 && q.py >= 30 && q.py <= viewport.h - 30;
+  };
+  const open = op.operatorCamera(far, site, viewport, {left: 262, right: 0}, cameras);
+  for (const p of [...cameras, ...far, {x: 0, y: -600}]) assert.ok(onScreen(open, p, 262), JSON.stringify(p));
+  // As the group comes in the furthest thing to show is nearer, so the picture closes in on the network.
+  const closed = op.operatorCamera(near, site, viewport, {left: 262, right: 0}, cameras);
+  assert.ok(closed.scale > open.scale * 1.25, `${closed.scale} vs ${open.scale}`);
+  for (const p of [...cameras, ...near]) assert.ok(onScreen(closed, p, 262), JSON.stringify(p));
+  // The site is not pinned to a place on the screen in this mode, and without cameras nothing changes.
+  const sitePy = v => op.project(v, viewport).toScreen(0, 0).py;
+  assert.ok(Math.abs(sitePy(open) - sitePy(closed)) > 40);
+  assert.deepEqual(op.operatorCamera(far, site, viewport, null, []), op.operatorCamera(far, site, viewport, null));
+});
+
+test('the camera network has its key, its counter and its demo link on the page', () => {
+  for (const id of ['net-box', 'net-title', 'net-radar', 'net-note']) assert.ok(html.includes(`id="${id}"`), id);
+  assert.ok(html.includes("demo==='cameras'") && html.includes("state.lossMode='camera_network'"));
+  assert.ok(html.includes('Camera detections here are simulated.'), 'the page says what is simulated');
+  assert.ok(/\.net-box\[hidden\]\{display:none\}/.test(html));
+});
+
+test('the view is left alone for a small drift and moved at once for a contact off the picture', () => {
+  const viewport = {w: 1100, h: 800}, ref = {cx: 0, cy: 900, scale: 0.15};
+  const inside = [{x: 0, y: 2000}], above = [{x: 0, y: 900 + 400 / 0.15}];      // 400 px above the middle: off the top
+  const nudge = {cx: 0, cy: 930, scale: 0.155};
+  // Ordinary modes: only a large drift, or a contact under a box at the side, moves the view.
+  assert.equal(op.needsReframe(ref, nudge, inside, viewport, null, false), false);
+  assert.equal(op.needsReframe(ref, {cx: 0, cy: 900, scale: 0.17}, inside, viewport, null, false), true, 'thirteen percent closer');
+  assert.equal(op.needsReframe(ref, nudge, above, viewport, null, false), false, 'without boxes or a network nothing is checked');
+  const underBox = [{x: (120 - 550) / 0.15, y: 900}];                             // 120 px from the left edge
+  assert.equal(op.needsReframe(ref, nudge, underBox, viewport, {left: 262, right: 0}, false), true);
+  // With a camera network the view is steadier, and the top and bottom of the picture count too.
+  assert.equal(op.needsReframe(ref, {cx: 0, cy: 900, scale: 0.17}, inside, viewport, {left: 262, right: 0}, true), false, 'thirteen percent is not enough here');
+  assert.equal(op.needsReframe(ref, {cx: 0, cy: 900, scale: 0.19}, inside, viewport, {left: 262, right: 0}, true), true);
+  assert.equal(op.needsReframe(ref, nudge, above, viewport, {left: 262, right: 0}, true), true, 'a contact above the picture');
+  assert.equal(op.needsReframe(ref, ref, above, viewport, {left: 262, right: 0}, true), false, 'nothing better to move to');
+});

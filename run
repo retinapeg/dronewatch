@@ -6,6 +6,10 @@
 # It gets the latest code, stops whatever is already using the port, starts the
 # server and opens the demo in the browser. Stop it with Ctrl+C.
 #
+# The demo it opens is the camera network: fixed cameras round the site place
+# an incoming group before the radar can see it. The other demo, the Viso Now
+# camera check, is one click away on that page, and is the one --viso opens.
+#
 #   ./run --viso        also let Viso Now reach this computer: makes a secret
 #                       if there is none, opens a public tunnel (cloudflared)
 #                       and puts the webhook address on the clipboard, ready to
@@ -95,7 +99,8 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-URL="http://127.0.0.1:$PORT/preview?demo=viso"
+if [ "$VISO" = 1 ]; then DEMO=viso; else DEMO=cameras; fi
+URL="http://127.0.0.1:$PORT/preview?demo=$DEMO"
 echo "Starting DroneWatch at $URL  (Ctrl+C to stop)"
 if [ "$OPEN" = 1 ] && command -v open >/dev/null 2>&1; then
   ( sleep 2; open "$URL" ) &

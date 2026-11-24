@@ -46,7 +46,11 @@ def test_links_to_server_only_pages_are_replaced():
     page = site.build(SOURCE, "")
     links = re.findall(r"""<a\b[^>]*\bhref=["']([^"']+)["']""", page)
     assert links, "the page should still have its links"
-    assert all(link.startswith("https://github.com/retinapeg/dronewatch") for link in links)
+    # The links between the two demos stay on this page, which needs no server. Every other link
+    # would lead to a page only the server has, and goes to the repository instead.
+    same_page = [link for link in links if link.startswith("?demo=")]
+    assert sorted(same_page) == ["?demo=cameras", "?demo=viso"]
+    assert all(link.startswith("https://github.com/retinapeg/dronewatch") for link in links if link not in same_page)
 
 
 def test_a_page_one_folder_down_reaches_its_files_one_folder_up():
